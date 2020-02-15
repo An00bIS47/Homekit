@@ -1,0 +1,11 @@
+zeroconf
+hkdf
+ed25519
+dbus-python
+pycairo
+PyGObject
+gatt
+cryptography>=2.5
+coverage
+flake8
+pytest

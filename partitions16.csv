@@ -1,0 +1,80 @@
+##
+## Espressif ESP32 Partition Table
+##
+## For Homekit
+##
+## Version 1.0
+##
+## Flash Size 4 MB  ==  4192K
+##  - initial offset      52K       => r: 4140K
+##  - ota data             8K       => r: 4132K
+##  - phy_init             4K       => r: 4124K
+##  - ota 1             1958K       => 
+##  - ota 2             1958K       => 
+##  - nvs keys             4K       => 
+##  - nvs                 16K       => 
+##  - spiffs              32K       => 
+##                   ============
+##
+## Name,    Type,       SubType,    Offset,     Size,   Flags
+
+## Offset:      0xD000   == 0000D000       =   53248    == 52K
+
+##
+## OTA data
+## required for OTA
+## Name,    Type,       SubType,    Offset,     Size,   Flags
+otadata,    data, 		ota,        0xD000,  	8K
+
+## Offset:      0xD000   == 0000D000       =   53248 + 8K      = 61440     == 0000F000     =>  0xF000
+
+##
+## PHY INIT
+## Name,    Type,       SubType,    Offset,     Size,   Flags
+phy_init, 	data, 		phy,        0xF000,     4K
+
+## Offset:    0xF000   == 0000F000       =   61440 + 4K      = 65536      == 00010000     =>  0x10000
+
+##
+## OTA 
+##
+## Name,    Type,       SubType,    Offset,     Size,   Flags
+#ota_0,      app,        ota_0,      0x10000,    1958K,
+#ota_1,      app,        ota_1,      ,           1958K,
+
+##
+## 16MB
+##
+ota_0,      app,        ota_0,      0x10000,    2560K,
+ota_1,      app,        ota_1,      ,           2560K,
+
+##
+## NVS Keys (Preferences Keys)
+##
+## Needed for Preferences 
+## Name,    Type,       SubType,    Offset,     Size,   Flags
+nvs_key,    data,       nvs_keys,   ,           4K,
+
+##
+## NVS (Preferences)
+##
+## Sizes depending on OTA:
+## 
+## start was address: 0x3ae800 (w/o nvs_keys) att 1850K
+## 3860480 == 0x3ae800 (@1850K)
+## 
+## Name,    Type,       SubType,    Offset,     Size,   Flags
+nvs,        data,       nvs,        ,           32K,
+
+
+##
+## SPIFFS
+## Name,    Type,       SubType,    Offset,     Size,   Flags
+## spiffs,     data,       spiffs,     ,        32K,
+
+## Unused Space
+## 4194304  -   4188160  ==  6144 / 1024 = 6K
+##
+## FLASH END
+## 4194304 == 00400000 == 0x400000
+## 

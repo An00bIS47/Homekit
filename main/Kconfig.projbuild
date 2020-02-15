@@ -1,0 +1,103 @@
+menu "Homekit Configuration"
+
+menu "Logging and debugging"
+config HOMEKIT_DEBUG
+    bool "Enable debugging output for Homekit"
+    default y
+    help
+
+choice HOMEKIT_LOG_DEFAULT_LEVEL
+    bool "Default log level"
+    default HOMEKIT_LOG_DEFAULT_LEVEL_VERBOSE
+    help
+        Specify how much output to see in logs by default.
+
+config HOMEKIT_LOG_DEFAULT_LEVEL_NONE
+    bool "No output"
+config HOMEKIT_LOG_DEFAULT_LEVEL_ERROR
+    bool "Error"
+config HOMEKIT_LOG_DEFAULT_LEVEL_WARN
+    bool "Warning"
+config HOMEKIT_LOG_DEFAULT_LEVEL_INFO
+    bool "Info"
+config HOMEKIT_LOG_DEFAULT_LEVEL_DEBUG
+    bool "Debug"
+config HOMEKIT_LOG_DEFAULT_LEVEL_VERBOSE
+    bool "Verbose"
+endchoice
+
+config HOMEKIT_LOG_DEFAULT_LEVEL
+    int
+    default 0 if HOMEKIT_LOG_DEFAULT_LEVEL_NONE
+    default 1 if HOMEKIT_LOG_DEFAULT_LEVEL_ERROR
+    default 2 if HOMEKIT_LOG_DEFAULT_LEVEL_WARN
+    default 3 if HOMEKIT_LOG_DEFAULT_LEVEL_INFO
+    default 4 if HOMEKIT_LOG_DEFAULT_LEVEL_DEBUG
+    default 5 if HOMEKIT_LOG_DEFAULT_LEVEL_VERBOSE
+
+config HOMEKIT_RESET_EEPROM
+    bool "Reset EEPROM and remove pairings on each reboot"
+    default n
+    help
+
+endmenu
+
+
+menu "Accessory Configuration"
+config HOMEKIT_HOSTNAME_PREFIX
+    string "Prefix of the accessory hostname"
+    default "esp32-"        
+    help
+
+config HOMEKIT_MANUFACTURER
+    string "Name of the manufacturer"
+    default "ACME"        
+    help
+
+config HOMEKIT_MODELL_NAME
+    string "Name of the modell"
+    default "Huzzah32"        
+    help    
+
+config HOMEKIT_PINCODE
+    string "Pairing pincode of the accessory"
+    default "031-45-712"
+    help    
+
+endmenu
+
+
+menu "Cryptography"
+config HOMEKIT_USE_MBEDTLS
+    bool "Use mbedtls and libsodium instead of wolfSSL"
+    default y
+    help
+
+config HOMEKIT_USE_MBEDTLS_SRP
+    bool "Use mbedtls SRP instead of WolfSSL"
+    depends on HOMEKIT_USE_MBEDTLS
+    default y
+    help     
+
+config HOMEKIT_USE_MBEDTLS_POLY
+    bool "Use mbedtls Poly1305Chacha20 instead of WolfSSL"
+    depends on HOMEKIT_USE_MBEDTLS
+    default y
+    help
+
+config HOMEKIT_USE_MBEDTLS_HKDF
+    bool "Use mbedtls HKDF instead of WolfSSL"
+    depends on HOMEKIT_USE_MBEDTLS
+    default y
+    help    
+
+config HOMEKIT_USE_LIBSODIUM
+    bool "Use curve25519 and ed25519 from libsodium instead of WolfSSL"
+    depends on HOMEKIT_USE_MBEDTLS
+    default y
+    help         
+
+endmenu
+
+
+endmenu

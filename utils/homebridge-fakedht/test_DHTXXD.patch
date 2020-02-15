@@ -1,0 +1,21 @@
+--- orig/test_DHTXXD.c	2016-02-16 22:53:10.000000000 -0500
++++ test_DHTXXD.c	2016-06-21 19:59:39.290481549 -0400
+@@ -125,7 +125,7 @@
+ 
+ void cbf(DHTXXD_data_t r)
+ {
+-   printf("%d %.1f %.1f\n", r.status, r.temperature, r.humidity);
++   printf("%d %.1f C %.1f %%\n", r.status, r.temperature, r.humidity);
+ }
+ 
+ int main(int argc, char *argv[])
+@@ -155,6 +155,9 @@
+       DHTXXD_cancel(dht); /* Cancel DHTXX. */
+ 
+       pigpio_stop(pi); /* Disconnect from local Pi. */
++   } else {
++	fprintf(stderr, "ERROR: pigpiod not running\n");
++	return 1;
+    }
+    return 0;
+ }

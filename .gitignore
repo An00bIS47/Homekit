@@ -1,0 +1,98 @@
+### Arduino ###
+build/
+
+
+### macOS ###
+*.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+### HAP Spec ###
+docs/HAP-Specification-Non-Commercial-Version-2.pdf
+docs/.*
+
+### Eclipse ###
+.cproject
+.project
+.settings
+
+### elasticbeanstalk ###
+utils/update_server/.*
+
+### Backup ###
+*.bak
+*.old
+old
+
+### Log files ###
+*.log
+
+### WIFI Credentials ###
+WiFiCredentials.hpp
+
+### buildnumber ###
+buildnumber
+utils/buildnumber/buildnumber
+utils/buildnumber/*.o
+
+### node_modules ###
+node_modules/
+
+### scripts ###
+git-submodules.sh
+init-modules.sh
+update.sh
+
+### ToDo ###
+ToDo.txt
+
+### cppcheck ###
+cppcheck.log
+
+### certs ###
+# certs/*/*.h
+# certs/*/*.privatekey
+# certs/*/*.key
+# certs/*/*.csr
+# certs/*/*.pem
+# certs/*/*.crt
+# certs/*/*.der
+# certs/*/*.p12
+
+*.h
+*.der
+*.crt
+*.pem
+*.csr
+*.privatekey
+*.key
+*.p12
+
+
+### vscode ###
+.vscode/
+
+### git-sizer ###
+git-sizer
+
+### tmp ### 
+*.tmp
+
+### SPIFFS ###
+spiffs/config.json
+*.spiffs
+
+
+
+### config.json
+config.json
+config.*
+
+### www/dev
+www/dev/*

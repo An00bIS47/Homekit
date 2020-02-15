@@ -1,0 +1,31 @@
+{
+  "name": "homebridge-fakedht",
+  "version": "0.1.2",
+  "description": "Homebridge accessory plugin that support's connecting a dht22 Temperature/Humidity Sensor to a Raspberry PI.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "nodemcu",
+    "dht22",
+    "homebridge",
+    "homebridge-plugin"
+  ],
+  "engines": {
+    "node": ">=0.12.0",
+    "homebridge": ">=0.2.0"
+  },
+  "dependencies": {
+    "debug": "^2.6.9",
+    "fakegato-history": "^=0.4.0",
+    "mcuiot-logger": "0.0.6",
+    "moment": "^2.20.1"
+  },
+  "author": "NorthernMan54",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/NorthernMan54/homebridge-dht/issues"
+  },
+  "homepage": "https://github.com/NorthernMan54/homebridge-dht#readme"
+}

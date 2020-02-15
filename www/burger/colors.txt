@@ -1,0 +1,7 @@
+colors:
+
+orange
+#cdcdcd
+#232323
+#07D
+

@@ -1,0 +1,362 @@
+/*
+ * Made by Erik Terwan
+ * 24th of November 2015
+ * MIT License
+ *
+ *
+ * If you are thinking of using this in
+ * production code, beware of the browser
+ * prefixes.
+ */
+@import "fonts.css"; 
+
+body
+{
+  margin: 0;
+  padding: 0;
+  
+  /* make it look decent enough */
+  background: #232323;
+  color: #cdcdcd;
+  font-family: "Avenir Next", "Avenir", sans-serif;
+  height: 100%;
+}
+
+h1
+{
+    font-size: 22px;
+    font-weight: normal;
+}
+
+
+#main {
+  transition: margin-left .5s;
+  padding: 16px; 
+}
+
+#menuToggle
+{
+  display: block;
+  position: relative;
+  top: 50px;
+  left: 50px;
+  
+  z-index: 1;
+  
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+#menuToggle a
+{
+  text-decoration: none;
+  color: #232323;
+  
+  transition: color 0.3s ease;
+}
+
+#menuToggle a:hover
+{
+  color: orange;
+}
+
+
+#menuToggle input
+{
+  display: block;
+  width: 40px;
+  height: 32px;
+  position: absolute;
+  top: -7px;
+  left: -5px;
+  
+  cursor: pointer;
+  
+  opacity: 0; /* hide this */
+  z-index: 2; /* and place it over the hamburger */
+  
+  -webkit-touch-callout: none;
+}
+
+/*
+ * Just a quick hamburger
+ */
+#menuToggle span
+{
+  display: block;
+  width: 33px;
+  height: 4px;
+  margin-bottom: 5px;
+  position: relative;
+
+  /* background: #cdcdcd; */
+  background: orange;
+  /* background: #07 */
+
+  border-radius: 3px;
+  
+  z-index: 1;
+  
+  transform-origin: 4px 0px;
+  
+  transition: transform 0.5s cubic-bezier(0.77,0.2,0.05,1.0),
+              background 0.5s cubic-bezier(0.77,0.2,0.05,1.0),
+              opacity 0.55s ease;
+}
+
+#menuToggle span:first-child
+{
+  transform-origin: 0% 0%;
+}
+
+#menuToggle span:nth-last-child(2)
+{
+  transform-origin: 0% 100%;
+}
+
+
+/* 
+ * Transform all the slices of hamburger
+ * into a crossmark.
+ */
+#menuToggle input:checked ~ span
+{
+  opacity: 1;
+  transform: rotate(45deg) translate(-2px, -1px);
+  background: #232323;
+}
+
+/*
+ * But let's hide the middle one.
+ */
+#menuToggle input:checked ~ span:nth-last-child(3)
+{
+  opacity: 0;
+  transform: rotate(0deg) scale(0.2, 0.2);
+}
+
+/*
+ * Ohyeah and the last one should go the other direction
+ */
+#menuToggle input:checked ~ span:nth-last-child(2)
+{
+  transform: rotate(-45deg) translate(0, -1px);
+}
+
+/*
+ * Make this absolute positioned
+ * at the top left of the screen
+ */
+#menu
+{
+  position: absolute;
+  width: 200px;
+  
+  height: 82vh;
+  
+
+  margin: -100px 0 0 -50px;
+
+
+  padding: 50px;
+  padding-top: 125px;
+  
+  background: #ededed;
+  list-style-type: none;
+  -webkit-font-smoothing: antialiased;
+  /* to stop flickering of text in safari */
+  
+  transform-origin: 0% 0%;
+  transform: translate(-100%, 0);
+  
+  transition: transform 0.5s cubic-bezier(0.77,0.2,0.05,1.0);
+}
+
+#menu li
+{
+  padding: 10px 0;
+  font-size: 22px;
+}
+
+/*
+ * And let's slide it in from the left
+ */
+#menuToggle input:checked ~ ul
+{
+  transform: none;
+}
+
+#mainTitle
+{  
+  position: absolute;
+  top: -14px;    
+  font-size: 3em;  
+  color: orange;
+  padding-left: 50px;
+
+}
+
+#mainContent 
+{ 
+  position: relative;
+  padding-top: 55px;    
+  color: #cdcdcd;
+  padding-left: 35px;
+}
+
+svg {
+  fill: #cdcdcd;
+  background-color: #232323;
+}
+
+
+#pincode_container {
+  position: absolute;  
+}
+
+#pin_code {  
+  padding: 5px 5px 5px 50px;
+  font-size: 1.5em;
+  letter-spacing: 0.05em;
+  font-family: "Avenir Next";
+}
+
+#rcorners1 {
+  border-radius: 5px;
+  border: 2px solid #cdcdcd;;
+  padding: 2px 5px 2px 5px;  
+  height: auto;  
+}
+
+.homekit_glyph {  
+  width: 45px;
+  height: 45px;
+}
+
+
+#flexContainer {
+  display: block;
+  /* background-color: blue; */
+}
+
+
+
+#flexLeft {
+  /* background-color: lightblue; */
+  flex: 1;
+  margin-right: 35px;
+  padding-bottom: 30px;
+}
+
+#flexRight {
+  flex: 3.5;
+  /* background-color: lightgreen; */
+  margin-right: 35px;
+  padding-bottom: 30px;
+}
+
+@media only screen and (min-width: 800px) {
+  #flexContainer {
+    display: flex;
+  }
+
+  #flexRight {
+    padding-left: 35px;
+  }
+}
+
+
+/*#footer {
+    position:absolute;
+    bottom: 0;
+    width: 100%;
+    color: #cdcdcd;
+    text-align: center;
+    padding-bottom: 5px;    
+    height: 30px;
+}*/
+
+
+
+
+
+
+
+
+ul.icon
+{
+  list-style-type: none;
+}
+
+ul.icon li
+{
+  text-indent: -1.4em;
+}
+
+
+ul.icon li:before
+{
+  font-family: fontello;
+  content: "\e800";
+  float: left;
+  width: 1.4em;
+  padding-top: 1px;
+  padding-right: 3px;
+}
+
+
+.smallText {
+  padding-left: 8px;
+  font-size: 0.7em;
+}
+
+.smallText:before { content: '['; }
+.smallText:after { content: ']'; }
+
+
+ul.icon li.ok:before { content: "\e800"; }
+ul.icon li.cancel:before { content: "\e801"; }
+
+.desc {
+  width: 120px;
+}
+
+.highlight {
+  color:orange;
+}
+
+.tooltip {
+  position: relative;
+  display: inline-block;
+  border-bottom: 1px dotted #232323;
+}
+
+.tooltip .tooltiptext {
+  visibility: hidden;
+  width: 120px;
+  background-color: #cdcdcd;
+  color: #232323;
+  text-align: center;
+  border-radius: 6px;
+  padding: 5px 0;
+  position: absolute;
+  z-index: 1;
+  top: 150%;
+  left: 70%;
+  margin-left: -60px;
+}
+
+.tooltip .tooltiptext::after {
+  content: "";
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: transparent transparent #cdcdcd transparent;
+}
+
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+}

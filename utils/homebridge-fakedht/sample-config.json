@@ -1,0 +1,24 @@
+{
+    "bridge": {
+        "name": "Penny",
+        "username": "CC:22:3D:E3:CD:33",
+        "port": 51826,
+        "pin": "031-45-154"
+    },
+
+    "description": "HomeBridge DHT Temp/Humidity Sensor",
+
+    "platforms": [],
+
+    "accessories": [{
+        "accessory": "Dht",
+        "name": "cputemp",
+        "service": "Temperature"
+    }, {
+        "accessory": "Dht",
+        "name": "Temp/Humidity Sensor",
+        "service": "dht22"
+    }]
+
+
+}

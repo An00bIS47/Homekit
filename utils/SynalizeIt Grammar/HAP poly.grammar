@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ufwb version="1.17">
+    <grammar name="HAP poly1305" start="id:16" author="michael" uti="public.data">
+        <description>Grammar for my file format</description>
+        <structure name="File" id="16" encoding="UTF-8" endian="little" signed="no">
+            <number name="AAD" id="18" fillcolor="EBD98C" type="integer" length="2"/>
+            <binary name="padding" id="19" fillcolor="F5C8FD" length="14"/>
+            <binary name="data" id="20" fillcolor="68FF81" length="AAD"/>
+            <binary name="padding 2" id="24" fillcolor="F5C8FD" length="12"/>
+            <number name="AAD length" id="25" fillcolor="54E4FF" type="integer" length="2"/>
+            <binary name="padding 3" id="26" fillcolor="F5C8FD" length="14"/>
+        </structure>
+    </grammar>
+</ufwb>
