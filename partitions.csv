@@ -1,0 +1,75 @@
+##
+## Espressif ESP32 Partition Table
+##
+## For Homekit
+##
+## Version 1.0
+##
+## Flash Size 4 MB  ==  4192K
+##  - initial offset      52K       => r: 4140K
+##  - ota data             8K       => r: 4132K
+##  - phy_init             4K       => r: 4124K
+##  - ota 1             1958K       => 
+##  - ota 2             1958K       => 
+##  - nvs keys             4K       => 
+##  - nvs                 16K       => 
+##  - spiffs              48K       => 
+##                   ============
+##
+
+## Data Partition table:
+## Type: 01 SubType 00 Address 0x00D000 Size 0x002000 Encryption 0 Label otadata        53248 +    8192 = 61.440
+## Type: 01 SubType 01 Address 0x00F000 Size 0x001000 Encryption 0 Label phy_init	    61440 +    4096 = 65.536
+
+## App Partition table:
+## Type: 00 SubType 10 Address 0x010000 Size 0x1E9800 Encryption 0 Label ota_0		    65536 + 2004992 = 2070528		=> 26624 
+## Type: 00 SubType 11 Address 0x200000 Size 0x1E9800 Encryption 0 Label ota_1		  2097152 + 2004992 = 4102144		
+
+## NVS Partition table:
+## Type: 01 SubType 04 Address 0x3E9800 Size 0x001000 Encryption 0 Label nvs_key	  4102144 +    4096 = 4106240
+## Type: 01 SubType 02 Address 0x3EA800 Size 0x008000 Encryption 0 Label nvs          4106240 +    4096 = 4110336
+
+## Storage Partition table:
+## Type: 01 SubType 82 Address 0x3F2800 Size 0x00C000 Encryption 0 Label storage      4139008 +   49152 = 4188160
+
+## Available																	       					  4194304		=> 6144
+
+## Name,    Type,       SubType,    Offset,     Size,   Flags
+
+## Offset:      0xD000   == 0000D000       =   53248    == 52K
+
+##
+## OTA data
+## required for OTA
+## Name,    Type,       SubType,    Offset,     Size,   Flags
+otadata,    data, 		ota,        0xD000,  	8K
+
+##
+## PHY INIT
+## Name,    Type,       SubType,    Offset,     Size,   Flags
+phy_init, 	data, 		phy,        0xF000,     4K
+
+##
+## OTA 
+##
+## Name,    Type,       SubType,    Offset,     Size,   Flags
+ota_0,      app,        ota_0,      0x10000,    1958K,
+ota_1,      app,        ota_1,      ,           1958K,
+
+##
+## NVS Keys (Preferences Keys)
+##
+## Needed for Preferences 
+## Name,    Type,       SubType,    Offset,     Size,   Flags
+nvs_key,    data,       nvs_keys,   ,           4K,
+
+##
+## NVS (Preferences)
+##
+## Name,    Type,       SubType,    Offset,     Size,   Flags
+nvs,        data,       nvs,        ,           32K,
+
+##
+## SPIFFS
+## Name,    Type,       SubType,    Offset,     Size,   Flags
+#storage,    data,       spiffs,     ,           48K,

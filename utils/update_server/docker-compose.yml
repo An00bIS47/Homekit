@@ -1,0 +1,12 @@
+version: '2'
+services:
+  update_server:
+    build: 
+      context: "."
+      dockerfile: Dockerfile
+    container_name: update_server
+    restart: always
+    volumes:
+      - ./firmwares:/home/node/app/firmwares
+    ports:
+      - "3001:3001"

@@ -1,0 +1,380 @@
+{
+  "accessories": [
+    {
+      "aid": 1,
+      "services": [
+        {
+          "iid": 1,
+          "type": "3E",
+          "characteristics": [
+            {
+              "value": "esp32-CAFEEC",
+              "perms": [
+                "pr"
+              ],
+              "type": "23",
+              "iid": 2,
+              "maxLen": 32,
+              "format": "string"
+            },
+            {
+              "perms": [
+                "pw"
+              ],
+              "type": "14",
+              "iid": 3,
+              "format": "bool"
+            },
+            {
+              "value": "C4",
+              "perms": [
+                "pr"
+              ],
+              "type": "20",
+              "iid": 4,
+              "maxLen": 32,
+              "format": "string"
+            },
+            {
+              "value": "Huzzah32",
+              "perms": [
+                "pr"
+              ],
+              "type": "21",
+              "iid": 5,
+              "maxLen": 32,
+              "format": "string"
+            },
+            {
+              "value": "44-22-777",
+              "perms": [
+                "pr"
+              ],
+              "type": "30",
+              "iid": 6,
+              "maxLen": 32,
+              "format": "string"
+            },
+            {
+              "value": "0.1.0.113",
+              "perms": [
+                "pr"
+              ],
+              "type": "52",
+              "iid": 7,
+              "maxLen": 32,
+              "format": "string"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "aid": 2,
+      "services": [
+        {
+          "iid": 1,
+          "type": "3E",
+          "characteristics": [
+            {
+              "value": "MiFlora",
+              "perms": [
+                "pr"
+              ],
+              "type": "23",
+              "iid": 2,
+              "maxLen": 32,
+              "format": "string"
+            },
+            {
+              "perms": [
+                "pw"
+              ],
+              "type": "14",
+              "iid": 3,
+              "format": "bool"
+            },
+            {
+              "value": "Xioami",
+              "perms": [
+                "pr"
+              ],
+              "type": "20",
+              "iid": 4,
+              "maxLen": 32,
+              "format": "string"
+            },
+            {
+              "value": "Flower Care",
+              "perms": [
+                "pr"
+              ],
+              "type": "21",
+              "iid": 5,
+              "maxLen": 32,
+              "format": "string"
+            },
+            {
+              "value": "83dec65a83d2dfe193179e1d32b40643",
+              "perms": [
+                "pr"
+              ],
+              "type": "30",
+              "iid": 6,
+              "maxLen": 32,
+              "format": "string"
+            },
+            {
+              "value": "3.2.1",
+              "perms": [
+                "pr"
+              ],
+              "type": "52",
+              "iid": 7,
+              "maxLen": 32,
+              "format": "string"
+            }
+          ]
+        },
+        {
+          "iid": 8,
+          "type": "96",
+          "characteristics": [
+            {
+              "value": 99,
+              "minValue": 0,
+              "maxValue": 100,
+              "minStep": 1,
+              "perms": [
+                "pr",
+                "ev"
+              ],
+              "type": "68",
+              "iid": 9,
+              "unit": "percentage",
+              "format": "int"
+            },
+            {
+              "value": 0,
+              "minValue": 0,
+              "maxValue": 1,
+              "minStep": 1,
+              "perms": [
+                "pr",
+                "ev"
+              ],
+              "type": "79",
+              "iid": 10,
+              "unit": "",
+              "format": "int"
+            },
+            {
+              "value": 2,
+              "minValue": 0,
+              "maxValue": 2,
+              "minStep": 1,
+              "perms": [
+                "pr"
+              ],
+              "type": "8F",
+              "iid": 11,
+              "unit": "",
+              "format": "int"
+            }
+          ]
+        },
+        {
+          "iid": 12,
+          "type": "8A",
+          "characteristics": [
+            {
+              "value": "Temperature Sensor",
+              "perms": [
+                "pr"
+              ],
+              "type": "23",
+              "iid": 13,
+              "maxLen": 32,
+              "format": "string"
+            },
+            {
+              "value": 19.1,
+              "minValue": -50.000000,
+              "maxValue": 100.000000,
+              "minStep": 0.100000,
+              "perms": [
+                "pr",
+                "ev"
+              ],
+              "type": "11",
+              "iid": 14,
+              "unit": "celsius",
+              "format": "float"
+            },
+            {
+              "value": "2019-12-29 04:53:46.430",
+              "perms": [
+                "pr",
+                "ev"
+              ],
+              "type": "00000023-0000-1000-8000-656261617577",
+              "iid": 15,
+              "maxLen": 32,
+              "format": "string"
+            }
+          ]
+        },
+        {
+          "iid": 16,
+          "type": "82",
+          "characteristics": [
+            {
+              "value": "Moisture Sensor",
+              "perms": [
+                "pr"
+              ],
+              "type": "23",
+              "iid": 17,
+              "maxLen": 32,
+              "format": "string"
+            },
+            {
+              "value": 54.0,
+              "minValue": 0.000000,
+              "maxValue": 100.000000,
+              "minStep": 0.100000,
+              "perms": [
+                "pr",
+                "ev"
+              ],
+              "type": "10",
+              "iid": 18,
+              "unit": "percentage",
+              "format": "float"
+            }
+          ]
+        },
+        {
+          "iid": 19,
+          "type": "84",
+          "characteristics": [
+            {
+              "value": "Light Sensor",
+              "perms": [
+                "pr"
+              ],
+              "type": "23",
+              "iid": 20,
+              "maxLen": 32,
+              "format": "string"
+            },
+            {
+              "value": 4215.0,
+              "minValue": 0.000000,
+              "maxValue": 100000.000000,
+              "minStep": 0.100000,
+              "perms": [
+                "pr",
+                "ev"
+              ],
+              "type": "6B",
+              "iid": 21,
+              "unit": "lux",
+              "format": "float"
+            }
+          ]
+        },
+        {
+          "iid": 22,
+          "type": "FA526290-82D7-4C29-9A66-8E7919C7035D",
+          "characteristics": [
+            {
+              "value": "Fertility Sensor",
+              "perms": [
+                "pr"
+              ],
+              "type": "23",
+              "iid": 23,
+              "maxLen": 32,
+              "format": "string"
+            },
+            {
+              "value": 243.0,
+              "minValue": 0.000000,
+              "maxValue": 10000.000000,
+              "minStep": 0.100000,
+              "perms": [
+                "pr",
+                "ev"
+              ],
+              "type": "E2A8010C-4628-44B6-A844-CB507D62DF41",
+              "iid": 24,
+              "unit": "",
+              "format": "float"
+            }
+          ]
+        },
+        {
+          "iid": 30,
+          "type": "E863F007-079E-48FF-8F27-9C2605A29F52",
+          "characteristics": [
+            {
+              "value": "EVE MiFlora 665728 History",
+              "perms": [
+                "pr"
+              ],
+              "type": "23",
+              "iid": 25,
+              "maxLen": 32,
+              "format": "string"
+            },
+            {
+              "value": null,
+              "perms": [
+                "pr",
+                "ev",
+                "hd"
+              ],
+              "type": "E863F116-079E-48FF-8F27-9C2605A29F52",
+              "iid": 26,
+              "maxLen": 128,
+              "format": "data"
+            },
+            {
+              "value": null,
+              "perms": [
+                "pr",
+                "ev",
+                "hd"
+              ],
+              "type": "E863F117-079E-48FF-8F27-9C2605A29F52",
+              "iid": 27,
+              "maxLen": 320,
+              "format": "data"
+            },
+            {
+              "perms": [
+                "pw",
+                "hd"
+              ],
+              "type": "E863F11C-079E-48FF-8F27-9C2605A29F52",
+              "iid": 28,
+              "maxLen": 128,
+              "format": "data"
+            },
+            {
+              "perms": [
+                "pw",
+                "hd"
+              ],
+              "type": "E863F121-079E-48FF-8F27-9C2605A29F52",
+              "iid": 29,
+              "maxLen": 128,
+              "format": "data"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

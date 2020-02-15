@@ -1,0 +1,17 @@
+# Name,     Type,     SubType,    Offset,   Size,   Flags
+
+# Needed for EEPROM
+nvs,        data,     nvs,        0x9000,   0x5000,
+
+# OTA data
+# required for OTA
+otadata,    data,     ota,        0xe000,   0x2000,
+
+# OTA
+ota_0,      app,      ota_0,      0x10000,  1850K,
+ota_1,      app,      ota_1,      0x1de800, 1850K,
+
+# Needed for Preferences?m
+#nvs_key,   data,     nvs_keys,   0x3ad000, 0x1000,
+
+spiffs,        data,     spiffs,  0x3ae800, 200K,

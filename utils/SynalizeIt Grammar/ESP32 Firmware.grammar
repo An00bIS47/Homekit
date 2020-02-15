@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ufwb version="1.17">
+    <grammar name="ESP32 Firmware" start="id:36" author="An00bIS47">
+        <description>Grammar for ESP32 firmware files (bin)</description>
+        <structure name="ESP32 Firmware" id="36" encoding="ISO_8859-1:1987" endian="big" signed="no">
+            <number name="magic" mustmatch="yes" id="37" fillcolor="A8D5FD" type="integer" length="1" display="hex">
+                <description>ESP32 Magic Number</description>
+                <fixedvalues>
+                    <fixedvalue name="Magic" value="0xE9"/>
+                </fixedvalues>
+            </number>
+            <number name="segment_count" id="38" fillcolor="EBD98C" type="integer" length="1" display="hex"/>
+            <number name="spi_mode" id="39" fillcolor="9CFAB0" type="integer" length="1" display="hex"/>
+            <number name="spi_speed" id="40" fillcolor="72C358" type="integer" length="1"/>
+            <number name="spi_size" id="41" fillcolor="FFA900" type="integer" length="1"/>
+            <number name="entry_addr" id="42" fillcolor="DDA05A" type="integer" length="4" display="hex"/>
+            <number name="encrypt_flag" id="43" fillcolor="DA61EB" type="integer" length="1" display="hex"/>
+            <number name="extra_header" id="44" fillcolor="10BBFF" repeatmax="15" type="integer" length="1" display="hex"/>
+            <scriptelement name="&lt;new script&gt;" id="47">
+                <script name="unnamed">
+                    <source language="Python"></source>
+                </script>
+            </scriptelement>
+        </structure>
+    </grammar>
+</ufwb>

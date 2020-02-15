@@ -1,0 +1,23 @@
+language: python
+matrix:
+    include:
+        - os: linux
+          dist: xenial
+          python: 3.5
+        - os: linux
+          dist: xenial
+          python: 3.6
+        - os: linux
+          dist: xenial
+          python: 3.7
+        - os: osx
+          language: generic
+          env: PYTHON=3.5.6
+
+before_install:
+    - ./.travis/install.sh
+script:
+    - flake8 homekit
+    - coverage run -m pytest tests/
+after_success:
+    - coveralls

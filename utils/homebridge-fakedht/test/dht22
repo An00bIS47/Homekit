@@ -1,0 +1,3 @@
+TEMP=`date | awk '{ print $5 }' | cut -d: -f1-2 | sed -e 's/:/./'`
+HUMID=`date | awk '{ print $5 }' | cut -d: -f2-3 | sed -e 's/:/./'`
+echo "0 $TEMP C $HUMID %"

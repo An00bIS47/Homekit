@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ufwb version="1.17">
+    <grammar name="HAP verify" start="id:5" author="michael" uti="public.data">
+        <description>Grammar for my file format</description>
+        <structure name="File" id="5" encoding="ISO_8859-1:1987" endian="big" signed="no">
+            <number name="AAD" id="7" fillcolor="CC0033" type="integer" length="2" display="hex"/>
+            <binary name="AAD padding" id="11" fillcolor="F5C8FD" length="14"/>
+            <binary name="cipherText" id="9" fillcolor="9CFAB0" length="1355"/>
+            <number name="cT padding" id="10" fillcolor="F5C8FD" type="integer" length="5"/>
+            <number name="AAD length" id="12" fillcolor="CB1D32" type="integer" length="1"/>
+            <binary name="AAD length padding" id="13" fillcolor="F5C8FD" length="7"/>
+            <number name="cT length" id="14" fillcolor="FFF364" type="integer" length="2"/>
+            <binary name="cT length padding" id="15" fillcolor="F5C8FD" length="remaining"/>
+        </structure>
+    </grammar>
+</ufwb>
