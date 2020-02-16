@@ -100,7 +100,7 @@ function createStorageDir(folderName) {
 
 
 app.post('/api/update', (req, res) => {
-
+	console.log(req);
 	console.log("<< Looking for updates for version " + req.body.version + " rev: " + req.body.feature_rev);
 
 	console.log("-- No of available firmwares: " + config.firmwares.length);
@@ -150,7 +150,8 @@ app.post('/api/update', (req, res) => {
 
 app.get('/api/update', function(req, res){
 
-
+	console.log(req);
+	
 	var name = req.query.name;
 	var version = req.query.version;
 	var feature_rev = req.query.feature_rev;

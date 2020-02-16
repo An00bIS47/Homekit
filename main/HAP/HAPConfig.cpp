@@ -32,7 +32,7 @@ void HAPConfig::begin(){
     
     // homekit
     JsonObject homekit = _config.createNestedObject("homekit");
-    homekit["loglevel"]         = 5;
+    homekit["loglevel"]         = (uint8_t)HAP_LOGLEVEL;
 
     // accessory
     JsonObject accessory = _config.createNestedObject("accessory");

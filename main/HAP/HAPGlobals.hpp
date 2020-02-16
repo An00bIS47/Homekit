@@ -23,7 +23,7 @@
 #define HAP_LOGLEVEL				LogLevel::DEBUG
 #define HAP_PIN_CODE 				"031-45-712"
 #define HAP_HOSTNAME_PREFIX			"esp32"
-#define HAP_MANUFACTURER			"C4"
+#define HAP_MANUFACTURER			"An00bIS47"
 #define HAP_MODELL_NAME				"Huzzah32"
 #define HAP_RESET_EEPROM 			0
 
@@ -147,24 +147,11 @@
 
 #define HAP_PRINT_QRCODE			1		// !!! HAP_GENERATE_XHM must be enabled !!!
 											// Print QR code on console
-											// Default: 0		
-
-#define HAP_UPDATE_ENABLE_FROM_WEB 	0		// Use HAP update server to check
-											// if a update is available on the
-											// provided webserver
-											// Default: 0
-
-#define HAP_UPDATE_ENABLE_OTA		1		// Enable ArduinoOTA	
-											// Default: 0							
-
+											// Default: 0								
 
 
 #define HAP_NTP_ENABLED 			1		// Enable SNTP client
 											// Default: 1
-
-
-#define HAP_ESP_SMARTCONFIG			0		// use espressif smart config for wifi 
-
 
 /**
  * Plugins
@@ -205,11 +192,21 @@ STR(HAP_PLUGIN_USE_BME280)
 /**
  * HAP Update Server
  ********************************************************************/
+
+#define HAP_UPDATE_ENABLE_FROM_WEB 	1		// Use HAP update server to check
+											// if a update is available on the
+											// provided webserver
+											// Default: 0
+
+#define HAP_UPDATE_ENABLE_OTA		1		// Enable ArduinoOTA	
+											// Default: 0	
+
 #if HAP_UPDATE_ENABLE_FROM_WEB
 //#define HAP_UPDATE_SERVER_URL 	"192.168.178.151"	
-#define HAP_UPDATE_SERVER_URL 		"192.168.178.103"	// HTTP Server url for updates
-#define HAP_UPDATE_SERVER_PORT		5000				// Update Server port
+#define HAP_UPDATE_SERVER_HOST 		"homebridge"		// HTTP Server url for updates
+#define HAP_UPDATE_SERVER_PORT		3001				// Update Server port
 #define HAP_UPDATE_ENABLE_SSL		1					// enable SSL for HAP Update
+
 #endif
 #define HAP_UPDATE_TIMEOUT 			2000
 
@@ -264,6 +261,12 @@ STR(HAP_PLUGIN_USE_BME280)
 											// Default: 10
 
 #define HAP_STRING_LENGTH_MAX		64		// Max length of strings for config validation
+
+#define MAX_BRAND_LENGTH 			32
+#define MAX_FIRMWARE_NAME_LENGTH 	32
+#define MAX_FIRMWARE_VERSION_LENGTH	16		 // sizeof("1000.1000.1000.1000");
+
+
 /**
  * SRP - Do not edit !!!
  ********************************************************************/

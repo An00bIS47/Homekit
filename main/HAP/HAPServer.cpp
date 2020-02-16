@@ -69,8 +69,6 @@ HAPServer::HAPServer(uint16_t port, uint8_t maxClients)
 , __HOMEKIT_SIGNATURE("\x25\x48\x4f\x4d\x45\x4b\x49\x54\x5f\x45\x53\x50\x33\x32\x5f\x46\x57\x25")
 {
 	_port = port;
-	//	_clients.resize(maxClients);
-	_firmwareSet = false;
 
 	_previousMillis = 0;
 
@@ -114,7 +112,7 @@ bool HAPServer::begin(bool resume) {
 
 		// Logging
 		HAPLogger::setPrinter(&Serial);
-		HAPLogger::setLogLevel(5);
+		HAPLogger::setLogLevel(HAP_LOGLEVEL);
 
 		/*
 		 * Configuration
@@ -124,21 +122,17 @@ bool HAPServer::begin(bool resume) {
 		_config.registerCallback(callback);
 		_config.begin();
 
+		bool res = _config.load();
+		if (res == false) {
+			LogE("ERROR: Could not load configuration!", true);			
+		} else {
+			LogV("OK", true);
+		}
 		HAPLogger::setLogLevel(_config.config()["homekit"]["loglevel"].as<uint8_t>());
-
-		// bool res = _config.load();
-		// if (res == false) {
-		// 	LogE("ERROR: Could not load configuration!", true);			
-		// } else {
-		// 	LogV("OK", true);
-		// }
-	
-
 
 #if HAP_DEBUG
 
 		HAPLogger::printInfo();
-
 
 		LogD( "\nDevice Information", true);
 		LogD("===================================================", true);	
@@ -312,7 +306,6 @@ bool HAPServer::begin(bool resume) {
 
 
 #if HAP_UPDATE_ENABLE_FROM_WEB || HAP_UPDATE_ENABLE_OTA
-
 	if (_config.config()["update"]["ota"]["enabled"]){
 		//
 		// Starting Arduino OTA
@@ -322,27 +315,13 @@ bool HAPServer::begin(bool resume) {
 		LogV( F("OK"), true);
 	}
 
-
 #if HAP_UPDATE_ENABLE_FROM_WEB
-
-	if (_config.config()["update"]["web"]["enabled"]){
-		//
-		// Looking for Update on AWS
-		//
-		LogV( F("Check for web update ..."), false);
-		
-	#if HAP_UPDATE_ENABLE_SSL
-		_updater.setHostAndPort("https://" + String(HAP_UPDATE_SERVER_URL), HAP_UPDATE_SERVER_PORT);
-	#else
-		_updater.setHostAndPort(HAP_UPDATE_SERVER_URL, HAP_UPDATE_SERVER_PORT);
-	#endif
-
-		if ( _updater.checkUpdateAvailable(&_firmware.version) ) {
-			_updater.execOTA();
-		} else {
-			LogV( F("No update available"), true);	
-		}
-		LogV( F("OK"), true);
+	if (_config.config()["update"]["ota"]["enabled"]){
+#if HAP_UPDATE_ENABLE_SSL	
+		_updater.setHostAndPort(HAP_UPDATE_SERVER_HOST, HAP_UPDATE_SERVER_PORT);
+#else
+		_updater.setHostAndPort(HAP_UPDATE_SERVER_HOST, HAP_UPDATE_SERVER_PORT);
+#endif
 	}
 
 #endif
@@ -581,6 +560,16 @@ bool HAPServer::begin(bool resume) {
 	}
 #endif
 
+// #if HAP_UPDATE_ENABLE_FROM_WEB
+// 	if (_config.config()["update"]["web"]["enabled"]){		
+// 		if ( _updater.checkUpdateAvailable() ) {
+// 			LogI("Online pdate available: " + _updater.onlineVersion() , true);
+// 		} else {
+// 			LogV( F("No update available"), true);	
+// 		}
+// 	}
+// #endif
+
 	free(hostname);
 
 
@@ -750,6 +739,7 @@ void HAPServer::handle() {
     //Serial.println(&_timeinfo, HAP_NTP_TIME_FORMAT);  	
 #endif
 
+	// Handle Webserver
 #if HAP_ENABLE_WEBSERVER
 	if (_config.config()["webserver"]["enabled"]){	
 		_webserver->handle();
@@ -763,11 +753,9 @@ void HAPServer::handle() {
 	}
 #endif	
 
-
-	if (!_stopPlugins){
-		// Handle plugins	
-		for (auto & plugin : _plugins) {
-			
+	// Handle plugins
+	if (!_stopPlugins){			
+		for (auto & plugin : _plugins) {			
 			if (plugin->isEnabled()) {
 				plugin->handle();					
 			}			
@@ -779,10 +767,7 @@ void HAPServer::handle() {
 	_fakeGatoFactory.handle();
 
 	// Handle any events that are in the queue
-	_eventManager.processEvent();
-
-	
-	
+	_eventManager.processEvent();		
 }
 
 #if HAP_NTP_ENABLED
@@ -3448,11 +3433,6 @@ bool HAPServer::isPaired(){
 
 }
 
-
-String HAPServer::versionString(){
-	return _firmware.version.toString();
-}
-
 void HAPServer::stopPlugins(bool value){
 	if (value)
 		_stopPlugins = false;
@@ -3472,9 +3452,6 @@ void HAPServer::__setFirmware(const char* name, const char* version, const char*
 	char ver[20];
 	strncpy(ver, version + 5, strlen(version) - 5);
 	ver[strlen(version) - 5] = '\0';
-
-	_firmware.version = HAPVersion(ver);	
-	_firmwareSet = true;
 }
 
 void HAPServer::__setBrand(const char* brand) {

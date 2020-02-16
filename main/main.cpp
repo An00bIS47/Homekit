@@ -51,7 +51,7 @@ void setup(){
 
 	// Imprint infos to firmware
 	Homekit_setFirmware("Homekit", HOMEKIT_VERSION, HOMEKIT_FEATURE_REV);
-	Homekit_setBrand("An00bIS47");
+	Homekit_setBrand(HAP_MANUFACTURER);
 
 	LogI( F("Starting Homekit "), false);
 	LogI( hap.versionString() + String( " ..."), true);

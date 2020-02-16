@@ -33,7 +33,6 @@
 
 #include "HAPVerifyContext.hpp"
 
-#include "HAPLimits.hpp"
 #include "HAPVersion.hpp"
 #include "HAPTypes.hpp"
 #include "HAPPairings.hpp"
@@ -150,6 +149,15 @@ public:
 	bool begin(bool resume = false);
 	void handle();
 
+	static String versionString(){
+		return HAPVersion(HOMEKIT_VERSION).toString();
+	}
+	
+
+	static HAPVersion version() {
+		return HAPVersion(HOMEKIT_VERSION);
+	}
+
 
 	void __setFirmware(const char* name, const char* version, const char* rev);
 	void __setBrand(const char* brand);
@@ -161,7 +169,7 @@ public:
 	static uint32_t timestamp();
 #endif
 
-	String versionString();
+	
 	bool isPaired();	
 
 	static EventManager _eventManager;
@@ -215,11 +223,6 @@ protected:
 #endif
 
 
-	
-
-	HAPVersion version() {
-		return _firmware.version;
-	}
 
 	//
 	// Homekit HTTP paths
@@ -273,15 +276,7 @@ private:
 #else	
 	void* _srp;
 #endif
-
-	struct {
-		char name[MAX_FIRMWARE_NAME_LENGTH];
-		HAPVersion version;
-	} _firmware;
-
 	char _brand[MAX_BRAND_LENGTH];
-
-	bool _firmwareSet;
 
 	bool _stopEvents;	
 	bool _stopPlugins;

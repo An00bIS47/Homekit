@@ -10,16 +10,18 @@
 #define HAPUPDATE_HPP_
 
 #include <Arduino.h>
+#include <HTTPClient.h>
+
 #include "HAPVersion.hpp"
-
-#if HAP_UPDATE_SSL_ENABLED
-#include <WiFiClientSecure.h>
-#else
-#include <WiFiClient.h>
-#endif
-
 #include "HAPGlobals.hpp"
 
+
+struct HAPUpdateVersionInfo {
+	HAPVersion version;
+	String md5;
+	uint32_t size;
+	uint32_t featureRev;
+};
 
 
 class HAPUpdate {
@@ -30,7 +32,7 @@ public:
 	void begin(const char* local_hostname);
 	void handle();
 
-	void setHostAndPort(const char* url, int port, uint32_t interval = 1000 * 60 * 120) {
+	void setHostAndPort(const char* url, int port, uint32_t interval = 10000) {
 		_port = port;
 		_host = url;
 		_interval = interval;
@@ -41,30 +43,26 @@ public:
 	}
 	
 	bool updateAvailable();
-	bool checkUpdateAvailable(HAPVersion* localVersion);
+	bool checkUpdateAvailable();
 	void execWebupdate();
+
+	String onlineVersion() {
+		return _remoteInfo.version.toString();
+	}
 
 private:
 	bool 			_isOTADone;
-	uint16_t 		_contentLength;
-	bool 			_isValidContentType;
+	
 	String 			_host;
 	uint16_t 		_port;
 	uint32_t 		_interval;
-	unsigned long 	_previousMillis;
-	HAPVersion* 	_localVersion;
+	unsigned long 	_previousMillis;	
 	bool 			_available;
 
-	char 			_expectedMd5[32];
-
-#if HAP_UPDATE_ENABLE_SSL
-	WiFiClientSecure _wifiClient;
-#else
-	WiFiClient _wifiClient;
-#endif
-	HAPVersion _remoteVersion;
-
-	String getHeaderValue(String header, String headerName);
+ 	HAPUpdateVersionInfo _remoteInfo;
+	
+	HTTPClient* _http;
+	// String getHeaderValue(String header, String headerName);
 };
 
 #endif /* HAPUPDATE_HPP_ */

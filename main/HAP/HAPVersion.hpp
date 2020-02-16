@@ -82,7 +82,7 @@ struct HAPVersion {
 		return String(str);
 	}
 
-	static const char* featureRev(){
+	static String featureRev(){
 		const char* binaryString = HAP_PLUGIN_FEATURE_NUMBER;
 		
 		// convert binary string to integer
@@ -92,7 +92,7 @@ struct HAPVersion {
 		char hexString[32]; // long enough for any 32-bit value, 4-byte aligned
 		sprintf(hexString, "%llx", value);
 
-		return String(hexString).c_str();
+		return String(hexString);
 	}
 
 	static uint64_t featureRevToInt(const char* rev){
