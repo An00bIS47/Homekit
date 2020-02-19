@@ -104,8 +104,8 @@ void HAPUpdate::begin(const char* local_hostname) {
 	});
 	ArduinoOTA.begin();
 #endif	
-
-	_previousMillis = millis();
+	// Delay first update check for 3 seconds
+	_previousMillis = (millis() + HAP_UPDATE_WEB_INTERVAL) - 3000;
 }
 
 void HAPUpdate::handle() {
@@ -217,9 +217,10 @@ void HAPUpdate::execWebupdate() {
 		String query = "/api/update?";
 		query += "name=" + String("Homekit") + "&";
 		query += "brand=" + String(HAP_MANUFACTURER) + "&";
-		query += "version=" + onlineVersion() + "&";
-		query += "feature_rev=" + String("15");		
-
+		query += "version=" + onlineVersion() + "&";		
+		query += "feature_rev=" + String(_remoteInfo.featureRev, 16);		
+		
+		// ToDo: urlencode query		
 		t_httpUpdate_return ret = httpUpdate.update(client, HAP_UPDATE_SERVER_HOST, HAP_UPDATE_SERVER_PORT, query);
 
 		switch (ret) {

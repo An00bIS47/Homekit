@@ -32,7 +32,7 @@ public:
 	void begin(const char* local_hostname);
 	void handle();
 
-	void setHostAndPort(const char* url, int port, uint32_t interval = 10000) {
+	void setHostAndPort(const char* url, int port, uint32_t interval = HAP_UPDATE_WEB_INTERVAL) {
 		_port = port;
 		_host = url;
 		_interval = interval;

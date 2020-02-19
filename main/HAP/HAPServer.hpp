@@ -205,6 +205,7 @@ protected:
 	void handleEvents( int eventCode, struct HAPEvent eventParam );
 	void handleEventUpdateConfigNumber( int eventCode, struct HAPEvent eventParam );
 	void handleEventUpdatedConfig(int eventCode, struct HAPEvent eventParam);
+	void handleEventRebootNow(int eventCode, struct HAPEvent eventParam);
 
 	bool stopEvents();
 	void stopEvents(bool value);
@@ -212,9 +213,10 @@ protected:
 	// 
 	// Event Member callbacks
 	//  ToDo: Rename 
-    MemberFunctionCallable<HAPServer> listenerMemberFunction3;
-	MemberFunctionCallable<HAPServer> listenerMemberFunction2;
-	MemberFunctionCallable<HAPServer> listenerMemberFunction1;	
+    MemberFunctionCallable<HAPServer> listenerUpdateConfigNumber;
+	MemberFunctionCallable<HAPServer> listenerConfigUpdated;
+	MemberFunctionCallable<HAPServer> listenerNotificaton;	
+	MemberFunctionCallable<HAPServer> listenerRebootNow;	
 
 	HAPPairings _pairings;
 

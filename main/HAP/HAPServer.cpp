@@ -287,20 +287,26 @@ bool HAPServer::begin(bool resume) {
 	//
 	LogV( F("\nAdding listener to event manager ..."), false);
 	// Incoming
-  	listenerMemberFunction2.mObj = this;
-  	listenerMemberFunction2.mf = &HAPServer::handleEvents;
-	_eventManager.addListener( EventManager::kEventNotifyController, &listenerMemberFunction2 );
+  	listenerNotificaton.mObj = this;
+  	listenerNotificaton.mf = &HAPServer::handleEvents;
+	_eventManager.addListener( EventManager::kEventNotifyController, &listenerNotificaton );
 	
 
 	// UpdateConfigNumber
-	listenerMemberFunction1.mObj = this;
-  	listenerMemberFunction1.mf = &HAPServer::handleEventUpdateConfigNumber;
-	_eventManager.addListener( EventManager::kEventIncrementConfigNumber, &listenerMemberFunction1 );  	  	
+	listenerUpdateConfigNumber.mObj = this;
+  	listenerUpdateConfigNumber.mf = &HAPServer::handleEventUpdateConfigNumber;
+	_eventManager.addListener( EventManager::kEventIncrementConfigNumber, &listenerUpdateConfigNumber );  	  	
 	
 	// kEventUpdatedConfig
-	listenerMemberFunction3.mObj = this;
-  	listenerMemberFunction3.mf = &HAPServer::handleEventUpdatedConfig;
-	_eventManager.addListener( EventManager::kEventUpdatedConfig, &listenerMemberFunction3 );  	  	
+	listenerConfigUpdated.mObj = this;
+  	listenerConfigUpdated.mf = &HAPServer::handleEventUpdatedConfig;
+	_eventManager.addListener( EventManager::kEventUpdatedConfig, &listenerConfigUpdated );  	  	
+
+	// kEventUpdatedConfig
+	listenerRebootNow.mObj = this;
+  	listenerRebootNow.mf = &HAPServer::handleEventRebootNow;
+	_eventManager.addListener( EventManager::kEventRebootNow, &listenerRebootNow );  	  	
+
 
 	LogV(F("OK"), true);
 
@@ -400,6 +406,7 @@ bool HAPServer::begin(bool resume) {
 		// #endif	
 		_webserver->setAccessorySet(_accessorySet);
 		_webserver->setConfig(&_config);
+		_webserver->setEventManager(&_eventManager);
 		_webserver->begin();
 		LogV("OK", true);
 	}
@@ -3313,6 +3320,19 @@ void HAPServer::handleEventUpdateConfigNumber( int eventCode, struct HAPEvent ev
 	updateServiceTxt();
 }
 
+
+void HAPServer::handleEventRebootNow(int eventCode, struct HAPEvent eventParam){
+	LogW("*********************************************************", true);
+	LogW("*                                                       *", true);
+	LogW("*                 !!! Rebooting now !!!                 *", true);
+	LogW("*                                                       *", true);
+	LogW("*********************************************************", true);
+
+	delay(2000);
+	ESP.restart();
+}
+
+
 void HAPServer::handleEvents( int eventCode, struct HAPEvent eventParam )
 {
 
@@ -3320,8 +3340,6 @@ void HAPServer::handleEvents( int eventCode, struct HAPEvent eventParam )
 	if (stopEvents() == true) {
 		return;
 	}
-
-
 
 	if (_clients.size() > 0){
 		int count = 0;

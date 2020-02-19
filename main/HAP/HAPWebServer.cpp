@@ -67,6 +67,7 @@ HTTPServer* HAPWebServer::_secureServer;
 
 HAPAccessorySet* HAPWebServer::_accessorySet;
 HAPConfig* HAPWebServer::_config;
+EventManager* HAPWebServer::_eventManager;
 
 std::vector<HAPWebServerPluginNode*> HAPWebServer::_pluginNodes;
 
@@ -1022,8 +1023,8 @@ void HAPWebServer::handleApiRestart(HTTPRequest *req, HTTPResponse *res)
     res->println("{ \"restart\": \"in 3 sec\" }");
     res->print("");
 
-    delay(3000);
-    ESP.restart();
+    struct HAPEvent event = HAPEvent(nullptr, 0, 0, "");							
+	_eventManager->queueEvent( EventManager::kEventRebootNow, event);
 }
 
 // ===========================================================================================================

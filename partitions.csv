@@ -53,8 +53,8 @@ phy_init, 	data, 		phy,        0xF000,     4K
 ## OTA 
 ##
 ## Name,    Type,       SubType,    Offset,     Size,   Flags
-ota_0,      app,        ota_0,      0x10000,    1958K,
-ota_1,      app,        ota_1,      ,           1958K,
+ota_0,      app,        ota_0,      0x10000,    2958K,
+ota_1,      app,        ota_1,      ,           2958K,
 
 ##
 ## NVS Keys (Preferences Keys)

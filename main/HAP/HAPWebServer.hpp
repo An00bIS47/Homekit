@@ -14,6 +14,7 @@
 
 #include "HAPGlobals.hpp"
 
+#include "EventManager.h"
 
 // Inlcudes for setting up the server
 #include <HTTPSServer.hpp>
@@ -43,6 +44,11 @@ public:
 	~HAPWebServer();
 
 	static bool begin();
+
+	static inline void setEventManager(EventManager* eventManager){
+		_eventManager = eventManager;
+	}
+
 	static void handle();
 
 	static void setAccessorySet(HAPAccessorySet* accessorySet);
@@ -173,6 +179,8 @@ private:
 #if HAP_WEBSERVER_USE_JWT
 	static void middlewareJWTAuthorization(HTTPRequest * req, HTTPResponse * res, std::function<void()> next);
 #endif
+
+	static EventManager* _eventManager;
 
 };
 

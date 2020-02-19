@@ -167,7 +167,7 @@
 #define HAP_PLUGIN_USE_PCA301		0
 #define HAP_PLUGIN_USE_NEOPIXEL		0
 #define HAP_PLUGIN_USE_INFLUXDB		1
-#define HAP_PLUGIN_USE_HYGROMETER	0
+#define HAP_PLUGIN_USE_HYGROMETER	1
 #define HAP_PLUGIN_USE_RCSWITCH		1
 #define HAP_PLUGIN_USE_DHT			0
 #define HAP_PLUGIN_USE_BME280		1	// < last digit of feature number
@@ -200,6 +200,8 @@ STR(HAP_PLUGIN_USE_BME280)
 
 #define HAP_UPDATE_ENABLE_OTA		1		// Enable ArduinoOTA	
 											// Default: 0	
+
+#define HAP_UPDATE_WEB_INTERVAL		60000	// Interval for web update check in ms
 
 #if HAP_UPDATE_ENABLE_FROM_WEB
 //#define HAP_UPDATE_SERVER_URL 	"192.168.178.151"	

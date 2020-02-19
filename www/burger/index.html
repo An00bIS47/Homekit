@@ -6,27 +6,27 @@
 	<title>Homekit</title>
 	<link rel="stylesheet" type="text/css" href="Homekit.css">
 	<script type="text/javascript">
-	function openNav() {
-	  document.getElementById("mySidenav").style.width = "200px";
-	  document.getElementById("main").style.marginLeft = "300px";
-	  document.getElementById("mainContent").style.paddingLeft = "35px";
-	  document.getElementById("mainTitle").style.paddingLeft = "0px";
-	}
-
-	function closeNav() {
-	  document.getElementById("mySidenav").style.width = "0";
-	  document.getElementById("main").style.marginLeft= "0";
-	  document.getElementById("mainContent").style.paddingLeft = "35px";
-	  document.getElementById("mainTitle").style.paddingLeft = "50px";
-	}
-
-	function toggleNav(value) {
-		if (value.checked) {
-			openNav();
-		} else {
-			closeNav();
+		function openNav() {
+		  document.getElementById("mySidenav").style.width = "250px";
+		  document.getElementById("main").style.marginLeft = "285px";
+		  document.getElementById("mainContent").style.paddingLeft = "0px";
+		  document.getElementById("mainTitle").style.paddingLeft = "0px";
 		}
-	}
+
+		function closeNav() {
+		  document.getElementById("mySidenav").style.width = "0";
+		  document.getElementById("main").style.marginLeft= "0";
+		  document.getElementById("mainContent").style.paddingLeft = "35px";
+		  document.getElementById("mainTitle").style.paddingLeft = "50px";
+		}
+
+		function toggleNav(value) {
+			if (value.checked) {
+				openNav();
+			} else {
+				closeNav();
+			}
+		}
 	</script>
 </head>
 <body>
@@ -57,10 +57,10 @@
     but hey, it's pure CSS magic.
     -->
     <ul id="menu">
-      	<a href="#"><li>Homekit</li></a>
+      	<a href="/index.html"><li>Homekit</li></a>
     	<a href="#"><li>WiFi</li></a>
-      	<a href="#"><li>Configuration</li></a>
-      	<a href="#"><li>Update</li></a>
+      	<a href="/configuration.html"><li>Configuration</li></a>
+      	<a href="/update.html"><li>Update</li></a>
       	<a href="#"><li>RCSwitch</li></a>
       	<a href="#"><li>MiFlora</li></a>
     </ul>
@@ -147,8 +147,8 @@
 		    	</div>	
 		    </div>
 
-	
-
+		</div>
+	</div>
 
 </div>
 <!-- <div id="footer">Homekit v1.0.0.124 &copy C4</div> -->

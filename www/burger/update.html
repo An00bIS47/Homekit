@@ -1,0 +1,152 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Homekit</title>
+	<link rel="stylesheet" type="text/css" href="Homekit.css">
+	<script type="text/javascript">
+		function openNav() {
+		  document.getElementById("mySidenav").style.width = "250px";
+		  document.getElementById("main").style.marginLeft = "285px";
+		  document.getElementById("mainContent").style.paddingLeft = "0px";
+		  document.getElementById("mainTitle").style.paddingLeft = "0px";
+		}
+
+		function closeNav() {
+		  document.getElementById("mySidenav").style.width = "0";
+		  document.getElementById("main").style.marginLeft= "0";
+		  document.getElementById("mainContent").style.paddingLeft = "35px";
+		  document.getElementById("mainTitle").style.paddingLeft = "50px";
+		}
+
+		function toggleNav(value) {
+			if (value.checked) {
+				openNav();
+			} else {
+				closeNav();
+			}
+		}
+	</script>
+</head>
+<body>
+
+<!--    Made by Erik Terwan    -->
+<!--   24th of November 2015   -->
+<!--        MIT License        -->
+<div id="mySidenav" role="navigation">
+  <div id="menuToggle">
+    <!--
+    A fake / hidden checkbox is used as click reciever,
+    so you can use the :checked selector on it.
+    -->
+    <input type="checkbox" onclick="toggleNav(this)" />
+    
+    <!--
+    Some spans to act as a hamburger.
+    
+    They are acting like a real hamburger,
+    not that McDonalds stuff.
+    -->
+	<span></span>
+	<span></span>
+	<span></span>
+    
+    <!--
+    Too bad the menu has to be inside of the button
+    but hey, it's pure CSS magic.
+    -->
+    <ul id="menu">
+      	<a href="/index.html"><li>Homekit</li></a>
+    	<a href="#"><li>WiFi</li></a>
+      	<a href="/configuration.html"><li>Configuration</li></a>
+      	<a href="/update.html"><li>Update</li></a>
+      	<a href="#"><li>RCSwitch</li></a>
+      	<a href="#"><li>MiFlora</li></a>
+    </ul>
+
+
+  </div>
+</div>
+
+<div id="main">
+	<div id="mainContent">
+		<div id="mainTitle">Homekit</div>
+
+		     <div id="flexContainer">
+		     	<div id="flexLeft">
+					<h1>Current Version:</h1>					
+						<p>Homekit v1.0.1+123 15</p>
+		    	</div>
+		    	<div id="flexRight">
+					<h1>Update:</h1>
+					<p>
+						<label for="myfile">Select a file:</label>
+						<input type="file" id="myfile" name="myfile">
+					</p>
+
+					<br>
+					<h1>Web Update:</h1>
+					<div class="form-container">
+					  <form action="/action_page.php">
+					    <div class="form-row">
+					      <div class="col-25">
+					        <label for="fhost">Hostname:</label>
+					      </div>
+					      <div class="col-75">
+					        <input type="text" id="fhost" name="host" placeholder="Server url">
+					      </div>
+					    </div>
+					    <div class="form-row">
+					      <div class="col-25">
+					        <label for="lname">Port:</label>
+					      </div>
+					      <div class="col-75">
+					        <input type="number" id="fport" name="port" placeholder="0">
+					      </div>
+					    </div>
+					    <div class="form-row">
+					      <input type="submit" value="Save">
+					    </div>
+					  </form>
+					</div>
+
+					<br>
+					<br>
+					
+					<h1>Arduino OTA:</h1>
+						<div class="form-container">
+					  <form action="/action_page.php">
+					    <div class="form-row">
+					      <div class="col-25">
+					        <label for="fenabled">Enabled:</label>
+					      </div>
+					      <div class="col-75">
+					        <input type="checkbox" id="fenabled" name="enabled">
+					      </div>
+					    </div>
+					    <div class="form-row">
+					      <div class="col-25">
+					        <label for="lname">Port:</label>
+					      </div>
+					      <div class="col-75">
+					        <input type="number" id="fport" name="port" placeholder="0">
+					      </div>
+					    </div>
+					    <div class="form-row">
+					      <input type="submit" value="Save">
+					    </div>
+					  </form>
+					</div>
+
+
+				</div>
+		    </div>
+
+		</div>
+	</div>	
+
+</div>
+<!-- <div id="footer">Homekit v1.0.0.124 &copy C4</div> -->
+</body>
+</html>
