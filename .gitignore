@@ -65,7 +65,8 @@ cppcheck.log
 # certs/*/*.der
 # certs/*/*.p12
 
-*.h
+certs/*.h
+certs/*/*.h
 *.der
 *.crt
 *.cer
