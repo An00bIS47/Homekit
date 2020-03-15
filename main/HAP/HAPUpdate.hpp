@@ -43,8 +43,11 @@ public:
 	}
 	
 	bool updateAvailable();
+
+#if HAP_UPDATE_ENABLE_FROM_WEB
 	bool checkUpdateAvailable();
 	void execWebupdate();
+#endif
 
 	String onlineVersion() {
 		return _remoteInfo.version.toString();

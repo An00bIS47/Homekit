@@ -450,25 +450,39 @@ char* HAPEncryption::encrypt(uint8_t *message, size_t length, int* encrypted_len
 		nonce[4] = encryptCount % 256;
 		nonce[5] = encryptCount++ / 256;
 
+#if 1
 		err_code = chacha20_poly1305_encrypt_with_nonce(nonce, key, aad, HAP_ENCRYPTION_AAD_SIZE, decrypted_ptr, chunk_len, encrypted_ptr);	
+#else
 
-            // mbedtls_chachapoly_context chachapoly_ctx;
-            // mbedtls_chachapoly_init(&chachapoly_ctx);
-            // mbedtls_chachapoly_setkey(&chachapoly_ctx,key);
-            // uint8_t* auth_tag = (uint8_t*)encrypted + chunk_len;
 
-            // err_code = mbedtls_chachapoly_update_aad( &chachapoly_ctx, aad, HAP_ENCRYPTION_AAD_SIZE );
-        	// if (err_code != 0 ) {
-			//     LogE("[ERROR] Encrypting failed! 1", true);
-		    // }
+        mbedtls_chachapoly_context chachapoly_ctx;
+        mbedtls_chachapoly_init(&chachapoly_ctx);
 
-            // err_code = mbedtls_chachapoly_update( &chachapoly_ctx, chunk_len, decrypted_ptr, encrypted_ptr );
-        	// if (err_code != 0 ) {
-			//     LogE("[ERROR] Encrypting failed! 2", true);
-		    // }
+        mbedtls_chachapoly_setkey(&chachapoly_ctx,key);
+        
+        uint8_t* auth_tag = (uint8_t*)encrypted + chunk_len;
 
-            // err_code = mbedtls_chachapoly_finish( &chachapoly_ctx, auth_tag );
-            
+
+        err_code = mbedtls_chachapoly_starts( &chachapoly_ctx, 
+                                   nonce, 
+                                   MBEDTLS_CHACHAPOLY_ENCRYPT );
+        
+        if (err_code != 0 ) {
+            LogE("[ERROR] Encrypting failed! 1", true);
+        }
+
+        err_code = mbedtls_chachapoly_update_aad( &chachapoly_ctx, aad, HAP_ENCRYPTION_AAD_SIZE );
+        if (err_code != 0 ) {
+            LogE("[ERROR] Encrypting failed! 1", true);
+        }
+
+        err_code = mbedtls_chachapoly_update( &chachapoly_ctx, chunk_len, decrypted_ptr, encrypted_ptr );
+        if (err_code != 0 ) {
+            LogE("[ERROR] Encrypting failed! 2", true);
+        }
+
+        err_code = mbedtls_chachapoly_finish( &chachapoly_ctx, auth_tag );
+#endif        
 
 		if (err_code != 0 ) {
 			LogE("[ERROR] Encrypting failed!", true);

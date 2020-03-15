@@ -37,7 +37,7 @@
 //#include <Adafruit_Sensor.h>
 #include <Adafruit_BME280.h>
 
-#define HAP_PLUGIN_BME280_USE_DUMMY		1	// if 0 then use real sensor, 
+#define HAP_PLUGIN_BME280_USE_DUMMY		0	// if 0 then use real sensor, 
 											// if 1 then use random values without any real sensor connected
 
 #define SEALEVELPRESSURE_HPA 			(1013.25)

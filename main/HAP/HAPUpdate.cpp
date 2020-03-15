@@ -133,6 +133,8 @@ bool HAPUpdate::updateAvailable(){
 	return _available;
 }
 
+
+#if HAP_UPDATE_ENABLE_FROM_WEB
 bool HAPUpdate::checkUpdateAvailable(){
 	
 	String url = String(HAP_UPDATE_HTTP) + _host + String(HAP_UPDATE_WEB_CHECK_URL_PATH);	
@@ -395,6 +397,8 @@ void HAPUpdate::execWebupdate() {
 // 		_wifiClient.flush();
 // 	}
 }
+
+#endif
 
 // Utility to extract header value from headers
 // String HAPUpdate::getHeaderValue(String header, String headerName) {
