@@ -26,7 +26,7 @@
               "format": "bool"
             },
             {
-              "value": "C4",
+              "value": "An00bIS47",
               "perms": [
                 "pr"
               ],
@@ -56,7 +56,7 @@
               "format": "string"
             },
             {
-              "value": "0.1.0.113",
+              "value": "0.1.0+142",
               "perms": [
                 "pr"
               ],
@@ -77,7 +77,7 @@
           "type": "3E",
           "characteristics": [
             {
-              "value": "MiFlora",
+              "value": "Weather",
               "perms": [
                 "pr"
               ],
@@ -95,7 +95,7 @@
               "format": "bool"
             },
             {
-              "value": "Xioami",
+              "value": "ACME",
               "perms": [
                 "pr"
               ],
@@ -105,7 +105,7 @@
               "format": "string"
             },
             {
-              "value": "Flower Care",
+              "value": "BME2800",
               "perms": [
                 "pr"
               ],
@@ -115,7 +115,7 @@
               "format": "string"
             },
             {
-              "value": "83dec65a83d2dfe193179e1d32b40643",
+              "value": "f75770f9792f4fd6a7f83fceaf7034c0",
               "perms": [
                 "pr"
               ],
@@ -125,7 +125,7 @@
               "format": "string"
             },
             {
-              "value": "3.2.1",
+              "value": "0.0.3+2",
               "perms": [
                 "pr"
               ],
@@ -138,53 +138,6 @@
         },
         {
           "iid": 8,
-          "type": "96",
-          "characteristics": [
-            {
-              "value": 99,
-              "minValue": 0,
-              "maxValue": 100,
-              "minStep": 1,
-              "perms": [
-                "pr",
-                "ev"
-              ],
-              "type": "68",
-              "iid": 9,
-              "unit": "percentage",
-              "format": "int"
-            },
-            {
-              "value": 0,
-              "minValue": 0,
-              "maxValue": 1,
-              "minStep": 1,
-              "perms": [
-                "pr",
-                "ev"
-              ],
-              "type": "79",
-              "iid": 10,
-              "unit": "",
-              "format": "int"
-            },
-            {
-              "value": 2,
-              "minValue": 0,
-              "maxValue": 2,
-              "minStep": 1,
-              "perms": [
-                "pr"
-              ],
-              "type": "8F",
-              "iid": 11,
-              "unit": "",
-              "format": "int"
-            }
-          ]
-        },
-        {
-          "iid": 12,
           "type": "8A",
           "characteristics": [
             {
@@ -193,12 +146,11 @@
                 "pr"
               ],
               "type": "23",
-              "iid": 13,
-              "maxLen": 32,
+              "iid": 9,
               "format": "string"
             },
             {
-              "value": 19.1,
+              "value": 33.2,
               "minValue": -50.000000,
               "maxValue": 100.000000,
               "minStep": 0.100000,
@@ -207,39 +159,27 @@
                 "ev"
               ],
               "type": "11",
-              "iid": 14,
+              "iid": 10,
               "unit": "celsius",
               "format": "float"
-            },
-            {
-              "value": "2019-12-29 04:53:46.430",
-              "perms": [
-                "pr",
-                "ev"
-              ],
-              "type": "00000023-0000-1000-8000-656261617577",
-              "iid": 15,
-              "maxLen": 32,
-              "format": "string"
             }
           ]
         },
         {
-          "iid": 16,
+          "iid": 11,
           "type": "82",
           "characteristics": [
             {
-              "value": "Moisture Sensor",
+              "value": "Humidity Sensor",
               "perms": [
                 "pr"
               ],
               "type": "23",
-              "iid": 17,
-              "maxLen": 32,
+              "iid": 12,
               "format": "string"
             },
             {
-              "value": 54.0,
+              "value": 21.0,
               "minValue": 0.000000,
               "maxValue": 100.000000,
               "minStep": 0.100000,
@@ -248,83 +188,52 @@
                 "ev"
               ],
               "type": "10",
-              "iid": 18,
+              "iid": 13,
               "unit": "percentage",
               "format": "float"
             }
           ]
         },
         {
-          "iid": 19,
-          "type": "84",
+          "iid": 14,
+          "type": "E863F00A-079E-48FF-8F27-9C2605A29F52",
           "characteristics": [
             {
-              "value": "Light Sensor",
+              "value": "Pressure Sensor",
               "perms": [
                 "pr"
               ],
               "type": "23",
-              "iid": 20,
-              "maxLen": 32,
+              "iid": 15,
               "format": "string"
             },
             {
-              "value": 4215.0,
-              "minValue": 0.000000,
-              "maxValue": 100000.000000,
-              "minStep": 0.100000,
+              "value": 1060,
+              "minValue": 0,
+              "maxValue": 1100,
+              "minStep": 1,
               "perms": [
                 "pr",
                 "ev"
               ],
-              "type": "6B",
-              "iid": 21,
-              "unit": "lux",
-              "format": "float"
+              "type": "E863F10F-079E-48FF-8F27-9C2605A29F52",
+              "iid": 16,
+              "unit": "hpa",
+              "format": "uint16"
             }
           ]
         },
         {
           "iid": 22,
-          "type": "FA526290-82D7-4C29-9A66-8E7919C7035D",
-          "characteristics": [
-            {
-              "value": "Fertility Sensor",
-              "perms": [
-                "pr"
-              ],
-              "type": "23",
-              "iid": 23,
-              "maxLen": 32,
-              "format": "string"
-            },
-            {
-              "value": 243.0,
-              "minValue": 0.000000,
-              "maxValue": 10000.000000,
-              "minStep": 0.100000,
-              "perms": [
-                "pr",
-                "ev"
-              ],
-              "type": "E2A8010C-4628-44B6-A844-CB507D62DF41",
-              "iid": 24,
-              "unit": "",
-              "format": "float"
-            }
-          ]
-        },
-        {
-          "iid": 30,
           "type": "E863F007-079E-48FF-8F27-9C2605A29F52",
           "characteristics": [
             {
-              "value": "EVE MiFlora 665728 History",
+              "value": "EVE BME280 History",
               "perms": [
                 "pr"
               ],
               "type": "23",
-              "iid": 25,
+              "iid": 17,
               "maxLen": 32,
               "format": "string"
             },
@@ -336,7 +245,7 @@
                 "hd"
               ],
               "type": "E863F116-079E-48FF-8F27-9C2605A29F52",
-              "iid": 26,
+              "iid": 18,
               "maxLen": 128,
               "format": "data"
             },
@@ -348,7 +257,7 @@
                 "hd"
               ],
               "type": "E863F117-079E-48FF-8F27-9C2605A29F52",
-              "iid": 27,
+              "iid": 19,
               "maxLen": 320,
               "format": "data"
             },
@@ -358,7 +267,7 @@
                 "hd"
               ],
               "type": "E863F11C-079E-48FF-8F27-9C2605A29F52",
-              "iid": 28,
+              "iid": 20,
               "maxLen": 128,
               "format": "data"
             },
@@ -368,7 +277,165 @@
                 "hd"
               ],
               "type": "E863F121-079E-48FF-8F27-9C2605A29F52",
-              "iid": 29,
+              "iid": 21,
+              "maxLen": 128,
+              "format": "data"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "aid": 3,
+      "services": [
+        {
+          "iid": 1,
+          "type": "3E",
+          "characteristics": [
+            {
+              "value": "Hygrometer",
+              "perms": [
+                "pr"
+              ],
+              "type": "23",
+              "iid": 2,
+              "maxLen": 32,
+              "format": "string"
+            },
+            {
+              "perms": [
+                "pw"
+              ],
+              "type": "14",
+              "iid": 3,
+              "format": "bool"
+            },
+            {
+              "value": "ACME",
+              "perms": [
+                "pr"
+              ],
+              "type": "20",
+              "iid": 4,
+              "maxLen": 32,
+              "format": "string"
+            },
+            {
+              "value": "YL-69",
+              "perms": [
+                "pr"
+              ],
+              "type": "21",
+              "iid": 5,
+              "maxLen": 32,
+              "format": "string"
+            },
+            {
+              "value": "56465a8547d6329ef27aac5cbce5eef2",
+              "perms": [
+                "pr"
+              ],
+              "type": "30",
+              "iid": 6,
+              "maxLen": 32,
+              "format": "string"
+            },
+            {
+              "value": "0.0.3+1",
+              "perms": [
+                "pr"
+              ],
+              "type": "52",
+              "iid": 7,
+              "maxLen": 32,
+              "format": "string"
+            }
+          ]
+        },
+        {
+          "iid": 8,
+          "type": "82",
+          "characteristics": [
+            {
+              "value": "Soil Moisture Sensor",
+              "perms": [
+                "pr"
+              ],
+              "type": "23",
+              "iid": 9,
+              "format": "string"
+            },
+            {
+              "value": 142.0,
+              "minValue": 0.000000,
+              "maxValue": 100.000000,
+              "minStep": 0.100000,
+              "perms": [
+                "pr",
+                "ev"
+              ],
+              "type": "10",
+              "iid": 10,
+              "unit": "percentage",
+              "format": "float"
+            }
+          ]
+        },
+        {
+          "iid": 16,
+          "type": "E863F007-079E-48FF-8F27-9C2605A29F52",
+          "characteristics": [
+            {
+              "value": "EVE Hygrometer History",
+              "perms": [
+                "pr"
+              ],
+              "type": "23",
+              "iid": 11,
+              "maxLen": 32,
+              "format": "string"
+            },
+            {
+              "value": null,
+              "perms": [
+                "pr",
+                "ev",
+                "hd"
+              ],
+              "type": "E863F116-079E-48FF-8F27-9C2605A29F52",
+              "iid": 12,
+              "maxLen": 128,
+              "format": "data"
+            },
+            {
+              "value": null,
+              "perms": [
+                "pr",
+                "ev",
+                "hd"
+              ],
+              "type": "E863F117-079E-48FF-8F27-9C2605A29F52",
+              "iid": 13,
+              "maxLen": 320,
+              "format": "data"
+            },
+            {
+              "perms": [
+                "pw",
+                "hd"
+              ],
+              "type": "E863F11C-079E-48FF-8F27-9C2605A29F52",
+              "iid": 14,
+              "maxLen": 128,
+              "format": "data"
+            },
+            {
+              "perms": [
+                "pw",
+                "hd"
+              ],
+              "type": "E863F121-079E-48FF-8F27-9C2605A29F52",
+              "iid": 15,
               "maxLen": 128,
               "format": "data"
             }

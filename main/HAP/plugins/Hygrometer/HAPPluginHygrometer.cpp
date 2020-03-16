@@ -15,6 +15,8 @@
 #define VERSION_REVISION    3
 #define VERSION_BUILD       1
 
+#define HAP_PLUGIN_HYGROMETER_USE_DUMMY 1
+
 
 HAPPluginHygrometer::HAPPluginHygrometer(){
 	_type = HAP_PLUGIN_TYPE_ACCESSORY;
@@ -36,6 +38,7 @@ bool HAPPluginHygrometer::begin(){
 	LogD(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Begin()", true);
 
 
+#if !HAP_PLUGIN_HYGROMETER_USE_DUMMY	
     // Init the soil moisture sensor board
     //  VCC
     pinMode(HAP_PLUGIN_HYGROMETER_PIN_VCC, OUTPUT);
@@ -44,7 +47,7 @@ bool HAPPluginHygrometer::begin(){
     // ADC
     pinMode(HAP_PLUGIN_HYGROMETER_PIN_ADC, INPUT);
     // analogReadResolution(12);    // 12 is already the default value 
-
+#endif
 	return true;
 }
 
@@ -64,16 +67,25 @@ void HAPPluginHygrometer::handleImpl(bool forced){
 	
     LogD(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Handle plguin [" + String(_interval) + "]", true);
 
+#if HAP_PLUGIN_HYGROMETER_USE_DUMMY	
+	float percentage = random(0, 100);
+#else
+
     uint16_t moisture = readSensor();
     float percentage = map(moisture, HAP_PLUGIN_HYGROMTER_REFERENCE, 0, 100, 0) * 1.0;
 
-#if 1
+#if 0
     Serial.print("[" + _name + "] Moisture: ");
     Serial.print(moisture);
     Serial.print(" = ");
     Serial.print(percentage);
     Serial.println(" %");
 #endif
+
+#endif
+
+
+
 
     setValue(_humidityValue->iid, _humidityValue->value(), String(percentage));
 }
@@ -154,7 +166,9 @@ bool HAPPluginHygrometer::fakeGatoCallback(){
 	return _fakegato.addEntry("0", _humidityValue->value(), "0");
 }
 
+
 uint16_t HAPPluginHygrometer::readSensor() {
+
     digitalWrite(HAP_PLUGIN_HYGROMETER_PIN_VCC, HIGH);
     delay(100);
 
