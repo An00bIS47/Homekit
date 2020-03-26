@@ -118,7 +118,8 @@ COMPONENT_EMBED_TXTFILES += $(PROJECT_PATH)/www/qrcode_container.svg
 #
 # Uncomment for SRP debugging
 #
-#CFLAGS += -DSRP_TEST -Wno-pointer-sign
+#CFLAGS += -DSRP_TEST -Wno-pointer-sign 
+
 
 # Create a SPIFFS image from the contents of the 'spiffs' directory
 # that fits the partition named 'storage'. FLASH_IN_PROJECT indicates that
