@@ -832,6 +832,9 @@ void HAPServer::handleClientDisconnect(HAPClient hapClient) {
 			LogW("Client disconnecting", true);
 			position->client.stop();
 		}
+		
+		position->request.clear();
+		position->clear();		
 
 		_clients.erase(position);
 		return;
@@ -918,7 +921,7 @@ void HAPServer::handleClientAvailable(HAPClient* hapClient) {
 
 	// clear request
 	hapClient->request.clear();
-
+	hapClient->clear();
 
 #if HAP_DEBUG_HEAP            
 	LogE("=================== " + String(__CLASS_NAME__) + "->" + String(__FUNCTION__) + " end", true);
@@ -969,7 +972,7 @@ void HAPServer::processIncomingEncryptedRequest(HAPClient* hapClient){
 		// Serial.printf("AAD: %02X%02X - %d\n", AAD[0], AAD[1], trueLength);				
 		// Serial.printf("availableSize: %d\n", availableSize);
 
-		LogD("\nNeed " + String(trueLength) + " bytes and have " + String(availableSize) + " bytes", true);
+		// LogD("\nNeed " + String(trueLength) + " bytes and have " + String(availableSize) + " bytes", true);
 		while (trueLength > availableSize) {
 			// The packet is bigger than the available data; wait till more comes in
 			delay(1);
@@ -1001,7 +1004,7 @@ void HAPServer::processIncomingEncryptedRequest(HAPClient* hapClient){
 		// hmac
 		uint8_t hmac[HAP_ENCRYPTION_HMAC_SIZE];	// 16 is the size of the HMAC
 		availableSize = hapClient->client.available();
-		LogD("Need " + String(HAP_ENCRYPTION_HMAC_SIZE) + " bytes and have " + String(availableSize) + " bytes", true);
+		//LogD("Need " + String(HAP_ENCRYPTION_HMAC_SIZE) + " bytes and have " + String(availableSize) + " bytes", true);
 		while ( HAP_ENCRYPTION_HMAC_SIZE > availableSize ) {
 			// The packet is bigger than the available data; wait till more comes in
 			delay(1);
@@ -1438,7 +1441,7 @@ bool HAPServer::encode(HAPClient* hapClient){
 			LogD("type:    " + String(type, HEX), true);
 			LogD("length:  " + String(length), true);
 #endif
-			byte* data = (byte*) malloc(sizeof(byte) * length);
+			uint8_t data[length];
 			hapClient->client.readBytes(data, length);
 
 			if (type == TLV_TYPE_STATE) {
@@ -1476,7 +1479,7 @@ bool HAPServer::encode(HAPClient* hapClient){
 //			}
 		}
 		else {
-			LogD( F("[WARNING] Unsupported TLV data! Skipping ..."), true );
+			//LogD( F("[WARNING] Unsupported TLV data! Skipping ..."), true );
 			hapClient->client.read();
 			//			hapClient->client.read();
 			//			hapClient->client.read();
@@ -2971,6 +2974,9 @@ bool HAPServer::handlePairVerifyM1(HAPClient* hapClient){
 		response.encode(TLV_TYPE_ERROR, 1, HAP_TLV_ERROR_UNKNOWN);
         
         sendResponse(hapClient, &response);
+		
+		subTLV->clear();
+		delete subTLV;
 
 		response.clear();
 		hapClient->request.clear();	
@@ -2993,6 +2999,10 @@ bool HAPServer::handlePairVerifyM1(HAPClient* hapClient){
 		response.encode(TLV_TYPE_ERROR, 1, HAP_TLV_ERROR_UNKNOWN);
         
         sendResponse(hapClient, &response);
+		
+		subTLV->clear();
+		delete subTLV;
+		
 		response.clear();
 		hapClient->request.clear();	
 		hapClient->clear();
@@ -3026,6 +3036,12 @@ bool HAPServer::handlePairVerifyM1(HAPClient* hapClient){
 		response.encode(TLV_TYPE_ERROR, 1, HAP_TLV_ERROR_UNKNOWN);
         
         sendResponse(hapClient, &response);
+
+
+		subTLV->clear();
+		delete subTLV;
+
+
 		response.clear();
 		hapClient->request.clear();	
 		hapClient->clear();
@@ -3067,8 +3083,6 @@ bool HAPServer::handlePairVerifyM1(HAPClient* hapClient){
 	//stopEvents(false);
 
 	LogI("OK", true);
-
-	
 
 #if HAP_DEBUG_HEAP            
 	LogE("=================== " + String(__CLASS_NAME__) + "->" + String(__FUNCTION__) + " end", true);
