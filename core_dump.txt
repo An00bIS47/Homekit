@@ -1,0 +1,15 @@
+Guru Meditation Error: Core  1 panic'ed (LoadProhibited). Exception was unhandled.
+Core 1 register dump:
+PC      : 0x4000c3f0  PS      : 0x00060a30  A0      : 0x80123b3c  A1      : 0x3ffb1650  
+A2      : 0x3fffd8cc  A3      : 0x00000000  A4      : 0x00000001  A5      : 0x0000ff00  
+A6      : 0x00ff0000  A7      : 0xff000000  A8      : 0x00000000  A9      : 0x00000000  
+A10     : 0x3ffb16b0  A11     : 0x000018c9  A12     : 0x00000001  A13     : 0x3fffd8cc  
+A14     : 0x01fb1790  A15     : 0xff000000  SAR     : 0x00000018  EXCCAUSE: 0x0000001c  
+EXCVADDR: 0x00000000  LBEG    : 0x400014fd  LEND    : 0x4000150d  LCOUNT  : 0xfffff9cd  
+
+ELF file SHA256: 9f044dbdbd17d83f799af714434f244d12dee1c2f8a20f112ea9512534db4e36
+
+Backtrace: 0x4000c3f0:0x3ffb1650 0x40123b39:0x3ffb1670 0x40123d2e:0x3ffb1690 0x4017dcf6:0x3ffb16b0 0x4016a213:0x3ffb16f0 0x4013c953:0x3ffb1750 0x4014e239:0x3ffb17c0 0x4014e75e:0x3ffb1870 0x4014e841:0x3ffb19f0 0x4014eaf5:0x3ffb1a30 0x4014ef7d:0x3ffb1c30 0x401392e2:0x3ffb1f90 0x40122501:0x3ffb1fb0 0x4008e1f1:0x3ffb1fd0
+
+Rebooting...
+ets Jun  8 2016 00:22:57

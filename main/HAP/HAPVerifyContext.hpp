@@ -41,50 +41,30 @@ struct HAPEncryptionContext {
 	uint8_t encryptKey[CURVE25519_SECRET_LENGTH];
 	uint8_t decryptKey[CURVE25519_SECRET_LENGTH];
 
-
 	uint16_t encryptCount;
     uint16_t decryptCount;
 
     HAPEncryptionContext()
     : encryptCount(0)
 	, decryptCount(0){
-
+		memset(encryptKey, 0, CURVE25519_SECRET_LENGTH);
+		memset(decryptKey, 0, CURVE25519_SECRET_LENGTH);
 	}
 	
 };
 
 
 struct HAPVerifyContext {
-	uint8_t *secret;
-	uint8_t secretLength;
-
-	uint8_t *sessionKey; 
-	uint8_t sessionKeyLength;
+	uint8_t secret[HKDF_KEY_LEN];
+	uint8_t sessionKey[CURVE25519_SECRET_LENGTH]; 	
+	uint8_t accessoryLTPK[ED25519_PUBLIC_KEY_LENGTH];	
+	uint8_t deviceLTPK[ED25519_PUBLIC_KEY_LENGTH];
 	
-	uint8_t *accessoryLTPK;
-	uint8_t accessoryLTPKLength;
-
-	uint8_t *deviceLTPK;
-	uint8_t deviceLTPKLength;	
-
-
-	HAPVerifyContext() 
-	: secretLength(HKDF_KEY_LEN)
-	, sessionKeyLength(CURVE25519_SECRET_LENGTH)
-	, accessoryLTPKLength(ED25519_PUBLIC_KEY_LENGTH)
-	, deviceLTPKLength(ED25519_PUBLIC_KEY_LENGTH) {
-
-		secret = (uint8_t*) malloc(sizeof(uint8_t) * secretLength);
-		sessionKey = (uint8_t*) malloc(sizeof(uint8_t) * sessionKeyLength);
-		accessoryLTPK = (uint8_t*) malloc(sizeof(uint8_t) * accessoryLTPKLength);
-		deviceLTPK = (uint8_t*) malloc(sizeof(uint8_t) * deviceLTPKLength);
-	}
-
-	~HAPVerifyContext(){
-		free(secret);
-		free(sessionKey);
-		free(accessoryLTPK);
-		free(deviceLTPK);
+	HAPVerifyContext() {
+		memset(secret, 0, HKDF_KEY_LEN);
+		memset(sessionKey, 0, CURVE25519_SECRET_LENGTH);
+		memset(accessoryLTPK, 0, ED25519_PUBLIC_KEY_LENGTH);
+		memset(deviceLTPK, 0, ED25519_PUBLIC_KEY_LENGTH);
 	}
 };
 

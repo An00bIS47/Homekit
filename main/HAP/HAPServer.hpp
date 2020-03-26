@@ -26,8 +26,6 @@
 
 #include <ArduinoJson.h>
 
-
-
 #include "HAPClient.hpp"
 #include "HAPAccessorySet.hpp"
 

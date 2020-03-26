@@ -106,8 +106,8 @@ public:
 	HAPPairState	pairState;
 	HAPVerifyState	verifyState;	
 
-	struct HAPVerifyContext* 		verifyContext;
-	struct HAPEncryptionContext* 	encryptionContext;	
+	struct HAPVerifyContext 		verifyContext;
+	struct HAPEncryptionContext 	encryptionContext;	
 
 	// From Stream:
 	size_t write(Stream &stream);
@@ -118,7 +118,6 @@ public:
 	int read();
 	int peek();
 	void flush();
-
 
 	inline void setEncryped(bool mode) {
 		_isEncrypted = mode;

@@ -82,7 +82,7 @@ public:
 	//static Stream* stream();
 
 	static void printInfo();
-	static void logFreeHeap(int clients = 0, int queue = 0);
+	static void logFreeHeap(int clients = 0, int queue = 0, const char* color = COLOR_WARNING);
 
 	static void colorPrint(const char* color, int num, bool newLine);
 	static void colorPrint(const char* color, const char* text, bool newLine);

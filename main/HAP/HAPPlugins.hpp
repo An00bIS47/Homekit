@@ -57,7 +57,7 @@ struct HAPWebServerPluginNode {
 	std::string method;
 	std::function<void(HTTPRequest*, HTTPResponse*)> callback;
 
-	HAPWebServerPluginNode(std::string	name_, std::string path_, std::string method_, std::function<void(HTTPRequest*, HTTPResponse*)> callback_) : name(name_), path(path_), method(method_), callback(callback_) {};
+	HAPWebServerPluginNode(const std::string &name_, const std::string &path_, const std::string &method_, std::function<void(HTTPRequest*, HTTPResponse*)> callback_) : name(name_), path(path_), method(method_), callback(callback_) {};
 };
 
 /* Base class for plugins */

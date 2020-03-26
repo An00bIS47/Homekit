@@ -19,7 +19,6 @@
 /**
  * General
  ********************************************************************/
-#define HAP_DEBUG 					1
 #define HAP_LOGLEVEL				LogLevel::DEBUG
 #define HAP_PIN_CODE 				"031-45-712"
 #define HAP_HOSTNAME_PREFIX			"esp32"
@@ -27,6 +26,12 @@
 #define HAP_MODELL_NAME				"Huzzah32"
 #define HAP_RESET_EEPROM 			0
 
+
+/**
+ * Debug
+ ********************************************************************/
+#define HAP_DEBUG 					1
+#define HAP_DEBUG_HEAP				1
 
 
 /**
@@ -169,7 +174,7 @@
 #define HAP_PLUGIN_USE_INFLUXDB		1
 #define HAP_PLUGIN_USE_HYGROMETER	1
 #define HAP_PLUGIN_USE_RCSWITCH		1
-#define HAP_PLUGIN_USE_DHT			0
+#define HAP_PLUGIN_USE_DHT			1
 #define HAP_PLUGIN_USE_BME280		1	// < last digit of feature number
 
 #define HAP_PLUGIN_FEATURE_NUMBER \

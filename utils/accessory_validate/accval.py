@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 
 import sys
 import json
@@ -15,11 +16,14 @@ if args.filename:
   with open('accessory.json', 'r') as f:
     data = json.load(f)
 elif not sys.stdin.isatty():
-    inp = sys.stdin.read()
-    data = json.load(inp)
+    #inp = sys.stdin.read()
+    data = json.load(sys.stdin)    
+    data = {"accessories": data}        
 else:
     parser.print_help()
 
+
+assertions = []
 
 for accessory in data["accessories"]:
     aid = accessory['aid']
@@ -32,6 +36,7 @@ for accessory in data["accessories"]:
             c_iid = characteristic['iid']
             value = characteristic.get('value', '')
 
+            assertion = {}
 
             c_type = characteristic['type']
             perms = ','.join(characteristic['perms'])
@@ -49,6 +54,11 @@ for accessory in data["accessories"]:
                                                                                       ctype=c_type,
                                                                                       perms=perms,
                                                                                       description=desc), "green")
+
+
+                    assertion["text"] = "Check maxLen of {}.{}: Length: {}/{}".format(aid, c_iid, len(value), maxLen)
+                    assertion["result"] = True
+                    assertions.append(assertion)
                 elif value is None:
 
                     print('  {aid}.{iid}: {value} [{maxLen}] ({description}) >{ctype}< [{perms}]'.format(aid=aid,
@@ -67,6 +77,10 @@ for accessory in data["accessories"]:
                                                                                       ctype=c_type,
                                                                                       perms=perms,
                                                                                       description=desc), "red")
+
+                    assertion["text"] = "Check maxLen of {}.{}: Length: {}/{}".format(aid, c_iid, len(value), maxLen)
+                    assertion["result"] = False
+                    assertions.append(assertion)
                 
             elif 'minValue' in characteristic and 'maxValue' in characteristic:
 
@@ -83,6 +97,10 @@ for accessory in data["accessories"]:
                                                                                       description=desc,
                                                                                       minValue=minValue,
                                                                                       maxValue=maxValue), "green")
+                    
+                    assertion["text"] = "Check value of {}.{}: {} < {} < {}".format(aid, c_iid, minValue, value, maxValue)
+                    assertion["result"] = True
+                    assertions.append(assertion)
                 else:
                     cprint('  {aid}.{iid}: {minValue}>: {value} <:{maxValue} ({description}) >{ctype}< [{perms}]'.format(aid=aid,
                                                                                       iid=c_iid,
@@ -92,6 +110,9 @@ for accessory in data["accessories"]:
                                                                                       description=desc,
                                                                                       minValue=minValue,
                                                                                       maxValue=maxValue), "red")
+                    assertion["text"] = "Check value of {}.{}: {} < {} < {}".format(aid, c_iid, minValue, value, maxValue)
+                    assertion.result = False
+                    assertions.append(assertion)
             else:
                 print('  {aid}.{iid}: {value} ({description}) >{ctype}< [{perms}]'.format(aid=aid,
                                                                                       iid=c_iid,
@@ -99,3 +120,4 @@ for accessory in data["accessories"]:
                                                                                       ctype=c_type,
                                                                                       perms=perms,
                                                                                       description=desc))
+#print(assertions)

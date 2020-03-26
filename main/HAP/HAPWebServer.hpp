@@ -118,7 +118,7 @@ private:
 	static void handleApi(HTTPRequest * req, HTTPResponse * res);
 	
 	// validators
-	static bool validateApiGet(std::string s);
+	static bool validateApiGet(const std::string s);
 	static bool validateApiPost(const std::string s);
 	static bool validateApiDelete(const std::string s);
 

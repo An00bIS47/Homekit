@@ -23,9 +23,9 @@ HAPLogger::~HAPLogger() {
 	// TODO Auto-generated destructor stub
 }
 
-void HAPLogger::logFreeHeap(int clients, int queue){
+void HAPLogger::logFreeHeap(int clients, int queue, const char* color){
 	if (HAPLogger::_logLevel >= LogLevel::DEBUG) {
-		_printer->print(COLOR_WARNING);
+		_printer->print(color);
 #if HAP_NTP_ENABLED		
 		_printer->print(HAPServer::timeString() + " ");
 #else

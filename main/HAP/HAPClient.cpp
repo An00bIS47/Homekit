@@ -31,21 +31,13 @@ HAPClient::HAPClient()
 // , shouldNotify(false)
 {
 
-	verifyContext = new struct HAPVerifyContext();
-	encryptionContext = new struct HAPEncryptionContext();
-
 }
 
 HAPClient::~HAPClient() {
 	
-	// if (verifyContext)
-	// 	delete [] verifyContext;
-	// if (encryptionContext)		
-	// 	delete [] encryptionContext;
-
 
 	subscribtions.clear();
-	_headers.clear();
+	clear();
 }
 
 String HAPClient::getClientState() const {
@@ -117,7 +109,8 @@ void HAPClient::clear() {
 	_headerSent = false;
 	
 	_headers.clear();	
-	request.clear();	
+	request.clear();		
+
 }
 
 void HAPClient::subscribe(int aid, int iid, bool value){
@@ -312,7 +305,7 @@ size_t HAPClient::write(const uint8_t* buffer, size_t size) {
 
 		mbedtls_chachapoly_context chachapoly_ctx;
 		mbedtls_chachapoly_init(&chachapoly_ctx);
-		mbedtls_chachapoly_setkey(&chachapoly_ctx, encryptionContext->encryptKey);
+		mbedtls_chachapoly_setkey(&chachapoly_ctx, encryptionContext.encryptKey);
 
 		// Send header 
 		String headerStr = buildHeaderAndStatus(200, size);
@@ -340,8 +333,8 @@ size_t HAPClient::write(const uint8_t* buffer, size_t size) {
 		}
 
 		uint8_t nonce[12] = {0,};
-		nonce[4] = encryptionContext->encryptCount % 256;
-		nonce[5] = encryptionContext->encryptCount++ / 256;
+		nonce[4] = encryptionContext.encryptCount % 256;
+		nonce[5] = encryptionContext.encryptCount++ / 256;
 
 
 		ret = mbedtls_chachapoly_starts( &chachapoly_ctx, nonce, MBEDTLS_CHACHAPOLY_ENCRYPT );
@@ -685,3 +678,5 @@ String HAPClient::statusMessage(int statusCode){
 			return "";											
 	}
 }
+
+

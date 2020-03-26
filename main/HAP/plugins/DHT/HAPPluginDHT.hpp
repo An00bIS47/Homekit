@@ -32,7 +32,7 @@
 
 #include "HAPFakeGato.hpp"
 
-#define HAP_PLUGIN_DHT_USE_DUMMY 	0
+#define HAP_PLUGIN_DHT_USE_DUMMY 	1
 #define HAP_PLUGIN_DHT_USE_PRESSURE 0
 
 #include <Adafruit_Sensor.h>
