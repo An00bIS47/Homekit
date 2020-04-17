@@ -166,13 +166,21 @@ bool HAPServer::begin(bool resume) {
 		LogD("   size:      " + String(ESP.getFlashChipSize()), true);
 		LogD("   speed:     " + String(ESP.getFlashChipSpeed()), true);
 		LogD("   mode:      " + String(ESP.getFlashChipMode()), true);
-
+		
 		LogD("", true);	
 		LogD("Endian:       ", false);
 		LogD(IS_BIG_ENDIAN ? "BIG" : "little", true);
 
-		LogD("Main stack     ", false);
+		LogD("Main stack:   ", false);
 		LogD(String(CONFIG_MAIN_TASK_STACK_SIZE), true);
+
+
+		LogD("", true);	
+		LogD("Fakegato:", true);
+		LogD("   interval:  ", false);
+		LogD(String(HAP_FAKEGATO_INTERVAL), true);
+		LogD("   buffer:    ", false);
+		LogD(String(HAP_FAKEGATO_BUFFER_SIZE), true);		
 
 		char mbedtlsVersion[32];
 		mbedtls_version_get_string_full(mbedtlsVersion);
@@ -1543,7 +1551,7 @@ void HAPServer::handleIdentify(HAPClient* hapClient){
 	hapClient->client.write( HTTP_CRLF );
 
 	hapClient->request.clear();
-	hapClient->clear()
+	hapClient->clear();
 	
 	if (c != NULL){
 		c->setValue(String(false));

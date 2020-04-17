@@ -24,6 +24,7 @@ else:
 
 
 assertions = []
+success = True
 
 for accessory in data["accessories"]:
     aid = accessory['aid']
@@ -81,6 +82,7 @@ for accessory in data["accessories"]:
                     assertion["text"] = "Check maxLen of {}.{}: Length: {}/{}".format(aid, c_iid, len(value), maxLen)
                     assertion["result"] = False
                     assertions.append(assertion)
+                    success = False
                 
             elif 'minValue' in characteristic and 'maxValue' in characteristic:
 
@@ -113,6 +115,7 @@ for accessory in data["accessories"]:
                     assertion["text"] = "Check value of {}.{}: {} < {} < {}".format(aid, c_iid, minValue, value, maxValue)
                     assertion.result = False
                     assertions.append(assertion)
+                    success = False
             else:
                 print('  {aid}.{iid}: {value} ({description}) >{ctype}< [{perms}]'.format(aid=aid,
                                                                                       iid=c_iid,
@@ -121,3 +124,7 @@ for accessory in data["accessories"]:
                                                                                       perms=perms,
                                                                                       description=desc))
 #print(assertions)
+#sys.exit(!success)
+if success == True:
+  sys.exit(0)
+sys.exit(1)

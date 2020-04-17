@@ -22,10 +22,24 @@ extern "C" {
 
 #define FAKEGATO_EPOCH_OFFSET           978307200
 
+
+#ifndef HAP_FAKEGATO_BUFFER_SIZE
+#define HAP_FAKEGATO_BUFFER_SIZE	1536    // Number of history entries for each characteristic 
+#endif										// default: 768
+
+
+#ifndef HAP_FAKEGATO_INTERVAL
+#define HAP_FAKEGATO_INTERVAL       300000	// Interval to add entry to history in millis
+#endif                                      // EVE app requires at least one entry every 10 mins
+											// default: 300000
+
+#ifndef HAP_FAKEGATO_CHUNK_SIZE
+#define HAP_FAKEGATO_CHUNK_SIZE     16      // Number of entries sent at once from device to EVE app
+#endif										// default: 16
+
 // ToDo: Adjust for the other entries
 // #define HAP_FAKEGATO_CHUNK_BUFFER_SIZE  HAP_FAKEGATO_CHUNK_SIZE * 16     // 256 => 16 is the length of the weather info
 #define HAP_FAKEGATO_CHUNK_BUFFER_SIZE  HAP_FAKEGATO_CHUNK_SIZE * 20        // 320 => 20 is the length of the energy info
-
 
 
 // this.accessoryType117

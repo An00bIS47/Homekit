@@ -211,7 +211,7 @@ void HAPFakeGato::getS2R2Callback(){
         size_t len = 0;
         uint16_t offset = 0;
         getData(HAP_FAKEGATO_CHUNK_SIZE, data, &len, offset);
-        offset = len;
+
 
         HAPHelper::array_print("data (next entry)", (uint8_t*)data, len);
         _s2r2Characteristics->setValue(base64::encode(data, len));  
@@ -252,8 +252,10 @@ void HAPFakeGato::setS2W1Characteristics(String oldValue, String newValue){
     size_t outputLength;
     uint8_t* decoded = base64_decode((const unsigned char *)newValue.c_str(), newValue.length(), &outputLength);
     
+#if HAP_DEBUG_FAKEGATO    
     HAPHelper::array_print("S2W1", decoded, outputLength);
-        
+#endif
+
     ui32_to_ui8 tmp;
 
     int n = 0;
@@ -263,30 +265,42 @@ void HAPFakeGato::setS2W1Characteristics(String oldValue, String newValue){
 
     ui32_to_ui8 address;
     address.ui32 = __builtin_bswap32(tmp.ui32);
+#if HAP_DEBUG_FAKEGATO    
     HAPHelper::array_print("S2W1 address",  address.ui8, 4);
-    
+#endif    
     _requestedEntry = tmp.ui32;
 
+#if HAP_DEBUG_FAKEGATO
     Serial.print("_requestedEntry: ");
     Serial.print(_requestedEntry);
+#endif
+
     // LogE("REQUESTED ENTRY: " + String(_requestedEntry) + " - ALREADY SENT: " +  String(_noOfEntriesSent), true);
 
     if (_requestedEntry == 0) {
+#if HAP_DEBUG_FAKEGATO        
         Serial.println(" - > Restart entry data");
+#endif        
         _requestedEntry = 1;
+#if HAP_DEBUG_FAKEGATO        
         Serial.println(" - > Set entries data");
+#endif        
         _transfer = true;
         getS2R2Callback(); 
     } else if (_requestedEntry - 1 == 0){
         // set reference time for EVE.app to S2R2
+#if HAP_DEBUG_FAKEGATO        
         Serial.println(" - > Set reftime");
+#endif        
         uint8_t data[22];
         size_t len = 0;
         getRefTime(data, &len, 0);
         _s2r2Characteristics->setValue(base64::encode(data, len));
     } else {        
-        // set the data entries for EVE.app to S2R2     
+        // set the data entries for EVE.app to S2R2  
+#if HAP_DEBUG_FAKEGATO           
         Serial.println(" - > Set entries data");
+#endif        
         _transfer = true;
         getS2R2Callback();   
     }

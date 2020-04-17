@@ -446,7 +446,7 @@ char* HAPEncryption::encrypt(uint8_t *message, size_t length, int* encrypted_len
 		nonce[5] = encryptCount++ / 256;
 #if 1
 
-#if 1
+#if HAP_DEBUG_HOMEKIT
         Serial.println("=========================================================");
         HAPHelper::array_print("nonce", nonce, 12);
         HAPHelper::array_print("key", key, strlen((const char*)key));
@@ -456,7 +456,7 @@ char* HAPEncryption::encrypt(uint8_t *message, size_t length, int* encrypted_len
 #endif
 		err_code = chacha20_poly1305_encrypt_with_nonce(nonce, key, aad, HAP_ENCRYPTION_AAD_SIZE, decrypted_ptr, chunk_len, encrypted_ptr);	
 
-#if 1
+#if HAP_DEBUG_HOMEKIT
         HAPHelper::array_print("encrypted_ptr", encrypted_ptr, chunk_len + 16);
         Serial.println("=========================================================");
 #endif

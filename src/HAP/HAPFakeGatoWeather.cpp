@@ -85,7 +85,7 @@ bool HAPFakeGatoWeather::addEntry(String stringTemperature, String stringHumidit
 
 bool HAPFakeGatoWeather::addEntry(HAPFakeGatoWeatherData data){
 
-    LogD(HAPServer::timeString() + " " + String(__CLASS_NAME__) + "->" + String(__FUNCTION__) + " [   ] " + "Add fakegato data for " + _name + " ..." , true);
+    //LogD(HAPServer::timeString() + " " + String(__CLASS_NAME__) + "->" + String(__FUNCTION__) + " [   ] " + "Add fakegato data for " + _name + " ..." , true);
 
     if (_vectorBuffer == nullptr) {
         begin();
@@ -177,7 +177,7 @@ void HAPFakeGatoWeather::getData(const size_t count, uint8_t *data, size_t* leng
 
     if ( (tmpRequestedEntry >= _idxWrite) && ( _rolledOver == false) ){
         _transfer = false;
-        Serial.println(">>>>>>>>>>>> ABORT 0");                                
+        LogE("ERROR: Fakegato requested entry not found!", true);
         return;
     }
 

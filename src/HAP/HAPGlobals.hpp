@@ -46,6 +46,10 @@
 #define HAP_DEBUG_HOMEKIT			0
 #endif
 
+#ifndef HAP_DEBUG_FAKEGATO
+#define HAP_DEBUG_FAKEGATO			0
+#endif
+
 /**
  * Thresholds
  ********************************************************************/
@@ -64,7 +68,7 @@
                                             // before switching back to default mode
 											// default: 5
 #define HAP_WIFI_CONNECTION_RETRY_DELAY	2000
-#define ESP_WIFI_CONNECTION_TIMEOUT	20000
+#define ESP_WIFI_CONNECTION_TIMEOUT		20000
 
 
 /**
@@ -126,15 +130,20 @@
 /**
  * Fakegato 
  ********************************************************************/
-#define HAP_FAKEGATO_BUFFER_SIZE	768     // Number of history entries for each characteristic 
-											// default: 768
 
+#ifndef HAP_FAKEGATO_BUFFER_SIZE
+#define HAP_FAKEGATO_BUFFER_SIZE	1536    // Number of history entries for each characteristic 
+#endif										// default: 768
+
+
+#ifndef HAP_FAKEGATO_INTERVAL
 #define HAP_FAKEGATO_INTERVAL       300000	// Interval to add entry to history in millis
-                                            // EVE app requires at least one entry every 10 mins
+#endif                                      // EVE app requires at least one entry every 10 mins
 											// default: 300000
 
+#ifndef HAP_FAKEGATO_CHUNK_SIZE
 #define HAP_FAKEGATO_CHUNK_SIZE     16      // Number of entries sent at once from device to EVE app
-											// default: 16
+#endif										// default: 16
 
 
 
@@ -177,18 +186,54 @@
  *     add themas well on top of the defne bellow !!!
  ********************************************************************/
 
+
+#ifndef HAP_PLUGIN_USE_LED
 #define HAP_PLUGIN_USE_LED			0
+#endif
+
+#ifndef HAP_PLUGIN_USE_SWITCH
 #define HAP_PLUGIN_USE_SWITCH		0
+#endif
+
+#ifndef HAP_PLUGIN_USE_MIFLORA
 #define HAP_PLUGIN_USE_MIFLORA		0	// deprecated !!!
+#endif
+
+#ifndef HAP_PLUGIN_USE_MIFLORA2
 #define HAP_PLUGIN_USE_MIFLORA2		0
+#endif
+
+#ifndef HAP_PLUGIN_USE_SSD1331
 #define HAP_PLUGIN_USE_SSD1331		0
+#endif
+
+#ifndef HAP_PLUGIN_USE_PCA301
 #define HAP_PLUGIN_USE_PCA301		0
+#endif
+
+#ifndef HAP_PLUGIN_USE_NEOPIXEL
 #define HAP_PLUGIN_USE_NEOPIXEL		0
-#define HAP_PLUGIN_USE_INFLUXDB		0
+#endif
+
+#ifndef HAP_PLUGIN_USE_INFLUXDB
+#define HAP_PLUGIN_USE_INFLUXDB		1
+#endif
+
+#ifndef HAP_PLUGIN_USE_HYGROMETER
 #define HAP_PLUGIN_USE_HYGROMETER	0
+#endif
+
+#ifndef HAP_PLUGIN_USE_RCSWITCH
 #define HAP_PLUGIN_USE_RCSWITCH		0
-#define HAP_PLUGIN_USE_DHT			0
+#endif
+
+#ifndef HAP_PLUGIN_USE_DHT
+#define HAP_PLUGIN_USE_DHT			1
+#endif
+
+#ifndef HAP_PLUGIN_USE_BME280
 #define HAP_PLUGIN_USE_BME280		1	// < last digit of feature number
+#endif
 
 #define HAP_PLUGIN_FEATURE_NUMBER \
 STR(HAP_PLUGIN_USE_LED) \
