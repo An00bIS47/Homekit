@@ -22,7 +22,6 @@
 #define TAG "CHACHA20_POLY1305"
 
 
-
 int HAPEncryption::pad(size_t *padded_buflen_p, uint8_t *msg, 
         const uint8_t *buf, size_t unpadded_buflen, size_t blocksize, 
         size_t max_msglen, bool zeroPadded )
@@ -87,12 +86,18 @@ int HAPEncryption::pad(size_t *padded_buflen_p, uint8_t *msg,
 
 
 int HAPEncryption::begin(){
+
+#if !defined (__APPLE__)    
     int result = sodium_init();
+#else
+    int result = 0;    
+#endif
+
     if (result < 0) {
         /* panic! the library couldn't be initialized, it is not safe to use */
         LogE("[ERROR] Sodium couldn't be initialized!", true);
-        return result;
     }
+
     return result;
 }
 
@@ -150,6 +155,7 @@ int HAPEncryption::unpad(size_t *unpadded_buflen_p, const unsigned char *buf,
 //     return computed_hmac;
 // }
 
+#if !defined (__APPLE__)
 int HAPEncryption::computePoly1305(uint8_t* hmac, uint8_t* cipherText, 
             size_t cipherTextLength, uint8_t* AAD, uint8_t *nonce, 
             uint8_t *key) {
@@ -176,7 +182,7 @@ int HAPEncryption::computePoly1305(uint8_t* hmac, uint8_t* cipherText,
 
     uint8_t msg[paddedLength];
     
-#if HAP_ENCRYPTION_DEBUG    
+#if HAP_DEBUG_ENCRYPTION    
     Serial.printf("paddedLength: %d\n", paddedLength);
 #endif
     
@@ -188,7 +194,7 @@ int HAPEncryption::computePoly1305(uint8_t* hmac, uint8_t* cipherText,
     memcpy(msg + paddedAADLength + paddedCipherLength + paddedAADLengthNum, &cipherTextLength, HAPHelper::numDigits(cipherTextLength) );
 
 
-#if HAP_ENCRYPTION_DEBUG
+#if HAP_DEBUG_ENCRYPTION
     Serial.printf("msg: %d = %d\n", paddedLength, sizeof msg);
     HAPHelper::arrayPrint(msg, paddedLength);
 #endif
@@ -199,7 +205,7 @@ int HAPEncryption::computePoly1305(uint8_t* hmac, uint8_t* cipherText,
         return -1;
     }
 
-#if HAP_ENCRYPTION_DEBUG    
+#if HAP_DEBUG_ENCRYPTION    
     Serial.println("polyKey: ");
     HAPHelper::arrayPrint(polyKey, HAP_ENCRYPTION_KEY_SIZE);
 #endif
@@ -211,7 +217,7 @@ int HAPEncryption::computePoly1305(uint8_t* hmac, uint8_t* cipherText,
         return -1;
     }
     
-#if HAP_ENCRYPTION_DEBUG    
+#if HAP_DEBUG_ENCRYPTION    
     Serial.println("generated hmac:");
     HAPHelper::arrayPrint(hmac, crypto_onetimeauth_BYTES);
     //Serial.printf("msg: %d\n", sizeof msg);
@@ -221,7 +227,7 @@ int HAPEncryption::computePoly1305(uint8_t* hmac, uint8_t* cipherText,
 
     return 0;
 }
-
+#endif
 
 
 // i'd really prefer for this to be a direct call to
@@ -245,7 +251,7 @@ int HAPEncryption::computePoly1305(uint8_t* hmac, uint8_t* cipherText,
 //
 //     return null;
 // }
-
+#if !defined (__APPLE__)
 int HAPEncryption::verifyAndDecrypt(uint8_t *decrypted, uint8_t cipherText[], 
             uint16_t length, uint8_t mac[], uint8_t aad[], 
             int decryptCount, uint8_t key[]){
@@ -281,7 +287,7 @@ int HAPEncryption::verifyAndDecrypt(uint8_t *decrypted, uint8_t cipherText[],
     nonce[5] = decryptCount++ / 256;
     
 
-#if HAP_ENCRYPTION_DEBUG    
+#if HAP_DEBUG_ENCRYPTION    
     LogD("decryptCount: " + String(decryptCount), true);
 
     Serial.println("nonce:");
@@ -309,7 +315,7 @@ int HAPEncryption::verifyAndDecrypt(uint8_t *decrypted, uint8_t cipherText[],
         return -1;
     }
 
-#if HAP_ENCRYPTION_DEBUG  
+#if HAP_DEBUG_ENCRYPTION  
     Serial.println("computed hmac:");
     HAPHelper::arrayPrint(hmac, HAP_ENCRYPTION_HMAC_SIZE);
 #endif
@@ -336,7 +342,7 @@ int HAPEncryption::verifyAndDecrypt(uint8_t *decrypted, uint8_t cipherText[],
         return -1;
     }
 
-#if HAP_ENCRYPTION_DEBUG  
+#if HAP_DEBUG_ENCRYPTION  
     Serial.printf("decrypted: %d\n", length );
     HAPHelper::arrayPrint(decrypted, length);
     Serial.println((char*) decrypted);
@@ -345,6 +351,7 @@ int HAPEncryption::verifyAndDecrypt(uint8_t *decrypted, uint8_t cipherText[],
     return 0;
 }
 
+#endif
 
 // size_t HAPEncryption::encrypt(Stream& stream, uint8_t* buffer, uint8_t* key, uint16_t encryptCount){
 

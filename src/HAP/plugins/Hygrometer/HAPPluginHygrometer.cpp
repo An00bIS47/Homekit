@@ -15,7 +15,7 @@
 #define VERSION_REVISION    3
 #define VERSION_BUILD       1
 
-#define HAP_PLUGIN_HYGROMETER_USE_DUMMY 1
+
 
 
 HAPPluginHygrometer::HAPPluginHygrometer(){

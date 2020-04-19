@@ -1,13 +1,33 @@
 #!/bin/bash
 
 
-PAIRINGDATAFILE="../build/homekitStorage.json"
-ALIAS="cafeec"
+PAIRINGDATAFILE="./.pio/homekitStorage.json"
+
+#DEVICEID="24:6F:28:AF:5F:A4"
+#ALIAS="heltec"
+
 DEVICEID="BC:DD:C2:CA:FE:EC"
+ALIAS="cafeec"
+
+
 SETUPCODE="031-45-712"
 CHARACTERISTICS="2.10"
 
-ITERATIONS=10
+CHARACTERISTICS_FG="3.15"
+CHARACTERISTICS_FG_REQ_ENTRY="3.17"
+CHARACTERISTICS_FG_HISTORY="3.16"
+
+
+ITERATIONS=1
+
+
+curl --request DELETE \
+        --url https://esp32-cafeec/api/pairings \
+        --header 'Authorization: Basic YWRtaW46c2VjcmV0' \
+        --header 'Connection: keep-alive' \
+        --header 'Content-Type: application/json' \
+        -k \
+		-s
 
 echo "Init homekit storage file" 
 python3 -m homekit.init_controller_storage -f ${PAIRINGDATAFILE}
@@ -25,6 +45,10 @@ echo "==========================================="
 echo ""
 echo ""
 echo ""
+
+
+
+
 
 
 # echo "Call pair a device $ITERATIONS times"
@@ -94,6 +118,50 @@ echo "==========================================="
 echo ""
 echo ""
 echo ""
+
+echo "Get fakegato history info a $ITERATIONS times"
+echo "==========================================="
+for i in $(seq 1 $ITERATIONS);
+do
+   	echo "Loading $i times"
+	python3 -m homekit.get_characteristic -f ${PAIRINGDATAFILE} -a ${ALIAS} -c ${CHARACTERISTICS_FG} -m -p -e -t 
+	sleep 1
+done
+echo "==========================================="
+echo ""
+echo ""
+echo ""
+
+
+echo "Load fakegato history entries a $ITERATIONS times"
+echo "==========================================="
+for i in $(seq 1 $ITERATIONS);
+do
+   	echo "Loading $i times"
+	# 0
+	python3 -m homekit.put_characteristic -f ${PAIRINGDATAFILE} -a ${ALIAS} -c ${CHARACTERISTICS_FG_REQ_ENTRY} "MkIwMjEwMDAwMDAwMDA="
+	python3 -m homekit.get_accessories -f ${PAIRINGDATAFILE} -a ${ALIAS} -o json | python3 ~/Development/Homekit/utils/accessory_validate/accval.py
+	python3 -m homekit.get_characteristic -f ${PAIRINGDATAFILE} -a ${ALIAS} -c ${CHARACTERISTICS_FG_HISTORY} -m -p -e -t 
+
+	# 17
+	python3 -m homekit.put_characteristic -f ${PAIRINGDATAFILE} -a ${ALIAS} -c ${CHARACTERISTICS_FG_REQ_ENTRY} "MkIwMjExMDAwMDAwMDEwMA=="
+	python3 -m homekit.get_accessories -f ${PAIRINGDATAFILE} -a ${ALIAS} -o json | python3 ~/Development/Homekit/utils/accessory_validate/accval.py
+	python3 -m homekit.get_characteristic -f ${PAIRINGDATAFILE} -a ${ALIAS} -c ${CHARACTERISTICS_FG_HISTORY} -m -p -e -t 
+
+	# 33
+	python3 -m homekit.put_characteristic -f ${PAIRINGDATAFILE} -a ${ALIAS} -c ${CHARACTERISTICS_FG_REQ_ENTRY} "MkIwMjIxMDAwMDAwMDEwMA=="
+	python3 -m homekit.get_accessories -f ${PAIRINGDATAFILE} -a ${ALIAS} -o json | python3 ~/Development/Homekit/utils/accessory_validate/accval.py
+	python3 -m homekit.get_characteristic -f ${PAIRINGDATAFILE} -a ${ALIAS} -c ${CHARACTERISTICS_FG_HISTORY} -m -p -e -t 
+
+
+	sleep 1
+done
+echo "==========================================="
+echo ""
+echo ""
+echo ""
+
+
 
 echo "Remove storage file"
 rm ${PAIRINGDATAFILE}

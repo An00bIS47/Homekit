@@ -9,7 +9,7 @@
 #define HAPGLOBALS_HPP_
 
 #ifndef ARDUINO_ARCH_ESP32
-#define ARDUINO_ARCH_ESP32	
+#define ARDUINO_ARCH_ESP32			0
 #endif
 
 
@@ -44,6 +44,14 @@
 
 #ifndef HAP_DEBUG_HOMEKIT
 #define HAP_DEBUG_HOMEKIT			0
+#endif
+
+#ifndef HAP_DEBUG_FAKEGATO
+#define HAP_DEBUG_FAKEGATO			0
+#endif
+
+#ifndef HAP_DEBUG_ENCRYPTION
+#define HAP_DEBUG_ENCRYPTION		0
 #endif
 
 #ifndef HAP_DEBUG_FAKEGATO
@@ -216,7 +224,7 @@
 #endif
 
 #ifndef HAP_PLUGIN_USE_INFLUXDB
-#define HAP_PLUGIN_USE_INFLUXDB		1
+#define HAP_PLUGIN_USE_INFLUXDB		0
 #endif
 
 #ifndef HAP_PLUGIN_USE_HYGROMETER
@@ -228,11 +236,11 @@
 #endif
 
 #ifndef HAP_PLUGIN_USE_DHT
-#define HAP_PLUGIN_USE_DHT			1
+#define HAP_PLUGIN_USE_DHT			0
 #endif
 
 #ifndef HAP_PLUGIN_USE_BME280
-#define HAP_PLUGIN_USE_BME280		1	// < last digit of feature number
+#define HAP_PLUGIN_USE_BME280		0	// < last digit of feature number
 #endif
 
 #define HAP_PLUGIN_FEATURE_NUMBER \

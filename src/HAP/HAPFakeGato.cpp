@@ -203,8 +203,9 @@ void HAPFakeGato::updateS2R2Value(){
 // Prepare next values
 // 
 void HAPFakeGato::getS2R2Callback(){
+#if HAP_DEBUG_FAKEGATO    
     LogD(HAPServer::timeString() + " " + "HAPFakeGato" + "->" + String(__FUNCTION__) + " [   ] " + "Callback S2R2: Set next history entry", true);      
-
+#endif
     if (_transfer)
     {
         uint8_t data[HAP_FAKEGATO_CHUNK_BUFFER_SIZE];
@@ -212,8 +213,9 @@ void HAPFakeGato::getS2R2Callback(){
         uint16_t offset = 0;
         getData(HAP_FAKEGATO_CHUNK_SIZE, data, &len, offset);
 
-
+#if HAP_DEBUG_FAKEGATO
         HAPHelper::array_print("data (next entry)", (uint8_t*)data, len);
+#endif        
         _s2r2Characteristics->setValue(base64::encode(data, len));  
 
         // LogE("Number of entries sent (total): " + String(_noOfEntriesSent), true); 
@@ -230,7 +232,9 @@ void HAPFakeGato::setS2R1Characteristics(String oldValue, String newValue){
 
 // = CALLBACK
 void HAPFakeGato::setS2R2Characteristics( String oldValue, String newValue){
+#if HAP_DEBUG_FAKEGATO
     LogD(HAPServer::timeString() + " " + __CLASS_NAME__ + "->" + String(__FUNCTION__) + " [   ] " + "Getting S2R2 iid " + String(_s2r2Characteristics->iid) +  " oldValue: " + oldValue + " -> newValue: " + newValue, true);      
+#endif    
 }
 
 /**
@@ -328,15 +332,18 @@ void HAPFakeGato::setS2W2Characteristics(String oldValue, String newValue){
     size_t outputLength;
     uint8_t* decoded = base64_decode((const unsigned char *)newValue.c_str(), newValue.length(), &outputLength);
 
-    // HAPHelper::array_print("S2W2", decoded, outputLength);
+    // ToDo: Set current time from this? (Only if NTP is not connected!)
+    HAPHelper::array_print("S2W2", decoded, outputLength);
     
     free(decoded);
 }
 
 void HAPFakeGato::getRefTime(uint8_t *data, size_t* length, const uint16_t offset){
 
+#if HAP_DEBUG_FAKEGATO
     LogD(HAPServer::timeString() + " " + "HAPFakeGato" + "->" + String(__FUNCTION__) + " [   ] " + "Get ref time entry", true);    
- 
+#endif
+
     uint8_t size = 21;
     uint8_t typ = HAP_FAKEGATO_TYPE_REFTIME;
     memcpy(data + offset, (uint8_t *)&size, 1);
@@ -358,8 +365,9 @@ void HAPFakeGato::getRefTime(uint8_t *data, size_t* length, const uint16_t offse
     ui32_to_ui8 refTime;
     refTime.ui32 = _refTime - FAKEGATO_EPOCH_OFFSET;
 
-    LogE(">>>>> Fakegato RefTime: " + String( refTime.ui32 ), true);
-
+#if HAP_DEBUG_FAKEGATO
+    LogD(">>>>> Fakegato RefTime: " + String( refTime.ui32 ), true);
+#endif
     // memcpy(data + offset, common.bytes, 10);                
     memcpy(data + offset + 10, refTime.ui8, 4);
     memset(data + offset + 10 + 4, 0x00, 7);                

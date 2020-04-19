@@ -65,6 +65,7 @@ void HAPFakeGatoWeather::getSignature(uint8_t* signature){
 
 bool HAPFakeGatoWeather::addEntry(String stringTemperature, String stringHumidity, String stringPressure){        
 
+
     LogD(HAPServer::timeString() + " " + String(__CLASS_NAME__) + "->" + String(__FUNCTION__) + " [   ] " + "Adding entry for " + _name + " [size=" + String(_memoryUsed) + "]: temp=" + stringTemperature + " hum=" + stringHumidity + " pres=" + stringPressure, true);
     
     uint16_t valueTemperature   = (uint16_t) stringTemperature.toFloat()    * 100;
@@ -143,8 +144,10 @@ bool HAPFakeGatoWeather::addEntry(HAPFakeGatoWeatherData data){
 
 // TODO: Read from index requested by EVE app
 void HAPFakeGatoWeather::getData(const size_t count, uint8_t *data, size_t* length, uint16_t offset){
-    LogD(HAPServer::timeString() + " " + String(__CLASS_NAME__) + "->" + String(__FUNCTION__) + " [   ] " + "Get fakegato data for " + _name + " ..." , true);
 
+#if HAP_DEBUG_FAKEGATO      
+    LogD(HAPServer::timeString() + " " + String(__CLASS_NAME__) + "->" + String(__FUNCTION__) + " [   ] " + "Get fakegato data for " + _name + " ..." , true);
+#endif
 
 #if HAP_DEBUG_FAKEGATO
     for (int i=0; i< HAP_FAKEGATO_BUFFER_SIZE; i++){
@@ -177,7 +180,7 @@ void HAPFakeGatoWeather::getData(const size_t count, uint8_t *data, size_t* leng
 
     if ( (tmpRequestedEntry >= _idxWrite) && ( _rolledOver == false) ){
         _transfer = false;
-        LogE("ERROR: Fakegato requested entry not found!", true);
+        LogW("WARNING: Fakegato could not send the requested entry. The requested index does not exist!", true);                          
         return;
     }
 
@@ -226,7 +229,7 @@ void HAPFakeGatoWeather::getData(const size_t count, uint8_t *data, size_t* leng
         if ( (tmpRequestedEntry + 1 >= _idxWrite )  && ( _rolledOver == false) ){
             _transfer = false;    
 
-            Serial.println(">>>>>>>>>>>> ABORT 1");                                
+            LogW("WARNING: Fakegato could not send the requested entry", true);                              
             break;
         }
 
@@ -239,7 +242,7 @@ void HAPFakeGatoWeather::getData(const size_t count, uint8_t *data, size_t* leng
         if ( _rolledOver == true) { 
             if (tsOld > entryData.timestamp) {
                 _transfer = false;  
-                Serial.println(">>>>>>>>>>>> ABORT OK <<<");                                
+                LogW("WARNING: Fakegato could not send the requested entry", true);                                 
                 break;
             }
         }

@@ -1,7 +1,10 @@
 #include <stdio.h>
 #include <stdint.h>
 
+#if !defined (__APPLE__)
 #include <esp_log.h>
+#endif
+
 #include "m_chacha20_poly1305.h"
 
 #include "mbedtls/chachapoly.h"
@@ -25,7 +28,6 @@ int chacha20_poly1305_decrypt_with_nonce(uint8_t* nonce, uint8_t* key, uint8_t* 
     int cipher_text_len = encrypted_len - CHACHA20_POLY1305_AUTH_TAG_LENGTH;
     uint8_t* auth_tag = encrypted + cipher_text_len;
 
-
 	mbedtls_chachapoly_context chachapoly_ctx;
 	mbedtls_chachapoly_init(&chachapoly_ctx);
 	mbedtls_chachapoly_setkey(&chachapoly_ctx,key);
@@ -33,7 +35,11 @@ int chacha20_poly1305_decrypt_with_nonce(uint8_t* nonce, uint8_t* key, uint8_t* 
 	int err = mbedtls_chachapoly_auth_decrypt(&chachapoly_ctx,cipher_text_len,nonce,aad,aad_len,auth_tag,encrypted,decrypted);
  
     if (err < 0) {
+#if !defined (__APPLE__)        
         ESP_LOGE(TAG, "mbedtls_chachapoly_auth_decrypt failed. err:%d\n", err);    
+#else
+        printf("%s - mbedtls_chachapoly_auth_decrypt failed. err:%d\n", TAG, err);
+#endif        
         return -1;
     }
 
@@ -64,7 +70,12 @@ int chacha20_poly1305_encrypt_with_nonce(uint8_t nonce[CHACHA20_POLY1305_NONCE_L
 	int err = mbedtls_chachapoly_encrypt_and_tag(&chachapoly_ctx,plain_text_length,nonce,aad,aad_len,plain_text,encrypted,auth_tag);
 
     if (err < 0) {
+        
+#if !defined (__APPLE__)        
         ESP_LOGE(TAG, "mbedtls_chachapoly_encrypt_and_tag failed. err:%d\n", err);
+#else
+        printf("%s - mbedtls_chachapoly_encrypt_and_tag failed. err:%d\n", TAG, err);
+#endif                
         mbedtls_chachapoly_free(&chachapoly_ctx);
         return -1;
     }

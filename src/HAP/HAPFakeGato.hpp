@@ -39,7 +39,7 @@ extern "C" {
 
 // ToDo: Adjust for the other entries
 // #define HAP_FAKEGATO_CHUNK_BUFFER_SIZE  HAP_FAKEGATO_CHUNK_SIZE * 16     // 256 => 16 is the length of the weather info
-#define HAP_FAKEGATO_CHUNK_BUFFER_SIZE  HAP_FAKEGATO_CHUNK_SIZE * 20        // 320 => 20 is the length of the energy info
+#define HAP_FAKEGATO_CHUNK_BUFFER_SIZE      512     // base64 256 bits = 344
 
 
 // this.accessoryType117

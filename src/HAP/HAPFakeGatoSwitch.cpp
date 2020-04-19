@@ -76,6 +76,7 @@ bool HAPFakeGatoSwitch::addEntry(HAPFakeGatoSwitchData data){
     // if (_ringbuffer == nullptr) {
     //     begin();
     // }
+    
     LogD(HAPServer::timeString() + " " + String(__CLASS_NAME__) + "->" + String(__FUNCTION__) + " [   ] " + "Add fakegato data for " + _name + " ..." , true);
 
     if (_vectorBuffer == nullptr) {
@@ -130,8 +131,9 @@ bool HAPFakeGatoSwitch::addEntry(HAPFakeGatoSwitchData data){
 
 // TODO: Read from index requested by EVE app
 void HAPFakeGatoSwitch::getData(const size_t count, uint8_t *data, size_t* length, uint16_t offset){
+#if HAP_DEBUG_FAKEGATO      
     LogD(HAPServer::timeString() + " " + String(__CLASS_NAME__) + "->" + String(__FUNCTION__) + " [   ] " + "Get fakegato data for " + _name + " ..." , true);
-
+#endif
 
 #if HAP_DEBUG_FAKEGATO
     for (int i=0; i< HAP_FAKEGATO_BUFFER_SIZE; i++){
@@ -164,7 +166,7 @@ void HAPFakeGatoSwitch::getData(const size_t count, uint8_t *data, size_t* lengt
 
     if ( (tmpRequestedEntry >= _idxWrite) && ( _rolledOver == false) ){
         _transfer = false;
-        Serial.println(">>>>>>>>>>>> ABORT 0");                                
+        LogW("WARNING: Fakegato could not send the requested entry. The requested index does not exist!", true);                                                     
         return;
     }
 
@@ -208,7 +210,7 @@ void HAPFakeGatoSwitch::getData(const size_t count, uint8_t *data, size_t* lengt
         if ( (tmpRequestedEntry + 1 >= _idxWrite )  && ( _rolledOver == false) ){
             _transfer = false;    
 
-            Serial.println(">>>>>>>>>>>> ABORT 1");                                
+            LogW("WARNING: Fakegato could not send the requested entry", true);                             
             break;
         }
 
@@ -221,7 +223,7 @@ void HAPFakeGatoSwitch::getData(const size_t count, uint8_t *data, size_t* lengt
         if ( _rolledOver == true) { 
             if (tsOld > entryData.timestamp) {
                 _transfer = false;  
-                Serial.println(">>>>>>>>>>>> ABORT OK <<<");                                
+                LogW("WARNING: Fakegato could not send the requested entry", true);                              
                 break;
             }
         }

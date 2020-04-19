@@ -82,8 +82,10 @@ bool HAPFakeGatoEnergy::addEntry(String stringPower){
 }
 
 bool HAPFakeGatoEnergy::addEntry(HAPFakeGatoEnergyData data){
-    
+
+#if HAP_DEBUG_FAKEGATO    
     LogD(HAPServer::timeString() + " " + String(__CLASS_NAME__) + "->" + String(__FUNCTION__) + " [   ] " + "Add fakegato data for " + _name + " ..." , true);
+#endif
 
     if (_vectorBuffer == nullptr) {
         begin();
@@ -118,13 +120,14 @@ bool HAPFakeGatoEnergy::addEntry(HAPFakeGatoEnergyData data){
 
 
 void HAPFakeGatoEnergy::getData(const size_t count, uint8_t *data, size_t* length, uint16_t offset){
-    LogD(HAPServer::timeString() + " " + String(__CLASS_NAME__) + "->" + String(__FUNCTION__) + " [   ] " + "Get fakegato data for " + _name + " ..." , true);    
-
+#if HAP_DEBUG_FAKEGATO      
+    LogD(HAPServer::timeString() + " " + String(__CLASS_NAME__) + "->" + String(__FUNCTION__) + " [   ] " + "Get fakegato data for " + _name + " ..." , true);
+#endif
     uint32_t tmpRequestedEntry = (_requestedEntry - 1) % HAP_FAKEGATO_BUFFER_SIZE;
 
     if ( (tmpRequestedEntry >= _idxWrite) && ( _rolledOver == false) ){
         _transfer = false;
-        Serial.println(">>>>>>>>>>>> ABORT 0");                                
+        LogW("WARNING: Fakegato could not send the requested entry. The requested index does not exist!", true);                          
         return;
     }
 
@@ -169,7 +172,8 @@ void HAPFakeGatoEnergy::getData(const size_t count, uint8_t *data, size_t* lengt
         if ( (tmpRequestedEntry + 1 >= _idxWrite )  && ( _rolledOver == false) ){
             _transfer = false;    
 
-            Serial.println(">>>>>>>>>>>> ABORT 1");                                
+            //Serial.println(">>>>>>>>>>>> ABORT 1");                                
+            LogW("WARNING: Fakegato could not send the requested entry", true);
             break;
         }
         
@@ -181,7 +185,7 @@ void HAPFakeGatoEnergy::getData(const size_t count, uint8_t *data, size_t* lengt
         if ( _rolledOver == true) { 
             if (tsOld > entryData.timestamp) {
                 _transfer = false;  
-                Serial.println(">>>>>>>>>>>> ABORT OK <<<");                                
+                LogW("WARNING: Fakegato could not send the requested entry", true);                                
                 break;
             }
         }      

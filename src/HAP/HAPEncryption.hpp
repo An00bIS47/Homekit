@@ -10,8 +10,12 @@
 #define HAPENCRYPTION_HPP_
 
 #include <Arduino.h>
-#include <sodium.h>
 #include "HAPGlobals.hpp"
+
+#if !defined (__APPLE__)
+#include <sodium.h>
+#endif
+
 
 #ifndef HAP_ENCRYPTION_AAD_SIZE
 #define HAP_ENCRYPTION_AAD_SIZE 			2
@@ -71,13 +75,15 @@ public:
 			size_t padded_buflen, size_t blocksize);
 
 
+#if !defined (__APPLE__)
 	static int computePoly1305(uint8_t* hmac, uint8_t* cipherText, 
 			size_t cipherTextLength, uint8_t* AAD, uint8_t *nonce, 
 			uint8_t *key);
 
+
 	static int verifyAndDecrypt(uint8_t *decrypted, uint8_t cipherText[], uint16_t length, 
 			uint8_t mac[], uint8_t aad[], int decryptCount, uint8_t key[]);
-	
+#endif	
 	
 	// not needed
 	// static size_t encrypt(uint8_t *message, size_t length, uint8_t* buffer, uint8_t* key, uint16_t encryptCount);
