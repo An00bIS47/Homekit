@@ -46,21 +46,23 @@ std::string exec(const char* cmd) {
 
 void _setUp(void) {
     // set stuff up here
+
+    // std::cout << "Creating storage file:" << std::endl;
     std::string cmd = "python3 -m homekit.init_controller_storage -f ";
     cmd += PAIRINGDATAFILE;
 
-    std::cout << "cmd: " << cmd << std::endl;
+    // // std::cout << "cmd: " << cmd << std::endl;
     exec( cmd.c_str() );
 
-    cmd = "curl --request DELETE \
-        --url https://esp32-cafeec/api/pairings \
-        --header 'Authorization: Basic YWRtaW46c2VjcmV0' \
-        --header 'Connection: keep-alive' \
-        --header 'Content-Type: application/json' \
-        -k \
-        -s";
-    std::cout << "cmd: " << cmd << std::endl;
-    exec( cmd.c_str() );
+    // cmd = "curl --request DELETE \
+    //     --url https://esp32-cafeec/api/pairings \
+    //     --header 'Authorization: Basic YWRtaW46c2VjcmV0' \
+    //     --header 'Connection: keep-alive' \
+    //     --header 'Content-Type: application/json' \
+    //     -k \
+    //     -s";
+    // // std::cout << "cmd: " << cmd << std::endl;
+    // exec( cmd.c_str() );
 }
 
 void _tearDown(void) {
@@ -68,7 +70,7 @@ void _tearDown(void) {
     std::string cmd = "rm ";
     cmd += PAIRINGDATAFILE;
 
-    std::cout << "cmd: " << cmd << std::endl;
+    // // std::cout << "cmd: " << cmd << std::endl;
     exec( cmd.c_str() );
 }
 
@@ -76,22 +78,34 @@ void test_homekit_identify_unpaired(void) {
     
     std::string cmd = "python3 -m homekit.identify -d ";
     cmd += DEVICE_ID;
+        
+    // std::cout << "cmd: " << cmd << std::endl;
+    std::string result = exec( cmd.c_str() );
+    //std::cout << result << std::endl;          
+    TEST_ASSERT_EQUAL_STRING("", result.c_str());
     
-    //for (int i=0; i < ITERATIONS; i ++){
-        std::cout << "cmd: " << cmd << std::endl;
-        std::string result = exec( cmd.c_str() );
-        //std::cout << result << std::endl;          
-        TEST_ASSERT_EQUAL_STRING("", result.c_str());
-    //}
+
+}
+
+void test_homekit_identify_paired(void) {
+    
+    std::string cmd = "python3 -m homekit.identify ";
+    cmd += " -f";
+    cmd += PAIRINGDATAFILE;
+    cmd += " -a ";
+    cmd += ALIAS;
+        
+    // std::cout << "cmd: " << cmd << std::endl;
+    std::string result = exec( cmd.c_str() );
+    //std::cout << result << std::endl;          
+    TEST_ASSERT_EQUAL_STRING("", result.c_str());
+    
 
 }
 
 void test_homekit_pair(void) {
     
-
-
-
-    //python3 -m homekit.pair -d ${DEVICEID} -p ${SETUPCODE} -f ${PAIRINGDATAFILE} -a ${ALIAS}
+   //python3 -m homekit.pair -d ${DEVICEID} -p ${SETUPCODE} -f ${PAIRINGDATAFILE} -a ${ALIAS}
     std::string cmd = "python3 -m homekit.pair -d ";
     cmd += DEVICE_ID;
     cmd += " -p ";
@@ -101,14 +115,33 @@ void test_homekit_pair(void) {
     cmd += " -a ";
     cmd += ALIAS;
     
-    //for (int i=0; i < ITERATIONS; i ++){
-        std::cout << "cmd: " << cmd << std::endl;
-        std::string result = exec( cmd.c_str() );
+    // std::cout << "cmd: " << cmd << std::endl;
+    std::string result = exec( cmd.c_str() );
 
 
-        //std::cout << result << std::endl;          
-        TEST_ASSERT_EQUAL_STRING_LEN("Pairing for \"cafeec\" was established.\n", result.c_str(), result.length());
-    //}
+    //std::cout << result << std::endl;          
+    TEST_ASSERT_EQUAL_STRING_LEN("Pairing for \"cafeec\" was established.\n", result.c_str(), result.length());
+
+
+}
+
+void test_homekit_remove_pair(void) {
+    
+   //python3 -m homekit.pair -d ${DEVICEID} -p ${SETUPCODE} -f ${PAIRINGDATAFILE} -a ${ALIAS}
+    std::string cmd = "python3 -m homekit.remove_pairing ";
+    cmd += " -f";
+    cmd += PAIRINGDATAFILE;
+    cmd += " -a ";
+    cmd += ALIAS;
+    
+    
+    // std::cout << "cmd: " << cmd << std::endl;
+    std::string result = exec( cmd.c_str() );
+
+
+    //std::cout << result << std::endl;          
+    TEST_ASSERT_EQUAL_STRING_LEN("Pairing for \"cafeec\" was removed.\n", result.c_str(), result.length());
+
 
 }
 
@@ -123,22 +156,22 @@ void test_homekit_get_accessories(void) {
     cmd += " -o json";
     cmd += " | python3 ~/Development/Homekit/utils/accessory_validate/accval.py";
     
-    //for (int i=0; i < ITERATIONS; i ++){
-
-    std::cout << "cmd: " << cmd << std::endl;
     
-        //std::string result = exec( cmd.c_str() );
 
-        int ret = system( cmd.c_str() );
-        int exitCode = 0;
-        if (WEXITSTATUS(ret) == 0)
-            exitCode = 0;
-        else
-            exitCode = 1;
+    // std::cout << "cmd: " << cmd << std::endl;
+    
+    //std::string result = exec( cmd.c_str() );
 
-        //std::cout << result << std::endl;          
-        TEST_ASSERT_EQUAL(0, exitCode);
-    //}
+    int ret = system( cmd.c_str() );
+    int exitCode = 0;
+    if (WEXITSTATUS(ret) == 0)
+        exitCode = 0;
+    else
+        exitCode = 1;
+
+    //std::cout << result << std::endl;          
+    TEST_ASSERT_EQUAL(0, exitCode);
+    
 
 }
 
@@ -153,24 +186,23 @@ void test_homekit_get_characteristics(void) {
     cmd += ALIAS;
     cmd += " -c ";
     cmd += CHARACTERISTICS;
+    cmd += " > /dev/null 2>&1";
     
     
-    //for (int i=0; i < ITERATIONS; i ++){
-
-    std::cout << "cmd: " << cmd << std::endl;
+    // std::cout << "cmd: " << cmd << std::endl;
     
-        std::string result = exec( cmd.c_str() );
+    std::string result = exec( cmd.c_str() );
 
-        int ret = system( cmd.c_str() );
-        int exitCode = 0;
-        if (WEXITSTATUS(ret) == 0)
-            exitCode = 0;
-        else
-            exitCode = 1;
+    int ret = system( cmd.c_str() );
+    int exitCode = 0;
+    if (WEXITSTATUS(ret) == 0)
+        exitCode = 0;
+    else
+        exitCode = 1;
 
-        //std::cout << result << std::endl;          
-        TEST_ASSERT_EQUAL(0, exitCode);
-    //}
+    //std::cout << result << std::endl;          
+    TEST_ASSERT_EQUAL(0, exitCode);
+    
 
 }
 
@@ -184,24 +216,22 @@ void test_homekit_get_characteristics_fg_entry_count(void) {
     cmd += ALIAS;
     cmd += " -c ";
     cmd += CHARACTERISTICS_FAKEGATO_READ;
+    cmd += " > /dev/null 2>&1";
     
+    // std::cout << "cmd: " << cmd << std::endl;
     
-    //for (int i=0; i < ITERATIONS; i ++){
+    // std::string result = exec( cmd.c_str() );
 
-    std::cout << "cmd: " << cmd << std::endl;
+    int ret = system( cmd.c_str() );
+    int exitCode = 0;
+    if (WEXITSTATUS(ret) == 0)
+        exitCode = 0;
+    else
+        exitCode = 1;
+
+    //std::cout << result << std::endl;          
+    TEST_ASSERT_EQUAL(0, exitCode);
     
-        std::string result = exec( cmd.c_str() );
-
-        int ret = system( cmd.c_str() );
-        int exitCode = 0;
-        if (WEXITSTATUS(ret) == 0)
-            exitCode = 0;
-        else
-            exitCode = 1;
-
-        //std::cout << result << std::endl;          
-        TEST_ASSERT_EQUAL(0, exitCode);
-    //}
 }
 
 
@@ -215,8 +245,9 @@ void test_homekit_get_characteristics_fg_history(void) {
     cmd += ALIAS;
     cmd += " -c ";
     cmd += CHARACTERISTICS_FAKEGATO_HISTORY;
+    cmd += " > /dev/null 2>&1";    
 
-    std::cout << "cmd: " << cmd << std::endl;    
+    // std::cout << "cmd: " << cmd << std::endl;    
     //std::string result = exec( cmd.c_str() );
 
     int ret = system( cmd.c_str() );
@@ -243,8 +274,8 @@ void test_homekit_put_characteristics_fg_address_1(void) {
     cmd += " ";
     cmd += "MkIwMjEwMDAwMDAwMDA=";
 
-    std::cout << "cmd: " << cmd << std::endl;    
-    //std::string result = exec( cmd.c_str() );
+    // std::cout << "cmd: " << cmd << std::endl;    
+    
 
     int ret = system( cmd.c_str() );
     int exitCode = 0;
@@ -271,9 +302,8 @@ void test_homekit_put_characteristics_fg_address_17(void) {
     cmd += " ";
     cmd += "MkIwMjExMDAwMDAwMDEwMA==";
 
-    std::cout << "cmd: " << cmd << std::endl;    
-    //std::string result = exec( cmd.c_str() );
-
+    // std::cout << "cmd: " << cmd << std::endl;    
+    
     int ret = system( cmd.c_str() );
     int exitCode = 0;
     if (WEXITSTATUS(ret) == 0)
@@ -298,8 +328,8 @@ void test_homekit_put_characteristics_fg_address_33(void) {
     cmd += " ";
     cmd += "MkIwMjIxMDAwMDAwMDEwMA==";
 
-    std::cout << "cmd: " << cmd << std::endl;    
-    //std::string result = exec( cmd.c_str() );
+    // std::cout << "cmd: " << cmd << std::endl;    
+    
 
     int ret = system( cmd.c_str() );
     int exitCode = 0;
@@ -318,21 +348,40 @@ int main(int argc, char **argv) {
     _setUp();
     UNITY_BEGIN();
 
+
+
+    // std::cout << "Identify unpaired device:" << std::endl;
     for (int i=0; i < ITERATIONS; i ++){
+
+        // std::cout << i << ": times: " << "Identify unpaired device" << std::endl;
         RUN_TEST(test_homekit_identify_unpaired);
     };
     
+    // std::cout << "Pair:" << std::endl;
     RUN_TEST(test_homekit_pair);
 
+
     for (int i=0; i < ITERATIONS; i ++){
+        RUN_TEST(test_homekit_identify_paired);
+    }
+
+    // std::cout << "Get accessory:" << std::endl;
+    for (int i=0; i < ITERATIONS; i ++){
+        // std::cout << i << ": times: " << "Get ACCESSORY" << std::endl;
         RUN_TEST(test_homekit_get_accessories);
     }
 
+    // std::cout << "Get characteristic:" << std::endl;
     for (int i=0; i < ITERATIONS; i ++){
+        // std::cout << i << ": times: " << "Get CHARACTERISTICS" << std::endl;
         RUN_TEST(test_homekit_get_characteristics);
     }
 
+
+
+    // std::cout << "Fakegato workflow:" << std::endl;
     for (int i=0; i < ITERATIONS; i ++){
+        // std::cout << i << ": times: " << "Fakegato workflow" << std::endl;
         RUN_TEST(test_homekit_get_characteristics_fg_entry_count);        
         RUN_TEST(test_homekit_put_characteristics_fg_address_1);
         RUN_TEST(test_homekit_get_accessories);
@@ -350,6 +399,11 @@ int main(int argc, char **argv) {
         RUN_TEST(test_homekit_get_accessories);
         RUN_TEST(test_homekit_get_characteristics_fg_history);
     }
+
+
+    // std::cout << "Remove pairing:" << std::endl;
+    // RUN_TEST(test_homekit_remove_pair);
+
     UNITY_END();
 
     _tearDown();
