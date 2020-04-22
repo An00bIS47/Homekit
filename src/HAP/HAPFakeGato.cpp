@@ -11,6 +11,29 @@
 #include "HAPHelper.hpp"
 #include "HAPLogger.hpp"
 
+
+HAPFakeGato::HAPFakeGato()
+:_name("")
+,_type(HAPFakeGatoType_weather)
+,_isEnabled(false)
+,_refTime(0)
+,_rolledOver(false)
+,_memoryUsed(0)
+,_idxWrite(0)
+,_idxRead(0)
+,_requestedEntry(0)
+,_ptrTimestampLastEntry(nullptr)
+,_previousMillis(0)
+,_interval(HAP_FAKEGATO_INTERVAL)
+,_transfer(false)
+{
+
+}
+
+HAPFakeGato::~HAPFakeGato(){
+
+}
+
 void HAPFakeGato::registerFakeGatoService(HAPAccessory* accessory, String name){
         
     HAPService* fgService = new HAPService(HAP_SERVICE_FAKEGATO_HISTORY);    

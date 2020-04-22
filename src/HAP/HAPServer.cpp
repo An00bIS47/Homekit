@@ -257,7 +257,7 @@ bool HAPServer::begin(bool resume) {
 #endif
 
 
-	if ( isPaired() ){
+	if ( _accessorySet->isPaired() ){
 		LogV("Loading long term keys ...", false);	
 		_longTermContext = (struct HAPLongTermContext*) calloc(1, sizeof(struct HAPLongTermContext));
 		if (_longTermContext == NULL) {
@@ -651,7 +651,7 @@ bool HAPServer::updateServiceTxt() {
 	// Supports HAP Pairing. This flag is required for all HomeKit accessories.
 	hapTxtData[2].key 		= (char*) "ff";
 	hapTxtData[2].value 	= (char*) malloc(sizeof(char));
-	sprintf(hapTxtData[2].value, "%d", isPaired() );
+	sprintf(hapTxtData[2].value, "%d", _accessorySet->isPaired() );
 	
 	// md - model name	
 	hapTxtData[3].key 		= (char*) "md";
@@ -674,7 +674,7 @@ bool HAPServer::updateServiceTxt() {
 	// 0 if paired ??
 	hapTxtData[6].key 		= (char*) "sf";
 	hapTxtData[6].value 	= (char*) malloc(sizeof(char));
-	sprintf(hapTxtData[6].value, "%d", !isPaired() );
+	sprintf(hapTxtData[6].value, "%d", !_accessorySet->isPaired() );
 
 	 // ci - Accessory category indicator
 	hapTxtData[7].key 		= (char*) "ci";
@@ -1086,7 +1086,7 @@ void HAPServer::stopEvents(bool value) {
 
 bool HAPServer::handlePath(HAPClient* hapClient, uint8_t* bodyData, size_t bodyDataLen){
 	
-		// /accessories
+	// /accessories
 	if ( (hapClient->request.path == "/accessories") && (hapClient->request.method == METHOD_GET) ) {
 		handleAccessories( hapClient );
 	} 
@@ -1105,7 +1105,7 @@ bool HAPServer::handlePath(HAPClient* hapClient, uint8_t* bodyData, size_t bodyD
 			
 			handleCharacteristicsPut( hapClient, String(bodyDataStr) );
 		}	
-
+	// /pairings
 	} else if ( hapClient->request.path == "/pairings" ) {
 		// POST
 		if ( ( hapClient->request.method == METHOD_POST ) && (hapClient->request.contentType == F("application/pairing+tlv8")) ) {
@@ -1116,6 +1116,7 @@ bool HAPServer::handlePath(HAPClient* hapClient, uint8_t* bodyData, size_t bodyD
 		LogE("requested -> method: " + String(hapClient->request.method) + " - path: " + String(hapClient->request.path), true);
 
 		hapClient->client.stop();
+		hapClient->clear();
 		return false;
 	}
 
@@ -1126,8 +1127,6 @@ bool HAPServer::handlePath(HAPClient* hapClient, uint8_t* bodyData, size_t bodyD
 
 
 void HAPServer::parseRequest(HAPClient* hapClient, const char* msg, size_t msg_len, uint8_t** out, int* outLen){	
-
-	
 
 	int curPos = 0;
 	for (int i = 0; i < msg_len; i++) {
@@ -1160,7 +1159,7 @@ void HAPServer::parseRequest(HAPClient* hapClient, const char* msg, size_t msg_l
 
 		*outLen = siz;
 	} else {
-		LogW("Size mismatch", true);		
+		LogW("WARNING: Parsed size mismatch with given content length", true);		
 	}
 
 	//return bodyData;
@@ -1320,9 +1319,6 @@ void HAPServer::processIncomingRequest(HAPClient* hapClient){
 	}
 	
 	hapClient->state = CLIENT_STATE_IDLE;
-
-
-
 }
 
 
@@ -1449,14 +1445,17 @@ bool HAPServer::encode(HAPClient* hapClient){
 	uint16_t written = 0;
 	bool success = false;
 
-	// Method not supported :(
+
+	// Skip 0x00 
 	if ( hapClient->client.peek() == 0x00) {
+		// uint8_t skip[3];
+		// hapClient->client.readBytes(skip, 3);
+		
+
 		hapClient->client.read();
-//		Serial.println(c, HEX);
 		hapClient->client.read();
-//		Serial.println(c, HEX);
 		hapClient->client.read();
-//		Serial.println(c, HEX);
+
 		hapClient->request.contentLength = hapClient->request.contentLength - 3;
 	}
 
@@ -1467,8 +1466,8 @@ bool HAPServer::encode(HAPClient* hapClient){
 
 		if ( TLV8::isValidTLVType( hapClient->client.peek()) ) {
 
-			byte type = hapClient->client.read();
-			byte length = hapClient->client.read();
+			uint8_t type = hapClient->client.read();
+			uint8_t length = hapClient->client.read();
 
 			uint8_t data[length];
 			hapClient->client.readBytes(data, length);
@@ -1491,7 +1490,6 @@ bool HAPServer::encode(HAPClient* hapClient){
 
 
 			written += length + 2;
-
 
 			if (!hapClient->request.tlv.encode(type, length, data)) {
 				LogE( F("ERROR: Encoding TLV data failed!"), true );
@@ -1525,7 +1523,7 @@ void HAPServer::handleIdentify(HAPClient* hapClient){
 
 	characteristics* c = _accessorySet->getCharacteristicsOfType(_accessorySet->aid(), HAP_CHARACTERISTIC_IDENTIFY);
 
-	if ( !isPaired() ) {
+	if ( !_accessorySet->isPaired() ) {
 		// Send 204
 		hapClient->client.write( HTTP_204 );
 		hapClient->client.write( HTTP_CRLF );
@@ -1909,7 +1907,7 @@ bool HAPServer::handlePairSetupM1(HAPClient* hapClient){
 	TLV8 response;
 
 	// generate keys if not stored	
-	if (!isPaired()) {
+	if (!_accessorySet->isPaired()) {
 		_longTermContext = (struct HAPLongTermContext*) calloc(1, sizeof(struct HAPLongTermContext));
 		if (_longTermContext == NULL) {
 			LogE( F("[ERROR] Initializing struct _longTermContext failed!"), true);
@@ -2736,7 +2734,7 @@ bool HAPServer::handlePairSetupM5(HAPClient* hapClient) {
 	
 	LogV("OK", true);
 	LogI(">>> Pairing with client [" + hapClient->client.remoteIP().toString() + "] complete!", true);
-	_accessorySet->isPaired = true;
+	_accessorySet->setIsPaired(true);
 
 	struct HAPEvent event = HAPEvent(hapClient, 0, 0, "Pairing complete");					
 	_eventManager.queueEvent( EventManager::kEventPairingComplete, event);
@@ -2773,7 +2771,7 @@ bool HAPServer::handlePairVerifyM1(HAPClient* hapClient){
 	TLV8 response;
 
 
-	if ( !isPaired() ) {
+	if ( !_accessorySet->isPaired() ) {
 		LogW( F("\n[WARNING] Attempt to verify unpaired accessory!"), true);
 		response.encode(TLV_TYPE_STATE, 1, VERIFY_STATE_M2);
 		response.encode(TLV_TYPE_ERROR, 1, HAP_TLV_ERROR_UNKNOWN);
@@ -3451,7 +3449,8 @@ void HAPServer::handlePairingsPost(HAPClient* hapClient, uint8_t* bodyData, size
 	// tear down all other pairings if admin removed
 	hapClient->state = CLIENT_STATE_ADMIN_REMOVED;
 
-	_accessorySet->isPaired = false;
+	_accessorySet->setIsPaired(false);
+
 	// update mdns
 	updateServiceTxt();
 
@@ -3824,12 +3823,6 @@ bool HAPServer::sendEvent(HAPClient* hapClient, String response){
 	
 	LogW("[WARNING] No client available to send the event to!", true);		
 	return false;
-
-}
-
-bool HAPServer::isPaired(){
-	_accessorySet->isPaired = _pairings.size() > 0;
-	return _pairings.size() > 0;
 
 }
 

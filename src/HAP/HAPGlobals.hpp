@@ -127,6 +127,8 @@
 #define HTTPS_DISABLE_SELFSIGNING 	1		// Disable self signed certificate generation on the fly
 #define DEBUG_MULTIPART_PARSER 		0		// Enable to debug multipart form parser
 
+
+
 /**
  * Captive Portal 
  ********************************************************************/

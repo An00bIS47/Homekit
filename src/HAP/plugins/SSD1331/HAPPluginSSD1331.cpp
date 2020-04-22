@@ -75,7 +75,7 @@ void HAPPluginSSD1331::handleEvents(int eventCode, struct HAPEvent eventParam){
         }
 
         if (eventCode == EventManager::kEventHomekitStarted){        
-            if (!_accessorySet->isPaired){
+            if (!_accessorySet->isPaired()){
                 _tft->clearScreen();
                 displayQRCode();   
                 _updateDisplay = false;                             
@@ -95,7 +95,7 @@ void HAPPluginSSD1331::handleImpl(bool forced){
         _tft->clearScreen();
     }
 
-    if ( (_accessorySet->isPaired ) && (_numberOfScreens > 0) ) {
+    if ( (_accessorySet->isPaired() ) && (_numberOfScreens > 0) ) {
         struct screenInfo s = _screenMap[_currentScreen];
 
         // Serial.println("_numberOfScreens: " + String(_numberOfScreens));

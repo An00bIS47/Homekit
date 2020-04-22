@@ -494,7 +494,13 @@ void HAPPluginRCSwitch::handleHTTPPost(HTTPRequest * req, HTTPResponse * res){
 
     // template processing    
     auto callbackGet = std::bind(&HAPPluginRCSwitch::handleHTTPGetKeyProcessor, this, std::placeholders::_1, std::placeholders::_2);
+    
+
+#if HAP_WEBSERVER_USE_SPIFFS        
     HAPWebServerTemplateProcessor::processAndSend(res, "/index.html", callbackGet, 201, "Created", "text/html");
+#else
+    HAPWebServerTemplateProcessor::processAndSendEmbedded(res, html_template_index_start, html_template_index_end, callbackGet, 201, "Created", "text/html");
+#endif        
 }
 
 void HAPPluginRCSwitch::handleHTTPFormField(const std::string& fieldName, const std::string& fieldValue) { 

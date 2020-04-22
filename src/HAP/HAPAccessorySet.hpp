@@ -24,8 +24,14 @@ public:
 
 	int aid(){ return _aid; };
 	void begin();
-	bool isPaired;
+	
+	bool isPaired(){
+		return _isPaired;
+	}
 
+	void setIsPaired(bool isPaired){
+		_isPaired = isPaired;
+	}
 
 	uint8_t accessoryType();
 	void setAccessoryType(enum HAP_ACCESSORY_TYPE accessoryType);
@@ -72,6 +78,8 @@ protected:
 
 	String 		_modelName;	
 	String 		_pinCode;	// xxx-xx-xxx
+
+	bool 		_isPaired;
 
 private:	
 	void computeSetupHash();

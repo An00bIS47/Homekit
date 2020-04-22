@@ -12,6 +12,8 @@
 #include "HAPLogger.hpp"
 #endif
 
+
+#if HAP_WEBSERVER_USE_SPIFFS
 bool HAPWebServerTemplateProcessor::processAndSend(HTTPResponse * res, const String& filePath, const std::function<void(const String&, HTTPResponse*)> getKeyValueCallback, const uint16_t statusCode, const std::string statusText, const std::string contentType){
     // Opening the file
     HAPFileReader reader;
@@ -128,6 +130,8 @@ bool HAPWebServerTemplateProcessor::processAndSend(HTTPResponse * res, const Str
   return true;
 }
 
+#endif
+
 void HAPWebServerTemplateProcessor::sendError(HTTPResponse * res, const String& errorDescription) {
     res->setStatusCode(500);
     res->setStatusText("Internal Server Error");
@@ -140,7 +144,7 @@ void HAPWebServerTemplateProcessor::sendError(HTTPResponse * res, const String& 
 }
 
 
-bool HAPWebServerTemplateProcessor::processAndSendEmbedded(HTTPResponse * res, const uint8_t* startIndex, const uint8_t* endIndex, const std::function<void(const String&, HTTPResponse*)> getKeyValueCallback, const uint16_t statusCode, const std::string statusText, const std::string contentType){
+bool HAPWebServerTemplateProcessor::processAndSendEmbedded(HTTPResponse * res, const uint8_t* startIndex, const uint8_t* endIndex, const std::function<void(const String&, HTTPResponse*)> getKeyValueCallback, const uint16_t statusCode, const std::string &statusText, const std::string &contentType){
     // Processing the file one char at the time
     char buffer[BUFFER_SIZE];
     unsigned int index = 0;

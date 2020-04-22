@@ -32,29 +32,29 @@ public:
     HAPFakeGatoSwitch(); 
     ~HAPFakeGatoSwitch();    
 
-    void begin();
+    void begin() override;
 
-    int signatureLength();
-    void getSignature(uint8_t* signature);
+    int signatureLength() override;
+    void getSignature(uint8_t* signature) override;
 
     
-    size_t size() {
+    size_t size() override {
         return _memoryUsed;
     }
 
-    bool isFull() {
+    bool isFull() override {
         return _memoryUsed == HAP_FAKEGATO_BUFFER_SIZE;
     }
 
 
-    void clear(){
+    void clear() override{
         _vectorBuffer->clear();
     }
 
    
     bool addEntry(String stringPower);    
     bool addEntry(HAPFakeGatoSwitchData data);
-    void getData(const size_t count, uint8_t *data, size_t *length, uint16_t offset);
+    void getData(const size_t count, uint8_t *data, size_t *length, uint16_t offset) override;
 
 private:    
     std::vector<HAPFakeGatoSwitchData>* _vectorBuffer;    

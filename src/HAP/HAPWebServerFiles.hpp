@@ -9,7 +9,9 @@
 #define HAPWEBSERVERFILES_HPP_
 
 #include <Arduino.h>
+#include "HAPGlobals.hpp"
 
+#if !HAP_WEBSERVER_USE_SPIFFS
 
 #ifdef PLATFORMIO
 // index.html
@@ -50,6 +52,8 @@ extern const uint8_t html_template_qrcode_font_end[]    asm("_binary_qrcode_font
 extern const uint8_t html_template_qrcode_container_start[] asm("_binary_qrcode_container_svg_start");
 extern const uint8_t html_template_qrcode_container_end[]   asm("_binary_qrcode_container_svg_end");
 
+
+#endif
 
 #endif
 

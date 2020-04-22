@@ -25,10 +25,10 @@
 uint32_t HAPAccessorySet::configurationNumber = HAP_CONFIGURATION_NUMBER;
 
 HAPAccessorySet::HAPAccessorySet() 
-: isPaired(false)
-, _accessoryType(HAP_ACCESSORY_TYPE_OTHER)
-, _modelName("")
+: _accessoryType(HAP_ACCESSORY_TYPE_OTHER)
+, _modelName("esp32")
 , _pinCode("000-00-000")
+, _isPaired(false)
 {
 }
 
@@ -43,7 +43,7 @@ void HAPAccessorySet::begin(){
 
 void HAPAccessorySet::addAccessoryInfo(){
 	HAPAccessory *accessory = new HAPAccessory();
-	accessory->addInfoService(modelName(), HAP_MANUFACTURER, HAP_MODELL_NAME, "44-22-777", NULL, hap.versionString());
+	accessory->addInfoService(modelName(), HAP_MANUFACTURER, HAP_MODELL_NAME, "12345678", NULL, hap.versionString());
 	
 	
 	// stringCharacteristics *fwCha = new stringCharacteristics(charType_firmwareRevision, permission_read, 32);
@@ -166,7 +166,7 @@ void HAPAccessorySet::generateXMI(){
 	String tmp = _pinCode;	
 	tmp.replace("-", "");	
 
-	int lowValue = atoi(tmp.c_str());
+	uint32_t lowValue = atoi(tmp.c_str());
 
 	lowValue |= 1 << 28;
 
