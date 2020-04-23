@@ -1,8 +1,0 @@
-@startuml
-
-!include overview.puml
-
-hide model
-hide AccessoryServer
-hide exceptions
-@enduml

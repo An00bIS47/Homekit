@@ -17,36 +17,14 @@
 // ToDo: Use KConfig
 
 /**
- * Homekit General
+ * General
  ********************************************************************/
-#ifndef HAP_LOGLEVEL
 #define HAP_LOGLEVEL				LogLevel::DEBUG
-#endif
-
-#ifndef HAP_PIN_CODE
 #define HAP_PIN_CODE 				"031-45-712"
-#endif
-
-#ifndef HAP_HOSTNAME_PREFIX
 #define HAP_HOSTNAME_PREFIX			"esp32"
-#endif
-
-#ifndef HAP_MANUFACTURER
 #define HAP_MANUFACTURER			"An00bIS47"
-#endif
-
-#ifndef HAP_MODELL_NAME
 #define HAP_MODELL_NAME				"Huzzah32"
-#endif
-
-
-
-/**
- * Reset
- ********************************************************************/
-#ifndef HAP_RESET_EEPROM
 #define HAP_RESET_EEPROM 			0
-#endif
 
 
 /**
@@ -76,6 +54,9 @@
 #define HAP_DEBUG_ENCRYPTION		0
 #endif
 
+#ifndef HAP_DEBUG_FAKEGATO
+#define HAP_DEBUG_FAKEGATO			0
+#endif
 
 /**
  * Thresholds
@@ -86,18 +67,10 @@
 /**
  * WiFi
  ********************************************************************/
-
-#ifndef HAP_ENABLE_BLE_PROV
-#define HAP_ENABLE_BLE_PROV			1		// Enable WiFi Provisioning over BLE
-#endif
-
-#ifndef HAP_WIFI_DEFAULT_MODE
 #define HAP_WIFI_DEFAULT_MODE		1		// 0 = HAPWiFiModeAccessPoint	
-#endif										// 1 = HAPWiFiModeMulti
+											// 1 = HAPWiFiModeMulti
 											// 2 = HAPWiFiModeWPS			-> push button only
 											// 3 = HAPWiFiModeSmartConfig	-> not working with ios13 ?
-											// 4 = HAPWiFiModeBLE 			-> !! HAP_ENABLE_BLE_PROV must be enabled !!
-											// 	 -> not yet working :(
 
 #define HAP_WIFI_CONNECTION_MAX_RETRIES 5	// max retries for connection error 
                                             // before switching back to default mode
@@ -107,8 +80,6 @@
 
 
 /**
- * 
- * Logic +
  * Include WiFi credentials if necessary
  ********************************************************************/
 #if HAP_WIFI_DEFAULT_MODE == 1
@@ -123,21 +94,14 @@
 #error	No WiFi Password defined!
 #endif
 
-#elif HAP_WIFI_DEFAULT_MODE == 4
-
-#if HAP_ENABLE_BLE_PROV == 0
-#error	Enable HAP_ENABLE_BLE_PROV!
-#endif
-
 #endif
 
 /**
  * WebServer 
  ********************************************************************/
 
-#ifndef HAP_ENABLE_WEBSERVER
 #define HAP_ENABLE_WEBSERVER		1		// Enable Webinterface
-#endif										// Default: 1
+											// Default: 1
 
 #define HAP_ENABLE_WEBSERVER_CORE_0	0		// Run webserver on core 0 in a seperate task
 											// default 0 - Still work-in-progress
@@ -148,38 +112,20 @@
 											// TODO: Proper token signature verification
 											// currently not implemented properly
 
-#ifndef HAP_WEBSERVER_USE_SSL
+
 #define HAP_WEBSERVER_USE_SSL		1		// use SSL for WebServer 
-#endif										// Default: 1	
+											// Default: 1	
 
 
-#ifndef HAP_WEBSERVER_ADMIN_USERNAME
 #define HAP_WEBSERVER_ADMIN_USERNAME	"admin"
-#endif
-
-#ifndef HAP_WEBSERVER_ADMIN_PASSWORD
 #define HAP_WEBSERVER_ADMIN_PASSWORD	"secret"
-#endif
 
-#ifndef HAP_WEBSERVER_API_USERNAME
 #define HAP_WEBSERVER_API_USERNAME		"api"
-#endif
-
-#ifndef HAP_WEBSERVER_API_PASSWORD
 #define HAP_WEBSERVER_API_PASSWORD		"test"
-#endif
 
 #define HAP_WEBSERVER_USE_SPIFFS	0
-#define DEBUG_MULTIPART_PARSER 		0		// Enable to debug multipart form parser
-
-
-/**
- * ESP32 HTTPS Server
- ********************************************************************/
-#ifndef HTTPS_DISABLE_SELFSIGNING
 #define HTTPS_DISABLE_SELFSIGNING 	1		// Disable self signed certificate generation on the fly
-#endif
-
+#define DEBUG_MULTIPART_PARSER 		0		// Enable to debug multipart form parser
 
 /**
  * Captive Portal 
@@ -188,7 +134,6 @@
 #define HAP_CAPTIVE_AP_IP			"192.168.0.1"
 #define HAP_CAPTIVE_AP_SSID			"Homekit Captive Portal"	// ssid of the access point
 #define HAP_CAPTIVE_TITLE			"Homekit Captive Portal"	// Title of the webpage for captive portal
-
 
 /**
  * Fakegato 
@@ -318,38 +263,24 @@ STR(HAP_PLUGIN_USE_BME280)
 /**
  * HAP Update Server
  ********************************************************************/
-#ifndef HAP_UPDATE_ENABLE_FROM_WEB
+
 #define HAP_UPDATE_ENABLE_FROM_WEB 	0		// Use HAP update server to check
-#endif										// if a update is available on the
+											// if a update is available on the
 											// provided webserver
 											// Default: 0
 
-#ifndef HAP_UPDATE_ENABLE_OTA
 #define HAP_UPDATE_ENABLE_OTA		1		// Enable ArduinoOTA	
-#endif										// Default: 0	
+											// Default: 0	
 
-
-#ifndef HAP_UPDATE_WEB_INTERVAL
 #define HAP_UPDATE_WEB_INTERVAL		60000	// Interval for web update check in ms
-#endif
 
-
-#if HAP_UPDATE_ENABLE_FROM_WEB == 1
+#if HAP_UPDATE_ENABLE_FROM_WEB
 //#define HAP_UPDATE_SERVER_URL 	"192.168.178.151"	
-#ifndef HAP_UPDATE_SERVER_HOST
 #define HAP_UPDATE_SERVER_HOST 		"homebridge"		// HTTP Server url for updates
-#endif
-
-#ifndef HAP_UPDATE_SERVER_PORT
 #define HAP_UPDATE_SERVER_PORT		3001				// Update Server port
-#endif
-
-#ifndef HAP_UPDATE_ENABLE_SSL
 #define HAP_UPDATE_ENABLE_SSL		1					// enable SSL for HAP Update
-#endif
 
 #endif
-
 #define HAP_UPDATE_TIMEOUT 			2000
 
 
@@ -357,20 +288,10 @@ STR(HAP_PLUGIN_USE_BME280)
 /**
  * HAP NTP Server and Timezone
  ********************************************************************/
-#if HAP_NTP_ENABLED == 1
-
-#ifndef HAP_NTP_SERVER_URL
+#if HAP_NTP_ENABLED
 #define HAP_NTP_SERVER_URL			"time.euro.apple.com"						// NTP server url
-#endif
-
-#ifndef HAP_NTP_TIME_FORMAT
 #define HAP_NTP_TIME_FORMAT			"%Y-%m-%d %H:%M:%S.%f"						// strftime format
-#endif
-
-#ifndef HAP_NTP_TZ_INFO
 #define HAP_NTP_TZ_INFO     		"WET-1WEST,M3.5.0/01:00,M10.5.0/01:00"		// timezone for berlin
-#endif
-
 #endif
 
 /**
@@ -402,7 +323,7 @@ STR(HAP_PLUGIN_USE_BME280)
 /**
  * Limits - Do not edit !!!
  ********************************************************************/
-#if HAP_BUFFERED_SEND == 1
+#if HAP_BUFFERED_SEND
 #define HAP_BUFFER_SEND_SIZE		3192	// 3192 max ?
 #endif
 

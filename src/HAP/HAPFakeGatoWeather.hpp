@@ -32,28 +32,28 @@ public:
     HAPFakeGatoWeather(); 
     ~HAPFakeGatoWeather();    
 
-    void begin() override;
+    void begin();
 
-    size_t size() override {
+    size_t size() {
         return _memoryUsed;
     }
 
-    bool isFull() override {
+    bool isFull() {
         return _memoryUsed == HAP_FAKEGATO_BUFFER_SIZE;
     }
 
-    void clear() override{
+    void clear(){
         _vectorBuffer->clear();
     }
 
-    int signatureLength() override;
-    void getSignature(uint8_t* signature) override;
+    int signatureLength();
+    void getSignature(uint8_t* signature);
 
     
 
     bool addEntry(String stringTemperature, String stringHumidity, String stringPressure = "0");    
     bool addEntry(HAPFakeGatoWeatherData data);
-    void getData(const size_t count, uint8_t *data, size_t *length, uint16_t offset) override;
+    void getData(const size_t count, uint8_t *data, size_t *length, uint16_t offset);
 
 private:
     std::vector<HAPFakeGatoWeatherData>* _vectorBuffer;    

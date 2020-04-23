@@ -167,25 +167,27 @@ public:
 	static uint32_t timestamp();
 #endif
 
+	
+	bool isPaired();	
+
 	static EventManager _eventManager;
-
-
 protected:
 
-	HAPConfig 		_config;
-	HAPWiFiHelper 	_wifi;
+	HAPConfig _config;
+
+	HAPWiFiHelper _wifi;
 
 	// struct HAPPairSetup* _pairSetup;
 #if HAP_ENABLE_WEBSERVER	
-	HAPWebServer* 	_webserver;
+	HAPWebServer* _webserver;
 #endif
 	
 	void updateConfig();
 
 	HAPAccessorySet* _accessorySet;
 	std::vector<HAPClient> _clients;
-	WiFiServer 		_server;
-	Preferences 	_preferences;	
+	WiFiServer _server;
+	Preferences _preferences;	
 
 #if HAP_NTP_ENABLED	
 	static struct tm _timeinfo;

@@ -43,11 +43,9 @@ bool HAPWiFiHelper::_captiveInitialized;
 HAPWiFiHelper::HAPWiFiHelper(){
 	_errorCount = 0;		
 	_captiveInitialized = false;
-	
+	WiFi.onEvent(eventHandler);
 	_webserver = nullptr;
 	_dnsServer = nullptr;
-
-	
 }
 
 
@@ -63,8 +61,6 @@ void HAPWiFiHelper::begin(HAPConfig* config, std::function<bool(bool)> callbackB
 	WiFi.persistent(false);
 	WiFi.setHostname(hostname);
 	
-
-	// ToDo: Move hostname to config and put this part into connect!
 	_wpsConfig.crypto_funcs = &g_wifi_default_wps_crypto_funcs;
 	_wpsConfig.wps_type = WPS_TYPE_PBC;
 	strcpy(_wpsConfig.factory_info.manufacturer, HAP_MANUFACTURER);
@@ -326,14 +322,11 @@ void HAPWiFiHelper::connect(enum HAPWiFiMode mode){
 	switch (mode){
 
 		case HAPWiFiModeAccessPoint:
-			WiFi.onEvent(eventHandler);
 			startCaptivePortal();
 			break;
 
 		case HAPWiFiModeMulti:	
 			
-			WiFi.onEvent(eventHandler);
-
 			// Add networks
 			for( const auto& value : _config->config()["wifi"]["networks"].as<JsonArray>() ) { 					
 				_wifiMulti.addAP(value["ssid"].as<const char*>(), value["password"].as<const char*>());
@@ -341,13 +334,11 @@ void HAPWiFiHelper::connect(enum HAPWiFiMode mode){
 			connectMulti();
 
 			break;
-		case HAPWiFiModeWPS:
-			WiFi.onEvent(eventHandler);	
+		case HAPWiFiModeWPS:	
 			startWPS();
 			break;
 
 		case HAPWiFiModeSmartConfig:
-			WiFi.onEvent(eventHandler);
 			//Init WiFi as Station, start SmartConfig
 			WiFi.mode(WIFI_AP_STA);			
 			WiFi.beginSmartConfig();
@@ -370,24 +361,12 @@ void HAPWiFiHelper::connect(enum HAPWiFiMode mode){
 			}
 			LogI(" OK", true);
 			break;
-#if HAP_ENABLE_BLE_PROV
-		case HAPWiFiModeBLE:
-		  	//Sample uuid that user can pass during provisioning using BLE
-  			// uint8_t uuid[16] = {0xb4, 0xdf, 0x5a, 0x1c, 0x3f, 0x6b, 0xf4, 0xbf,
-            //     					0xea, 0x4a, 0x82, 0x03, 0x04, 0x90, 0x1a, 0x02 };
-  			WiFi.onEvent(sysProvEvent);
-  			WiFi.beginProvision(WIFI_PROV_SCHEME_BLE, WIFI_PROV_SCHEME_BLE_EVENT_HANDLER_FREE_BTDM, WIFI_PROV_SECURITY_1, "abcd1234", "BLE_XXX", NULL, NULL);
-#endif
 
 		default:
 			break;
 	}
 
-	if (mode != HAPWiFiModeAccessPoint 
-#if HAP_ENABLE_BLE_PROV
-	&& mode != HAPWiFiModeBLE
-#endif	
-	) {
+	if (mode != HAPWiFiModeAccessPoint) {
 		LogI("WiFi connected to ", false);
 		LogI(WiFi.SSID(), true);
 	}
@@ -398,10 +377,10 @@ bool HAPWiFiHelper::captiveInitialized(){
 }
 
 void HAPWiFiHelper::handle(){
-	
+
 	_dnsServer->processNextRequest();
-	_webserver->loop();
 	
+	_webserver->loop();
 	// _config->config()["wifi"]["mode"] = (uint8_t)HAPWiFiModeMulti;
 	// stopCaptivePortal();
 
@@ -426,7 +405,7 @@ void HAPWiFiHelper::eventHandler(WiFiEvent_t event) {
 			break;
 
 		case SYSTEM_EVENT_STA_GOT_IP:
-			LogD( "Got IP address ", false);
+			LogD( F("Got IP address "), false);
 			LogD(WiFi.localIP().toString().c_str(), true);
 			break;
 
@@ -439,7 +418,7 @@ void HAPWiFiHelper::eventHandler(WiFiEvent_t event) {
 			/*point: the function esp_wifi_wps_start() only get ssid & password
 			 * so call the function esp_wifi_connect() here
 			 * */
-			LogI( "WPS succeeded! Stopping WPS and connecting to ", false);
+			LogI( F("WPS succeeded! Stopping WPS and connecting to "), false);
 			LogI(WiFi.SSID(), true);
 			LogD(" with password ", false);
 			LogD(WiFi.psk().c_str(), false);
@@ -456,14 +435,14 @@ void HAPWiFiHelper::eventHandler(WiFiEvent_t event) {
 			break;
 
 		case SYSTEM_EVENT_STA_WPS_ER_FAILED:
-			LogE( "WPS failed! - Retrying", true);			
+			LogE( F("WPS failed! - Retrying"), true);			
             ESP_ERROR_CHECK(esp_wifi_wps_disable());
 			ESP_ERROR_CHECK(esp_wifi_wps_enable(&_wpsConfig));
 			ESP_ERROR_CHECK(esp_wifi_wps_start(0));  
 			break;
 
 		case SYSTEM_EVENT_STA_WPS_ER_TIMEOUT:
-			LogE( "WPS timedout! - Please enable WPS on your router! Retrying", true);			
+			LogE( F("WPS timedout! - Please enable WPS on your router! Retrying"), true);			
             ESP_ERROR_CHECK(esp_wifi_wps_disable());
 			ESP_ERROR_CHECK(esp_wifi_wps_enable(&_wpsConfig));
 			ESP_ERROR_CHECK(esp_wifi_wps_start(0));            
@@ -482,59 +461,3 @@ void HAPWiFiHelper::eventHandler(WiFiEvent_t event) {
 			break;
 	}
 }
-
-#if HAP_ENABLE_BLE_PROV
-void HAPWiFiHelper::sysProvEvent(system_event_t *sys_event, wifi_prov_event_t *prov_event)
-{
-    if(sys_event) {
-      switch (sys_event->event_id) {
-      case SYSTEM_EVENT_STA_GOT_IP:
-          LogD("Connected IP address : ", false);
-          LogD(ip4addr_ntoa(&sys_event->event_info.got_ip.ip_info.ip), true);
-          break;
-      case SYSTEM_EVENT_STA_DISCONNECTED:
-          LogW("Disconnected. Connecting to the AP again... ", true);
-          break;
-      default:
-          break;
-      }      
-    }
-
-    if(prov_event) {
-        switch (prov_event->event) {
-        case WIFI_PROV_START:
-            LogI("Provisioning started", true);
-			LogI("Please provide the WiFi credentials of your access point using your smartphone app", true);
-            break;
-        case WIFI_PROV_CRED_RECV: { 
-            LogI("Received Wi-Fi credentials: ", true);
-            wifi_sta_config_t *wifi_sta_cfg = (wifi_sta_config_t *)prov_event->event_data;
-            LogI("SSID : ", false);
-            LogI((const char *) wifi_sta_cfg->ssid, true);
-            LogD("Password : ", true);
-            LogD((char const *) wifi_sta_cfg->password, true);
-            break;
-        }
-        case WIFI_PROV_CRED_FAIL: { 
-            wifi_prov_sta_fail_reason_t *reason = (wifi_prov_sta_fail_reason_t *)prov_event->event_data;
-            LogE("\nProvisioning failed!", true);
-			LogE("Please reset to factory and retry provisioning.", true);
-            if(*reason == WIFI_PROV_STA_AUTH_ERROR) 
-                LogE("WiFi AP password incorrect", true);
-            else
-                LogE("WiFi AP not found!", true);
-				LogE("Add API \" nvs_flash_erase() \" before beginProvision()", true);        
-            break;
-        }
-        case WIFI_PROV_CRED_SUCCESS:
-            LogI("Provisioning Successful", true);
-            break;
-        case WIFI_PROV_END:
-            LogD("Provisioning Ends", true);
-            break;
-        default:
-            break;
-        }      
-    }
-}
-#endif

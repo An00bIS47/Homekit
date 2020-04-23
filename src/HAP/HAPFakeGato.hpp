@@ -154,8 +154,8 @@ union HAPFakeGatoInfoEnd {
 // template <class TFakeGatoData>
 class HAPFakeGato {
 public:    
-    HAPFakeGato();    
-    ~HAPFakeGato();
+    HAPFakeGato() {};    
+    ~HAPFakeGato() {};
 
     void registerFakeGatoService(HAPAccessory* accessory, String name);
     
