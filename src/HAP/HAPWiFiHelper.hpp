@@ -28,6 +28,10 @@ enum HAPWiFiMode {
 	HAPWiFiModeMulti,			// 1
 	HAPWiFiModeWPS,				// 2
 	HAPWiFiModeSmartConfig		// 3
+
+#if HAP_ENABLE_BLE_PROV
+	,HAPWiFiModeBLE				// 4
+#endif	
 };
 
 class HAPWiFiHelper {
@@ -62,6 +66,10 @@ private:
 	static uint8_t _errorCount;
 	static DNSServer* _dnsServer;
 	static HTTPServer* _webserver;
+
+#if HAP_ENABLE_BLE_PROV
+	static void sysProvEvent(system_event_t *sys_event,wifi_prov_event_t *prov_event);
+#endif
 
 	static bool _captiveInitialized;
 

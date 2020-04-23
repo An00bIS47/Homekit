@@ -12,8 +12,10 @@
 #include <esp_log.h>
 #endif
 
+#define HAP_DEBUG_PRINTER &Serial
+
 LogLevel HAPLogger::_logLevel(LogLevel::INFO);
-Stream* HAPLogger::_printer(&Serial);
+Stream* HAPLogger::_printer(HAP_DEBUG_PRINTER);
 
 HAPLogger::HAPLogger() {
 
@@ -67,7 +69,7 @@ void HAPLogger::logError(String str, bool newLine){
 }
 
 void HAPLogger::logDebug(String str, bool newLine){
-	if (HAPLogger::_logLevel >= LogLevel::DEBUG) {
+	if (HAPLogger::_logLevel >= LogLevel::DEBUG && str) {
 		colorPrint(COLOR_DEBUG, str.c_str(), newLine);
 	}
 }
