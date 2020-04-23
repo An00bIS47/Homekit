@@ -488,13 +488,20 @@ void HAPPluginRCSwitch::handleHTTPPost(HTTPRequest * req, HTTPResponse * res){
             _newDevice = nullptr;
 
             struct HAPEvent event = HAPEvent(nullptr, 0, 0, "");							
-            _eventManager->queueEvent( EventManager::kEventUpdatedConfig, event, EventManager::kLowPriority);        
+            _eventManager->queueEvent( EventManager::kEventUpdatedConfig, event, EventManager::kLowPriority);                    
         }
     }
 
-    // template processing    
     auto callbackGet = std::bind(&HAPPluginRCSwitch::handleHTTPGetKeyProcessor, this, std::placeholders::_1, std::placeholders::_2);
-    HAPWebServerTemplateProcessor::processAndSend(res, "/index.html", callbackGet, 201, "Created", "text/html");
+#if HAP_WEBSERVER_USE_SPIFFS        
+    // template processing    
+    HAPWebServerTemplateProcessor::processAndSend(res, "/index.html", callbackGet);
+#else
+    
+    HAPWebServerTemplateProcessor::processAndSendEmbedded(res, html_template_index_start, html_template_index_end, callbackGet);
+#endif 
+
+    
 }
 
 void HAPPluginRCSwitch::handleHTTPFormField(const std::string& fieldName, const std::string& fieldValue) { 

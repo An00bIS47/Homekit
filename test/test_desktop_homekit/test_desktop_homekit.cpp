@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <sys/wait.h>
 
-#define ITERATIONS      100
+#define ITERATIONS      1
 
 //#define DEVICE_ID       "24:6F:28:AF:5F:A4"
 //#define ALIAS           "heltec"
@@ -27,7 +27,6 @@
 #define CHARACTERISTICS_FAKEGATO_HISTORY "3.16"
 
 #define PAIRINGDATAFILE "./homekitStorage.json"
-
 
 
 std::string exec(const char* cmd) {

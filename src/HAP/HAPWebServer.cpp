@@ -17,10 +17,12 @@
 #include "HAPWebServerBodyParserMultipart.hpp"
 #include "HAPSVG.hpp"
 
+
+// Certs + Key
 #if HAP_WEBSERVER_USE_SSL
 
 #ifdef PLATFORMIO
-// Certs + Key
+
 extern const unsigned char server_cert_der_start[] asm("_binary_certs_server_cert_der_start");
 extern const unsigned char server_cert_der_end[] asm("_binary_certs_server_cert_der_end");
 

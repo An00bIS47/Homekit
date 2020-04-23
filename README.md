@@ -1,21 +1,54 @@
 # Homekit
 
-### This is work-in-progress!
-
-This project aims to implemenent something like [homebridge](https://github.com/nfarina/homebridge), but for ESP32 devices. You can write your own plugins to expose the sensors to Homekit. Homebridge is no longer needed. Fakegato History support is currently available for temperature, humidity and pressure as well as for power consumption characteritics.
+# This is work-in-progress!
 
 
-It uses [arduino-esp32](https://github.com/espressif/arduino-esp32) v1.0.4. 
+## What is this
 
-[esp-idf](https://github.com/espressif/esp-idf) v3.3 (46b12a560) is also required.
+This application exposes sensors like temperature and humidity to Apple's Homekit on a ESP32. No other Bridge, like [homebridge](https://github.com/nfarina/homebridge). It is build upon the [esp-idf](https://github.com/espressif/esp-idf) and uses [arduino-esp32](https://github.com/espressif/arduino-esp32) as a component.
 
-### Features
-* Expose accessories with sensors to Homekit, like [homebridge](https://github.com/nfarina/homebridge) does
-* Easy to add your own plugins
-* Fakegato history support builtin (temperature, humidity and pressure, and power consumption)
-* HTTPS Webserver and a small rest api
-* Configuration via a json file
-* Updates via Arduino OTA and web download
+To expose different sensors simultaneously, a plugin system is used. 
+A plugin can expose multiple sensors like a temperature probe to a Homekit accessory or a plugin can display or process the current values of all exposed accessories of this device. 
+You can use multiple plugin at once.
+
+There are several example plugins available like 
+
+#### BME280
+Exposes a temperature, humidity and pressure sensor with EVE history support.
+
+#### DHT22
+Exposes a temperatue and a humidity sensor with EVE history support.
+
+#### InfluxDB
+Uploads every x seconds the values of each characteristics to an influxdb server.
+
+#### SSD1331
+View the QR code for pairing and the sensor values on an SSD1331 OLED Display.
+
+#### MiFlora
+Connects MiFlora Flower bluetooth devices to Homekit. This plugin exposes a temperature, moisture, fertility and light itensity sensor with EVE history support.
+
+#### RCSwitch
+Exposes multiple Intertechno outlets as a switch with fakegato history support. 
+
+
+### EVE History
+
+Some of the plugins also support Elgato EVE histories. You can use the [Elgato EVE app](https://www.evehome.com/en/eve-app) to view history graphs for different sensors.
+
+
+Currently the following services supported EVE history
+* Temperature
+* Humidity
+* Air pressure
+* Power consumption
+* Switches
+
+
+
+### Required Versions
+* esp-idf v3.3.x
+* arduino-esp32 v1.0.4
 
 
 ## Build instructions
@@ -26,18 +59,16 @@ Please check ESP-IDF docs for getting started instructions and install instructi
 
 [Espressif IoT Development Framework](https://github.com/espressif/esp-idf)
 
-Then install arduino-esp32 as esp-idf component as described [here](https://github.com/espressif/arduino-esp32/blob/master/docs/esp-idf_component.md)
 
-
-Once the ESP-IDF and arduino-esp32 is installed:
-
+Once the ESP-IDF is installed:
 
 ```shell
 $ git clone https://github.com/An00bIS47/Homekit
 $ cd Homekit
-$ git submodule update --init --recursive
-$ make -j4
-$ make flash monitor
+$ chmod +x init_submodules.sh
+$ ./init_submodules.sh
+$ make 
+$ make app flash monitor
 ```
 
 If you encounter errors regarding compiling the components, add a file called `components.mk` to the affected directory and specify where to find the source files.
@@ -69,10 +100,40 @@ Add the following defines to `$IDF_PATH/components/mbedtls/port/include/mbedtls/
 #define MBEDTLS_CHACHA20_C
 #define MBEDTLS_CHACHAPOLY_C
 ```
+This seems to change with v4.0 of the esp-idf but it is still required for v3.3.x!
 
-## WiFi Settings
 
-Add a file called `WiFiCredentials.hpp` in the `main` folder and edit the settings:
+## WiFi Provisioning
+
+There are several ways to provide WiFi credentials. It uses `WiFiMulti`, so you can provide multiple WiFi credentials. 
+
+Currently supported methods are:
+    * WPS (Push Button)
+    * via `WiFiCredentials.hpp`
+    * Compile-time CFLAG
+
+
+### WPS
+Add the following to the end of the file `src/component.mk`
+```
+CPPFLAGS += -DHAP_WIFI_DEFAULT_MODE=2
+```
+
+### Compile-time CFLAG
+Add the following to the end of the file `src/component.mk`
+```
+CPPFLAGS += -DHAP_WIFI_DEFAULT_MODE=1
+CPPFLAGS += -DWIFI_SSID="YOUR_SSID_HERE"
+CPPFLAGS += -DWIFI_PASSWORD="YOUR_PASSWORD_HERE"
+```
+
+### `WiFiCredentials.hpp`
+Add the following to the end of the file `src/component.mk`
+```
+CPPFLAGS += -DHAP_WIFI_DEFAULT_MODE=1
+```
+
+And add a file called `WiFiCredentials.hpp` in the `src` folder and edit the settings:
 ```c++
 //
 // WiFiCredentials.hpp
@@ -91,10 +152,26 @@ Add a file called `WiFiCredentials.hpp` in the `main` folder and edit the settin
 #endif /* WIFICREDENTIALS_HPP_ */
 ```
 
+Once configured and online, you can add additional networks via the REST interface.
+
+
+## Working example
+
+Add the following at end of the file `src/component.mk`
+
+```
+CPPFLAGS += -DHAP_PLUGIN_USE_LED=1
+CPPFLAGS += -DHAP_PLUGIN_USE_BME280=1
+CPPFLAGS += -DHAP_PLUGIN_BME280_USE_DUMMY=1
+```
+
+This will expose one Light Bulb Accessory for the buildin LED and an accessory with temperature, relative humidity and air pressure sensor, complete with EVE history support. 
+
+
 
 ## Configuration
 
-Have a look at the file `main/HAP/HAPGlobals.hpp` in order to change some configs to your needs. There you can enable the plugins you want to use.
+Have a look at the file `src/HAP/HAPGlobals.hpp` in order to change some configs to your needs. There you can enable the plugins you want to use.
 
 
 ## Reset
@@ -106,26 +183,72 @@ make erase_flash
 
 ## Webserver
 
-The webserver uses minimal template processing, therefore a SPIFFS partition is needed. 
-In order to create and upload this partition, please use the following commands
+### HTTPS
 
+The Webserver uses by default HTTPS. 
+
+You can disable HTTPS and use HTTP if you edit the `HAPGlobals.hpp` file:
 ```
-mkspiffs -c spiffs -b 4096 -p 256 -s 0x00C000 build/spiffs.bin
-esptool.py --chip esp32 --port  /dev/cu.SLAB_USBtoUART --baud 2000000 write_flash -z 0x3F2800 build/spiffs.bin
+#define HAP_WEBSERVER_USE_SSL		0		// use SSL for WebServer 
+											// Default: 1
 ```
 
-The server certificate and keys are hardcoded. 
+### Certificates
 
-Valid username for access to the webinterface and to the api can be configured. 
+HTTPS requires to create your own certificates. You can create your own certificate and keys. Please have a look [here](https://github.com/fhessel/esp32_https_server/tree/master/extras) how to do this.
 
-You can create your own certificate and keys. Please have a look [here](https://github.com/fhessel/esp32_https_server/tree/master/extras)
-The certificate and keys are specified in the `component.mk` file in the `main` folder. Change it to your needs.
+The certificate and keys are specified in the `component.mk` file in the `src` folder. Change it to your needs.
 
 ```
 COMPONENT_EMBED_FILES := $(PROJECT_PATH)/certs/server_cert.der
 COMPONENT_EMBED_FILES += $(PROJECT_PATH)/certs/server_privatekey.der
 COMPONENT_EMBED_FILES += $(PROJECT_PATH)/certs/server_publickey.der
 ```
+
+### Template
+
+The webserver uses a template for the webpage stored here `www/index.html`
+
+
+### SPIFFS
+
+If you want to use `SPIFFS` instead of embedded webpages, you can enable `HAP_WEBSERVER_USE_SPIFFS` in the `HAPGlobals.hpp` file.
+
+Then place your webpages into the `www` folder and comment the follwing lines out in `src/component.mk`.
+
+```
+#COMPONENT_EMBED_FILES := $(PROJECT_PATH)/certs/server_cert.der
+#COMPONENT_EMBED_FILES += $(PROJECT_PATH)/certs/server_privatekey.der
+#COMPONENT_EMBED_FILES += $(PROJECT_PATH)/certs/server_publickey.der
+```
+
+
+To create the required partition for `SPIFFS`, you can use the following command:
+```
+mkspiffs -c www -b 4096 -p 256 -s 0x00C000 build/spiffs.bin
+esptool.py --chip esp32 --port  /dev/cu.SLAB_USBtoUART --baud 2000000 write_flash -z 0x3F2800 build/spiffs.bin
+```
+
+
+### Access to the Webinterface
+
+Two possible groups of users are available:
+* `admin`: Users of this group have access to the webinterface with all admin options
+* `api`: Users of this group have access to the api only without admin options
+
+The default username for admin access is `admin` with the password `secret`.
+The default username for (only!) access to the api is `api` with the password `test`.
+
+You edit one user of each group in the `HAPGlobals.hpp` file:
+```
+#define HAP_WEBSERVER_ADMIN_USERNAME	"admin"
+#define HAP_WEBSERVER_ADMIN_PASSWORD	"secret"
+
+#define HAP_WEBSERVER_API_USERNAME		"api"
+#define HAP_WEBSERVER_API_PASSWORD		"test"
+```
+You can add/change/remove multiple users via the REST interface.
+
 
 ## Rest API
 
@@ -137,7 +260,7 @@ Open endpoints require no authentication.
 
 ### Endpoints that require api access rights
 
-These endpoints require basic authentication. The default username and password for access to the api is `api` and `test`. Theses values can be configured.
+These endpoints require basic authentication with username and password.
 
 #### System Information
 
@@ -161,38 +284,25 @@ These endpoints require basic authentication. The default username and password 
 * [Show setup code](docs/api/setup.md) : `GET /api/setup`
 
 
+## SNTP Client
 
-## Working example
+To get the current time, this implementation uses SNTP.
+You can change the SNTP host and time zone and DST in the `HAPGlobals.hpp` file.
 
-Change the plugin section in the file `main/HAP/HAPGlobals.hpp` to this
+This example uses Berlin as time zone.
+```
+#define HAP_NTP_SERVER_URL			"time.euro.apple.com"				
+#define HAP_NTP_TZ_INFO     		"WET-1WEST,M3.5.0/01:00,M10.5.0/01:00"		
+```
 
-```
-/**
- * Plugins
- ********************************************************************/
-#define HAP_PLUGIN_USE_DHT          0
-#define HAP_PLUGIN_USE_LED          0
-#define HAP_PLUGIN_USE_SWITCH       0
-#define HAP_PLUGIN_USE_MIFLORA      0
-#define HAP_PLUGIN_USE_BME280       1
-#define HAP_PLUGIN_USE_INFLUXDB     0
-#define HAP_PLUGIN_USE_SSD1331      0
-#define HAP_PLUGIN_USE_PCA301       0
-#define HAP_PLUGIN_USE_NEOPIXEL     0
-```
-Either connect an BME280 sensor to your board or you can use also a dummy with random values.
-If you choose to use a dummy sensor, then change the define in the file `plugins/BME280/HAPPluginBME280.hpp` to this
-
-```
-#define HAP_PLUGIN_BME280_USE_DUMMY	0       // if 0 then use real sensor, 
-                                            // if 1 then use random values without any real sensor connected
-```
 
 ## Hostname
 
-The hostname is generated using a prefix e.g. `esp32` + `-` and the last 3 bytes of the mac address.
-The prefix can be configured in the file `main/HAP/HAPGlobals.hpp`. Have a look at the value of `HAP_HOSTNAME_PREFIX`.
-
+The hostname of a device is generated using a prefix e.g. `esp32` + `-` and the last 3 bytes of the mac address.
+The prefix can be configured in the file `src/HAP/HAPGlobals.hpp`. Have a look at the value of 
+```
+#define HAP_HOSTNAME_PREFIX "esp32"
+```
 
 
 ## Pairing
@@ -203,19 +313,7 @@ If you connect an SSD1331 OLED Display and enable the SSD1331 plugin, a QR code 
 
 Otherwise the default pin code to pair is `031-45-712`. 
 
-Pairings will be stored in the nvs.
-
-## Fakegato
-
-To have an history for specific values, [fakegato](https://github.com/simont77/fakegato-history) is implemented. You can use the [Elgato EVE app](https://www.evehome.com/en/eve-app) to view history graphs.
-
-
-Currently supported are graphs for 
-* Temperature
-* Humidity
-* Air pressure
-* Power consumption
-* Switches
+Pairings will be stored in the nvs and can be deleted via Homekit, REST API (admin only) and `make erase_flash`.
 
 
 ## Partition Table
@@ -238,51 +336,84 @@ The partition table is defined as follows:
 | storage  | data  | spiffs   |           | 48K       |
 
 
+The filesize of the compiled binary with debug options and without BLE is around 2MB.
 
 ## Plugins
 
-Plugins are meant to provide services and characteristics for the Homekit Bridge. 
+Plugins are meant to provide services and characteristics to Homekit like a temperature sensor.
 
-Have a look at the plugins available in this folder `main/HAP/plugins/`.
+Have a look at the plugins available in this folder `src/HAP/plugins/`. 
 
-There are several plugins available like
+By default, no plugin is enabled. You have to enable them yourself. You can add multiple plugin at once.
 
-#### BME280
-Exposes a temperature, humidity and pressure sensor with fakegato history support.
+To enable a plugin, change the defines in `src/HAP/HAPGlobals.hpp`
 
-#### PCA301
-Exposes mutliple PCA301 outlets to Homekit with fakegato history for power consumption.
+```
+#ifndef HAP_PLUGIN_USE_LED
+#define HAP_PLUGIN_USE_LED			0
+#endif
 
-#### DHT22
-Exposes a temperatue and a humidity sensor with fakegato history support.
+#ifndef HAP_PLUGIN_USE_SWITCH
+#define HAP_PLUGIN_USE_SWITCH		0
+#endif
 
-#### InfluxDB
-Uploads every x seconds the values of each characteristics to an influxdb server.
+#ifndef HAP_PLUGIN_USE_MIFLORA2
+#define HAP_PLUGIN_USE_MIFLORA2		0
+#endif
 
-#### SSD1331
-View the QR code for pairing and the sensor values on an SSD1331 OLED Display.
+#ifndef HAP_PLUGIN_USE_SSD1331
+#define HAP_PLUGIN_USE_SSD1331		0
+#endif
 
-#### MiFlora
-Connects MiFlora Flower bluetooth devices to Homekit. This plugin exposes a temperature, moisture, fertility and light itensity sensor with fakegato history support.
+#ifndef HAP_PLUGIN_USE_PCA301
+#define HAP_PLUGIN_USE_PCA301		0
+#endif
 
-#### RCSwitch
-Exposes multiple Intertechno outlets as a switch with fakegato history support. 
+#ifndef HAP_PLUGIN_USE_NEOPIXEL
+#define HAP_PLUGIN_USE_NEOPIXEL		0
+#endif
 
-#### NeoPixel
-Exposes one NeoPixel to Homekit as a LED bulb.
+#ifndef HAP_PLUGIN_USE_INFLUXDB
+#define HAP_PLUGIN_USE_INFLUXDB		0
+#endif
+
+#ifndef HAP_PLUGIN_USE_HYGROMETER
+#define HAP_PLUGIN_USE_HYGROMETER	0
+#endif
+
+#ifndef HAP_PLUGIN_USE_RCSWITCH
+#define HAP_PLUGIN_USE_RCSWITCH		0
+#endif
+
+#ifndef HAP_PLUGIN_USE_DHT
+#define HAP_PLUGIN_USE_DHT			0
+#endif
+
+#ifndef HAP_PLUGIN_USE_BME280
+#define HAP_PLUGIN_USE_BME280		0	// < last digit of feature number
+#endif
+```
+
+
+or add the according define at end of the file `src/component.mk`, for example
+
+```
+CPPFLAGS += -DHAP_PLUGIN_USE_BME280=1
+CPPFLAGS += -HAP_PLUGIN_USE_LED=1
+```
 
 
 ## Cryptography
 
 This project uses by default mbedtls and libsodium for cryptography. 
-WolfSSL is also support but commented out in the makefile.
+WolfSSL is also support but commented out in the makefile. (will be removed completely)
 
 
 ## Used Libraries
 
 | Name | Version | URL |
 |-------------|-------------|----------------|
-| esp32_https_server | v0.3.1 | https://github.com/fhessel/esp32_https_server.git | 
+| esp32_https_server | v1.0.0 | https://github.com/fhessel/esp32_https_server.git | 
 | QRCode | v0.0.1 | https://github.com/phildubach/QRCode.git | 
 | ArduinoJson | v6.14.0 | https://github.com/bblanchon/ArduinoJson.git | 
 | SSD_13XX | aed648a0430a1cdd9c4c2512f7971b0dddaeb26f | https://github.com/sumotoy/SSD_13XX | 
