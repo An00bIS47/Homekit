@@ -34,10 +34,6 @@
 	path = components/Adafruit_BME280
 	url = https://github.com/adafruit/Adafruit_BME280_Library.git
 	ignore = dirty
-[submodule "src/ArduinoJson"]
-	path = src/ArduinoJson
-	url = https://github.com/bblanchon/ArduinoJson.git
-	ignore = dirty
 [submodule "components/Adafruit_NeoPixel"]
 	path = components/Adafruit_NeoPixel
 	url = https://github.com/adafruit/Adafruit_NeoPixel.git

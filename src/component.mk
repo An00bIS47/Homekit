@@ -79,9 +79,9 @@ COMPONENT_ADD_INCLUDEDIRS += Crypto
 #
 # ArduinoJson
 #
-COMPONENT_SRCDIRS += ArduinoJson
-COMPONENT_ADD_INCLUDEDIRS += ArduinoJson
-CPPFLAGS += -I$(PROJECT_PATH)/src/ArduinoJson/src/
+# COMPONENT_SRCDIRS += ArduinoJson
+# COMPONENT_ADD_INCLUDEDIRS += ArduinoJson
+# CPPFLAGS += -I$(PROJECT_PATH)/components/ArduinoJson/src/
 
 #
 # Plugins incl. all subdirectories
