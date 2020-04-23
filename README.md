@@ -68,6 +68,7 @@ $ cd Homekit
 $ chmod +x init_submodules.sh
 $ ./init_submodules.sh
 $ make 
+$ make menuconfig
 $ make app flash monitor
 ```
 
