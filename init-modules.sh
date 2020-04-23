@@ -8,7 +8,7 @@
 git submodule add https://github.com/espressif/arduino-esp32.git components/arduino
 
 # ArduinoJson
-git submodule add https://github.com/bblanchon/ArduinoJson.git src/ArduinoJson
+git submodule add https://github.com/bblanchon/ArduinoJson.git components/ArduinoJson
 
 # ESP32 HTTPS Server
 git submodule add https://github.com/fhessel/esp32_https_server.git components/esp32_https_server
