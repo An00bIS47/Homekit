@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <sys/wait.h>
 
-#define ITERATIONS      1
+#define ITERATIONS      100
 
 //#define DEVICE_ID       "24:6F:28:AF:5F:A4"
 //#define ALIAS           "heltec"
