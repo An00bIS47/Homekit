@@ -88,7 +88,7 @@ public:
 	// not needed
 	// static size_t encrypt(uint8_t *message, size_t length, uint8_t* buffer, uint8_t* key, uint16_t encryptCount);
 	
-	static char* encrypt(uint8_t *message, size_t length, int* encrypted_len, uint8_t* key, uint16_t encryptCount);
+	static uint8_t* encrypt(uint8_t *message, size_t length, int* encrypted_len, uint8_t* key, uint16_t encryptCount);
 };
 
 #endif /* HAPENCRYPTION_HPP_ */

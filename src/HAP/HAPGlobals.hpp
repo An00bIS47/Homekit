@@ -51,7 +51,7 @@
 #endif
 
 #ifndef HAP_DEBUG_ENCRYPTION
-#define HAP_DEBUG_ENCRYPTION		0
+#define HAP_DEBUG_ENCRYPTION		1
 #endif
 
 #ifndef HAP_DEBUG_FAKEGATO

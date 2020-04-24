@@ -31,7 +31,8 @@ for accessory in data["accessories"]:
     for service in accessory['services']:
         s_type = service['type']
         s_iid = service['iid']
-        print('{aid}.{iid}: >{stype}<'.format(aid=aid, iid=s_iid, stype=ServicesTypes.get_short(s_type)))
+        
+        #print('{aid}.{iid}: >{stype}<'.format(aid=aid, iid=s_iid, stype=ServicesTypes.get_short(s_type)))
 
         for characteristic in service['characteristics']:
             c_iid = characteristic['iid']
@@ -47,14 +48,14 @@ for accessory in data["accessories"]:
                 maxLen = characteristic.get('maxLen')
                             
                 if value is not None and len(value) <= maxLen:
-                    cprint('  {aid}.{iid}: {value} [len: {length} <= {maxLen}] ({description}) >{ctype}< [{perms}]'.format(aid=aid,
-                                                                                      iid=c_iid,
-                                                                                      value=value,
-                                                                                      length=len(value),
-                                                                                      maxLen=maxLen,
-                                                                                      ctype=c_type,
-                                                                                      perms=perms,
-                                                                                      description=desc), "green")
+                    # cprint('  {aid}.{iid}: {value} [len: {length} <= {maxLen}] ({description}) >{ctype}< [{perms}]'.format(aid=aid,
+                    #                                                                   iid=c_iid,
+                    #                                                                   value=value,
+                    #                                                                   length=len(value),
+                    #                                                                   maxLen=maxLen,
+                    #                                                                   ctype=c_type,
+                    #                                                                   perms=perms,
+                    #                                                                   description=desc), "green")
 
 
                     assertion["text"] = "Check maxLen of {}.{}: Length: {}/{}".format(aid, c_iid, len(value), maxLen)
@@ -62,13 +63,14 @@ for accessory in data["accessories"]:
                     assertions.append(assertion)
                 elif value is None:
 
-                    print('  {aid}.{iid}: {value} [{maxLen}] ({description}) >{ctype}< [{perms}]'.format(aid=aid,
-                                                                                      iid=c_iid,
-                                                                                      value=value,
-                                                                                      maxLen=maxLen,
-                                                                                      ctype=c_type,
-                                                                                      perms=perms,
-                                                                                      description=desc))
+                    # print('  {aid}.{iid}: {value} [{maxLen}] ({description}) >{ctype}< [{perms}]'.format(aid=aid,
+                    #                                                                   iid=c_iid,
+                    #                                                                   value=value,
+                    #                                                                   maxLen=maxLen,
+                    #                                                                   ctype=c_type,
+                    #                                                                   perms=perms,
+                    #                                                                   description=desc))
+                    pass
                 else:
                     cprint('  {aid}.{iid}: {value} [len: {length} <= {maxLen}] ({description}) >{ctype}< [{perms}]'.format(aid=aid,
                                                                                       iid=c_iid,
@@ -89,16 +91,15 @@ for accessory in data["accessories"]:
                 minValue = characteristic.get('minValue')
                 maxValue = characteristic.get('maxValue')
 
-                if minValue <= value and value <= maxValue:
-                    # cprint('  {minValue} < {value} < {maxValue}: '.format(minValue=minValue, value=value, maxValue=maxValue ), "green")
-                    cprint('  {aid}.{iid}: {minValue}:> {value} <:{maxValue} ({description}) >{ctype}< [{perms}]'.format(aid=aid,
-                                                                                      iid=c_iid,
-                                                                                      value=value,
-                                                                                      ctype=c_type,
-                                                                                      perms=perms,
-                                                                                      description=desc,
-                                                                                      minValue=minValue,
-                                                                                      maxValue=maxValue), "green")
+                if minValue <= value and value <= maxValue:      
+                    # cprint('  {aid}.{iid}: {minValue}:> {value} <:{maxValue} ({description}) >{ctype}< [{perms}]'.format(aid=aid,
+                    #                                                                   iid=c_iid,
+                    #                                                                   value=value,
+                    #                                                                   ctype=c_type,
+                    #                                                                   perms=perms,
+                    #                                                                   description=desc,
+                    #                                                                   minValue=minValue,
+                    #                                                                   maxValue=maxValue), "green")
                     
                     assertion["text"] = "Check value of {}.{}: {} < {} < {}".format(aid, c_iid, minValue, value, maxValue)
                     assertion["result"] = True
@@ -117,12 +118,13 @@ for accessory in data["accessories"]:
                     assertions.append(assertion)
                     success = False
             else:
-                print('  {aid}.{iid}: {value} ({description}) >{ctype}< [{perms}]'.format(aid=aid,
-                                                                                      iid=c_iid,
-                                                                                      value=value,
-                                                                                      ctype=c_type,
-                                                                                      perms=perms,
-                                                                                      description=desc))
+                # print('  {aid}.{iid}: {value} ({description}) >{ctype}< [{perms}]'.format(aid=aid,
+                #                                                                       iid=c_iid,
+                #                                                                       value=value,
+                #                                                                       ctype=c_type,
+                #                                                                       perms=perms,
+                #                                                                       description=desc))
+                pass
 #print(assertions)
 #sys.exit(!success)
 if success == True:

@@ -1632,18 +1632,19 @@ bool HAPServer::sendEncrypt(HAPClient* hapClient, String httpStatus, String plai
 
 
 	int encryptedLen = 0;
-    char* encrypted = HAPEncryption::encrypt((uint8_t*)response.c_str(), response.length(), &encryptedLen, hapClient->encryptionContext.encryptKey, hapClient->encryptionContext.encryptCount++);
+    uint8_t* encrypted = HAPEncryption::encrypt((uint8_t*)response.c_str(), response.length(), &encryptedLen, hapClient->encryptionContext.encryptKey, hapClient->encryptionContext.encryptCount++);
 
     if (encryptedLen == 0) {
     	LogE("[ERROR] Encrpyting response failed!", true);
     	hapClient->request.clear();
+		hapClient->clear();
     	return false;
     } else {
 		LogD("OK", true);
     }
     
 
-	LogD("\n>>> Sending " + String(encryptedLen) + " bytes encrypted response to client [" + hapClient->client.remoteIP().toString() + "]", true);
+	LogD("\n>>> Sending " + String(encryptedLen) + " bytes encrypted response to client [" + hapClient->client.remoteIP().toString() + "] ...", false);
 
 // #if HAP_DEBUG
 // 	LogD(response, true);	
@@ -1654,16 +1655,19 @@ bool HAPServer::sendEncrypt(HAPClient* hapClient, String httpStatus, String plai
 	int bytesSent = hapClient->client.write(encrypted, encryptedLen);
 	// hapClient->client.flush();
 
-	
+	free(encrypted);
+
 	if (bytesSent < encryptedLen) {
 		LogE( F("[ERROR] Encrypted bytes did not match the expected length"), true );
 		result = false;
-	} 
+	} else {
+		LogD( " OK", true);
+	}
 
 	hapClient->request.clear();
 	hapClient->clear();
 
-	free(encrypted);
+	
 
 #if HAP_DEBUG_HEAP        
     LogE("+++++++++++++++++++ " + String(__CLASS_NAME__) + "->" + String(__FUNCTION__) + " start", true);
