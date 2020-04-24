@@ -34,7 +34,7 @@ public:
 	
 	// static String getValue(String data, char separator, int index) __attribute__ ((deprecated));	
 	
-	static void binToHex(const unsigned char * in, size_t insz, char * out, size_t outsz) __attribute__ ((deprecated));
+	static void binToHex(const unsigned char * in, size_t insz, char * out, size_t outsz);
 
 	// DEPRECATED functions causing memory leaks	
 	static uint8_t* hexToBin(const char* string) __attribute__ ((deprecated));	

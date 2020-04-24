@@ -1056,6 +1056,10 @@ void HAPServer::processIncomingEncryptedRequest(HAPClient* hapClient){
 		uint8_t *bodyData;
 		parseRequest(hapClient, (char*)decrypted, trueLength, &bodyData, &bodyDataLen);
 		
+#if HAP_DEBUG
+		HAPHelper::array_print("bodyData", bodyData, bodyDataLen);
+#endif		
+
 		handlePath(hapClient, bodyData, bodyDataLen);
 		
 		if (bodyDataLen > 0){
@@ -1086,8 +1090,10 @@ void HAPServer::stopEvents(bool value) {
 
 bool HAPServer::handlePath(HAPClient* hapClient, uint8_t* bodyData, size_t bodyDataLen){
 	
-		// /accessories
+	bool validPath = false;
+	// /accessories
 	if ( (hapClient->request.path == "/accessories") && (hapClient->request.method == METHOD_GET) ) {
+		validPath = true;
 		handleAccessories( hapClient );
 	} 
 
@@ -1096,25 +1102,42 @@ bool HAPServer::handlePath(HAPClient* hapClient, uint8_t* bodyData, size_t bodyD
 
 		// GET
 		if ( hapClient->request.method == METHOD_GET ) {
+			validPath = true;
 			handleCharacteristicsGet( hapClient );
 		} 
 		// PUT
-		else if ( (hapClient->request.method == METHOD_PUT) && (hapClient->request.contentType == F("application/hap+json")) ) {
-			char bodyDataStr[bodyDataLen + 1];
-			strncpy(bodyDataStr, (char*)bodyData, bodyDataLen);
+		else if ( (hapClient->request.method == METHOD_PUT) && (hapClient->request.contentType == "application/hap+json") ) {
+			validPath = true;
+			// char bodyDataStr[bodyDataLen + 1];
+			// strncpy(bodyDataStr, (char*)bodyData, bodyDataLen);
 			
-			handleCharacteristicsPut( hapClient, String(bodyDataStr) );
+			handleCharacteristicsPut( hapClient, String((char*)bodyData) );
 		}	
 
 	} else if ( hapClient->request.path == "/pairings" ) {
 		// POST
-		if ( ( hapClient->request.method == METHOD_POST ) && (hapClient->request.contentType == F("application/pairing+tlv8")) ) {
+		if ( ( hapClient->request.method == METHOD_POST ) && (hapClient->request.contentType == "application/pairing+tlv8") ) {
+			validPath = true;
 			handlePairingsPost( hapClient, bodyData,  bodyDataLen);
 		} 
-	} else {
-		LogE("Not yet implemented! >>> client [" + hapClient->client.remoteIP().toString() + "] ", false);
-		LogE("requested -> method: " + String(hapClient->request.method) + " - path: " + String(hapClient->request.path), true);
 
+#if HAP_SUPPORT_HOMEKIT_PYTHON
+		else if ( ( hapClient->request.method == METHOD_POST ) && (hapClient->request.contentType == "application/hap+json") ) {
+			validPath = true;
+			handlePairingsPost( hapClient, bodyData,  bodyDataLen);
+		}
+#endif		
+
+	} 
+	
+	
+	if (validPath == false) {
+		LogE("Not yet implemented! >>> client [" + hapClient->client.remoteIP().toString() + "] ", false);
+		LogE(" - method: " + String(hapClient->request.method), true);
+		LogE(" - path: " + String(hapClient->request.path), true);		
+		LogE(" - Content-Type: " + String(hapClient->request.contentType), true);		
+
+		hapClient->request.clear();
 		hapClient->client.stop();
 		return false;
 	}
@@ -1378,7 +1401,7 @@ void HAPServer::processPathParameters(HAPClient* hapClient, String line, int cur
 void HAPServer::processIncomingLine(HAPClient* hapClient, String line){
 
 	// Print Line
-#if HAP_DEBUG_HOMEKIT
+#if HAP_DEBUG_HOMEKIT_REQUEST
 	LogD( line, true );
 #endif
 
@@ -1417,18 +1440,24 @@ void HAPServer::processIncomingLine(HAPClient* hapClient, String line){
 
 
 	} else {
+
+		String orgLine = line;
 		line.toLowerCase();
 
 		// Content Type
-		if ( line.startsWith("content-type: ") ) {
-			curPos = 14;
-			hapClient->request.contentType = line.substring(curPos);
+		if ( line.startsWith("content-type:") ) {
+			curPos = 13;
+			String strValue = orgLine.substring(curPos);
+			strValue.trim();
+			hapClient->request.contentType = strValue;
 		}
 
 		// Content Length
-		else if ( line.startsWith("content-length: ") ) {
-			curPos = 16;
-			hapClient->request.contentLength = line.substring(curPos).toInt();
+		else if ( line.startsWith("content-length:") ) {
+			curPos = 15;
+			String strValue = orgLine.substring(curPos);
+			strValue.trim();
+			hapClient->request.contentLength = strValue.toInt();
 		}
 
 
@@ -1564,7 +1593,7 @@ bool HAPServer::beginSRP(){
 }
 */
 
-
+// ToDo: Rewrite for streaming !!
 /**
  * @brief Send an encrypted response to the hapClient
  * 		  Used after a secured connection is established
@@ -1693,7 +1722,7 @@ bool HAPServer::sendEncrypt(HAPClient* hapClient, String httpStatus, String plai
  * @return true     Return true on success
  * @return false 	Return false on error
  */
-bool HAPServer::sendResponse(HAPClient* hapClient, TLV8* response, bool chunked){
+bool HAPServer::sendResponse(HAPClient* hapClient, TLV8* response, bool chunked, bool closeConnection){
 
 #if HAP_DEBUG_HEAP        
     LogE("+++++++++++++++++++ " + String(__CLASS_NAME__) + "->" + String(__FUNCTION__) + " start", true);
@@ -1702,9 +1731,17 @@ bool HAPServer::sendResponse(HAPClient* hapClient, TLV8* response, bool chunked)
 
 	bool result = true;
 
+	hapClient->setChunkedMode(chunked);
+	
 	hapClient->setHeader("Content-Type", "application/pairing+tlv8");
 	hapClient->setHeader("Host", _accessorySet->modelName());
-	hapClient->setHeader("Connection", "keep-alive");
+
+	if (closeConnection) {
+		hapClient->setHeader("Connection", "close");
+	} else {
+		hapClient->setHeader("Connection", "keep-alive");
+	}
+	
 
 	int bytesSent = response->decode(*hapClient);
 
@@ -3419,20 +3456,15 @@ void HAPServer::handleAccessories(HAPClient* hapClient) {
 #endif
 }
 
-
 void HAPServer::handlePairingsPost(HAPClient* hapClient, uint8_t* bodyData, size_t bodyDataLen){
-	
-#if HAP_DEBUG_HEAP        
-    LogE("+++++++++++++++++++ " + String(__CLASS_NAME__) + "->" + String(__FUNCTION__) + " start", true);
-    HAPLogger::logFreeHeap(0,0, COLOR_MAGENTA);
-#endif	
+
 	
 	LogV( "<<< Handle client [" + hapClient->client.remoteIP().toString() + "] -> POST /pairings ...", false);
 	
 	TLV8 tlv;
 	tlv.encode(bodyData, bodyDataLen);
 
-#if HAP_DEBUG	
+#if HAP_DEBUG_TLV8	
 	tlv.print();
 #endif
 	
@@ -3442,19 +3474,36 @@ void HAPServer::handlePairingsPost(HAPClient* hapClient, uint8_t* bodyData, size
 	TLV8 response;
 
 	// if not paired 
+	LogD("Removing pairings ...", false);
 	if (!_pairings.removePairing(entry->value)){
+		
+		LogE("ERROR: No pairings found!", true);
 		response.encode(TLV_TYPE_STATE, 1, PAIR_STATE_M2);
 		response.encode(TLV_TYPE_ERROR, 1, HAP_ERROR_UNKNOWN);
 		sendResponse(hapClient, &response);
+
+		response.clear();
+		hapClient->request.clear();
+		hapClient->clear();
+		return;
 	} 
+	LogD(" OK", true);
 
 	// send response
 	response.encode(TLV_TYPE_STATE, 1, PAIR_STATE_M2);
-	sendResponse(hapClient, &response);
+
+#if HAP_DEBUG_TLV8	
+	response.print();
+#endif
+
+	sendResponse(hapClient, &response, false, true);
+
+	response.clear();
+	hapClient->request.clear();
 
 	// tear down all other pairings if admin removed
 	hapClient->state = CLIENT_STATE_ADMIN_REMOVED;
-
+	
 	_accessorySet->isPaired = false;
 	// update mdns
 	updateServiceTxt();
@@ -3472,11 +3521,7 @@ void HAPServer::handlePairingsPost(HAPClient* hapClient, uint8_t* bodyData, size
 	}
 #endif
 	
-#if HAP_DEBUG_HEAP    
-    LogE("=================== " + String(__CLASS_NAME__) + "->" + String(__FUNCTION__) + " end", true);
-    HAPLogger::logFreeHeap(0,0, COLOR_MAGENTA);
-#endif
-
+	
 	LogV("OK", true);
 }
 

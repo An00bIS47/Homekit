@@ -43,7 +43,7 @@
 #endif
 
 #ifndef HAP_DEBUG_HOMEKIT
-#define HAP_DEBUG_HOMEKIT			0
+#define HAP_DEBUG_HOMEKIT			1
 #endif
 
 #ifndef HAP_DEBUG_FAKEGATO
@@ -58,6 +58,10 @@
 #define HAP_DEBUG_FAKEGATO			0
 #endif
 
+
+#define HAP_SUPPORT_HOMEKIT_PYTHON	1	// allow this until this issue is fixed:
+										// https://github.com/jlusiardi/homekit_python/issues/188
+										
 /**
  * Thresholds
  ********************************************************************/

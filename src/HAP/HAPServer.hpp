@@ -226,6 +226,21 @@ protected:
 	// Homekit HTTP paths
 	//
 
+	//
+	// Pairing
+	//
+
+	// Pair-Setup states
+	bool handlePairSetupM1(HAPClient* hapClient);
+	bool handlePairSetupM3(HAPClient* hapClient);
+	bool handlePairSetupM5(HAPClient* hapClient);
+
+
+	// Pair-Verify states
+	bool handlePairVerifyM1(HAPClient* hapClient);
+	bool handlePairVerifyM3(HAPClient* hapClient);
+
+
 	// /accessories
 	void handleAccessories(HAPClient* hapClient);
 
@@ -235,6 +250,7 @@ protected:
 
 	// pairings
 	void handlePairingsPost(HAPClient* hapClient, uint8_t* bodyData, size_t bodyDataLen);
+	
 
 	// Identify
 	void handleIdentify(HAPClient* hapClient);
@@ -306,26 +322,12 @@ private:
 
 
 
-	//
-	// Pairing
-	//
-
-	// Pair-Setup states
-	bool handlePairSetupM1(HAPClient* hapClient);
-	bool handlePairSetupM3(HAPClient* hapClient);
-	bool handlePairSetupM5(HAPClient* hapClient);
-
-
-	// Pair-Verify states
-	bool handlePairVerifyM1(HAPClient* hapClient);
-	bool handlePairVerifyM3(HAPClient* hapClient);
-
 
 
 	//
 	// Sending responses
 	// 
-	bool sendResponse(HAPClient* hapClient, TLV8* response, bool chunked = true);
+	bool sendResponse(HAPClient* hapClient, TLV8* response, bool chunked = true, bool closeConnection = false);
 	bool sendEncrypt(HAPClient* hapClient, String httpStatus, String plainText, bool chunked = true);
 	bool sendEvent(HAPClient* hapClient, String response);
 

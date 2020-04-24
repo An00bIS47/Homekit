@@ -187,23 +187,23 @@ size_t HAPClient::write(const uint8_t* buffer, size_t size) {
 			// bytesHeader = headerStr.length();
 			_headerSent = true;
 		}	
-
-		// chunk size for payload
-		if (_chunkedMode) {
-			char chunkSize[8];
-			sprintf(chunkSize, "%x\r\n", size);
-
-			memcpy(writeBuffer + writeBufferUsed, chunkSize, strlen(chunkSize));
-			writeBufferUsed	+= strlen(chunkSize);
-			// bytesChunk += client.write((uint8_t*) chunkSize, strlen(chunkSize));			
-		}
-
 		
 		int remainingSize = size;
 		size_t written = 0;
 
 		while (remainingSize > 0){
 			size_t toWrite = (remainingSize > 1360 - writeBufferUsed) ? 1360 - writeBufferUsed : remainingSize;
+
+			// chunk size for payload
+			if (_chunkedMode) {
+				char chunkSize[8];
+				sprintf(chunkSize, "%x\r\n", toWrite);
+
+				memcpy(writeBuffer + writeBufferUsed, chunkSize, strlen(chunkSize));
+				writeBufferUsed	+= strlen(chunkSize);
+				// bytesChunk += client.write((uint8_t*) chunkSize, strlen(chunkSize));			
+			}
+
 			
 			// Serial.println("remainingSize: " + String(remainingSize));
 			// Serial.println("toWrite: " + String(toWrite));
@@ -222,11 +222,11 @@ size_t HAPClient::write(const uint8_t* buffer, size_t size) {
 			
 			written += toWrite;
 			remainingSize -= written;
+
+			bytesChunk += client.write((uint8_t*) "\r\n", 2);			
+			bytesSend += bytesChunk;
 		}
 
-		bytesChunk += client.write((uint8_t*) "\r\n", 2);			
-		bytesSend += bytesChunk;
-		
 
 		// End of request
 		// send end chunk
@@ -271,8 +271,8 @@ size_t HAPClient::write(const uint8_t* buffer, size_t size) {
 			writeBufferUsed	+= strlen(chunkSize);
 			bytesChunk += strlen(chunkSize);
 
-			Serial.write(writeBuffer, writeBufferUsed);
-			Serial.println();
+			// Serial.write(writeBuffer, writeBufferUsed);
+			// Serial.println();
 
 			// bytesChunk += client.write((uint8_t*) chunkSize, strlen(chunkSize));			
 		}
@@ -321,8 +321,8 @@ size_t HAPClient::write(const uint8_t* buffer, size_t size) {
 				bytesChunk = 0;
 			}
 
-			Serial.println("remainingSize: " + String(remainingSize));
-			Serial.println("toWrite: " + String(toWrite));
+			// Serial.println("remainingSize: " + String(remainingSize));
+			// Serial.println("toWrite: " + String(toWrite));
 
 			memcpy(writeBuffer + writeBufferUsed, buffer + written, toWrite);
 

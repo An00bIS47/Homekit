@@ -460,9 +460,19 @@ void TLV8::printNode( TLV8Entry *ptr )
 	LogD( String(ptr->length, DEC), false);
 	LogD( " V:", false );
 
-	char* out = HAPHelper::toHex(ptr->value, ptr->length);
+	// char* out = HAPHelper::toHex(ptr->value, ptr->length);
+	// LogD( out, true );
+	// free(out);
+
+	// out = (char*)malloc(sizeof(char) * (ptr->length * 2) + 1);
+	char out[sizeof(char) * (ptr->length * 2) + 1];
+	HAPHelper::binToHex(ptr->value, ptr->length, out, (ptr->length * 2) + 1);
 	LogD( out, true );
-	free(out);
+	
+
+	// HAPHelper::array_print("T:", (uint8_t*)ptr->type, 1);
+	// HAPHelper::array_print("L:", (uint8_t*)ptr->length, 1);
+	// HAPHelper::array_print("V:", ptr->value, ptr->length);
 }
 
 void TLV8::print( ) {
