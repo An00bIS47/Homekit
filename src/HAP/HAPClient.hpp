@@ -17,6 +17,7 @@
 #include "HAPGlobals.hpp"
 #include "HAPRequest.hpp"
 #include "HAPVerifyContext.hpp"
+#include "HAPTLV8Types.hpp"
 
 #if HAP_API_ADMIN_MODE
 #include <ArduinoJson.h>
@@ -24,33 +25,17 @@
 
 #undef write
 
-enum HAPClientState {
-	CLIENT_STATE_DISCONNECTED = 0,
-	CLIENT_STATE_CONNECTED,
-	CLIENT_STATE_AVAILABLE,
-	CLIENT_STATE_SENT,
-	CLIENT_STATE_RECEIVED,
-	CLIENT_STATE_IDLE,
-	CLIENT_STATE_ADMIN_REMOVED,
+enum HAP_CLIENT_STATE {
+	HAP_CLIENT_STATE_DISCONNECTED = 0,
+	HAP_CLIENT_STATE_CONNECTED,
+	HAP_CLIENT_STATE_AVAILABLE,
+	HAP_CLIENT_STATE_SENT,
+	HAP_CLIENT_STATE_RECEIVED,
+	HAP_CLIENT_STATE_IDLE,
+	HAP_CLIENT_STATE_ADMIN_REMOVED,
 };
 
-enum HAPPairState {
-	PAIR_STATE_RESERVED = 0,
-	PAIR_STATE_M1,
-	PAIR_STATE_M2,
-	PAIR_STATE_M3,
-	PAIR_STATE_M4,
-	PAIR_STATE_M5,
-	PAIR_STATE_M6,
-};
 
-enum HAPVerifyState {
-	VERIFY_STATE_RESERVED = 0,
-	VERIFY_STATE_M1,
-	VERIFY_STATE_M2,
-	VERIFY_STATE_M3,
-	VERIFY_STATE_M4,
-};
 
 struct HAPSubscribtionItem {
 	int aid;
@@ -102,9 +87,11 @@ public:
 
 	HAPRequest		request;
 	WiFiClient 		client;
-	HAPClientState 	state;
-	HAPPairState	pairState;
-	HAPVerifyState	verifyState;	
+	HAP_CLIENT_STATE 	state;
+	HAP_PAIR_STATE	pairState;
+	HAP_VERIFY_STATE	verifyState;	
+
+
 
 	struct HAPVerifyContext 		verifyContext;
 	struct HAPEncryptionContext 	encryptionContext;	
@@ -146,6 +133,13 @@ public:
 
 	bool operator==(const HAPClient &hap) const;
 
+	bool isAdmin(){
+		return _isAdmin;
+	}
+
+	void setAdmin(bool mode){
+		_isAdmin = mode;
+	}
 
 	void subscribe(int aid, int iid, bool value = true);
 	bool isSubscribed(int aid, int iid) const;

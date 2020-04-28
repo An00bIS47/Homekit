@@ -62,11 +62,13 @@
 // HAPPairing 
 //	id 	=  36
 //	key =  32
+// 	bool = 1
 //	================
-//         68 Bytes
+//         69 Bytes
 struct HAPPairing {
 	uint8_t id[HAP_PAIRINGS_ID_LENGTH];
 	uint8_t key[HAP_PAIRINGS_LTPK_LENGTH];
+	bool isAdmin;
 };
 
 struct HAPKeys {
@@ -86,27 +88,24 @@ public:
 	bool save();
 	static void resetEEPROM();
 
+	bool isAdmin(const uint8_t *id);
+	
 
-	bool saveKeys(uint8_t *ltpk, uint8_t *ltsk);
+	bool saveKeys(const uint8_t *ltpk, const uint8_t *ltsk);
 	bool loadKeys(uint8_t *ltpk, uint8_t *ltsk);
 
-	bool removePairing(uint8_t *id);
-	
-	// void loadLTPK(uint8_t *ltpk) __attribute__ ((deprecated));
-	// void loadLTSK(uint8_t *ltsk) __attribute__ ((deprecated));
-
-	// void saveLTPK(uint8_t *ltpk) __attribute__ ((deprecated));
-	// void saveLTSK(uint8_t *ltsk) __attribute__ ((deprecated));
+	bool removePairing(const uint8_t *id);
 
 	void print();
 
-	void add(uint8_t* id, uint8_t* key);
+	bool add(const uint8_t* id, const uint8_t* key, bool isAdmin);
 	//struct HAPPairing get(uint8_t* id);
 	int getKey(const uint8_t* id, uint8_t* outkey);
 	uint8_t size();
 
-private:
-	std::vector<HAPPairing> _pairings;	
+	std::vector<HAPPairing> pairings;	
+	int getIndex(const uint8_t* id);
+	
 
 };
 

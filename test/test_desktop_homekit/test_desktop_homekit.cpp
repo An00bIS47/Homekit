@@ -383,17 +383,14 @@ int main(int argc, char **argv) {
 
     _setUp();
     UNITY_BEGIN();
-
-    for (int i=0; i < ITERATIONS; i ++){
-        RUN_TEST(test_homekit_identify_unpaired);
-    };
     
+    RUN_TEST(test_homekit_identify_unpaired);
+        
     RUN_TEST(test_homekit_pair);
+    
+    RUN_TEST(test_homekit_identify_paired);
+    
 
-
-    for (int i=0; i < ITERATIONS; i ++){   
-        RUN_TEST(test_homekit_identify_paired);
-    }
 
     for (int i=0; i < ITERATIONS; i ++){
         RUN_TEST(test_homekit_get_accessories);

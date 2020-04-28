@@ -12,24 +12,6 @@
 #include <Arduino.h>
 
 
-enum HAP_TLV_Type {
-	TLV_TYPE_METHOD					= 0x00,
-	TLV_TYPE_IDENTIFIER				= 0x01,
-	TLV_TYPE_SALT					= 0x02,
-	TLV_TYPE_PUBLIC_KEY				= 0x03,
-	TLV_TYPE_PROOF					= 0x04,
-	TLV_TYPE_ENCRYPTED_DATA			= 0x05,
-	TLV_TYPE_STATE					= 0x06,
-	TLV_TYPE_ERROR					= 0x07,
-	TLV_TYPE_RETRY_DELAY			= 0x08,
-	TLV_TYPE_CERTIFICATE			= 0x09,
-	TLV_TYPE_SIGNATURE				= 0x0A,
-	TLV_TYPE_PERMISSIONS			= 0x0B,
-	TLV_TYPE_FRAGMENT_DATA			= 0x0C,
-	TLV_TYPE_FRAGMENT_LAST			= 0x0D,
-
-	TLV_TYPE_SEPERATOR				= 0xFF,
-};
 
 
 struct TLV8Entry {
@@ -52,8 +34,10 @@ public:
 	TLV8();
 	~TLV8();
 
+	void addSeperator();
 	TLV8Entry* searchType(TLV8Entry* ptr, uint8_t type);
 	TLV8Entry* searchId(TLV8Entry* ptr, uint8_t id);
+
 
 	bool encode(uint8_t type, size_t length, const uint8_t data);
 	bool encode(uint8_t type, size_t length, const uint8_t* rawData);

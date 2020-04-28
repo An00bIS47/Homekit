@@ -39,29 +39,33 @@
 #endif
 
 #ifndef HAP_DEBUG_TLV8
-#define HAP_DEBUG_TLV8				0
+#define HAP_DEBUG_TLV8				1
 #endif
 
 #ifndef HAP_DEBUG_HOMEKIT
-#define HAP_DEBUG_HOMEKIT			1
+#define HAP_DEBUG_HOMEKIT			0
 #endif
 
 #ifndef HAP_DEBUG_FAKEGATO
 #define HAP_DEBUG_FAKEGATO			0
+#endif
+
+#ifndef HAP_DEBUG_PAIRINGS
+#define HAP_DEBUG_PAIRINGS			0
+#endif
+
+#ifndef HAP_DEBUG_REQUESTS
+#define HAP_DEBUG_REQUESTS			1
 #endif
 
 #ifndef HAP_DEBUG_ENCRYPTION
-#define HAP_DEBUG_ENCRYPTION		1
+#define HAP_DEBUG_ENCRYPTION		0
 #endif
 
 #ifndef HAP_DEBUG_FAKEGATO
 #define HAP_DEBUG_FAKEGATO			0
 #endif
-
-
-#define HAP_SUPPORT_HOMEKIT_PYTHON	1	// allow this until this issue is fixed:
-										// https://github.com/jlusiardi/homekit_python/issues/188
-										
+									
 /**
  * Thresholds
  ********************************************************************/

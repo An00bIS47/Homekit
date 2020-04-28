@@ -8,8 +8,11 @@
 
 
 #include "HAPTLV8.hpp"
+#include "HAPGlobals.hpp"
 #include "HAPHelper.hpp"
 #include "HAPLogger.hpp"
+#include "HAPTLV8Types.hpp"
+
 
 #define TLV_DEBUG 0
 
@@ -145,9 +148,12 @@ void TLV8::decode(uint8_t* out, size_t *outSize){
 
 	while(_head) {
 		out[offset++] = _head->type;
-		out[offset++] = _head->length;
-		memcpy(out + offset, _head->value, _head->length);
-		offset += _head->length;
+
+		if (_head->type != HAP_TLV_SEPERATOR) {
+			out[offset++] = _head->length;
+			memcpy(out + offset, _head->value, _head->length);
+			offset += _head->length;
+		}
 
 		if (outSize != nullptr) {
 			*outSize = offset;	
@@ -207,6 +213,20 @@ void TLV8::decode(uint8_t* out, size_t *outSize){
 
 // 	return data;
 // }
+
+void TLV8::addSeperator() {
+	TLV8Entry *ptr = new TLV8Entry();
+
+	// error? then just return
+	if( ptr == NULL )
+		return;
+	// assign it
+	// then return pointer to new node
+	else {
+		ptr->type = HAP_TLV_SEPERATOR;
+		addNode( ptr );
+	}
+}
 
 bool TLV8::encode(uint8_t type, size_t length, const uint8_t data) {
 
@@ -298,6 +318,7 @@ TLV8Entry* TLV8::initNode(const uint8_t* rawData) {
 		ptr->type = rawData[0];
 		ptr->length = rawData[1];
 
+		
 		ptr->value = new unsigned char[ptr->length];
 		memcpy(ptr->value, rawData + 2, ptr->length);
 		return ptr;
@@ -317,6 +338,7 @@ TLV8Entry* TLV8::initNode(const uint8_t type, const uint8_t length, const uint8_
 		ptr->type = type;
 		ptr->length = length;
 
+		
 		ptr->value = new unsigned char[length];
 		memcpy(ptr->value, value, length);
 		return ptr;
@@ -591,35 +613,35 @@ TLV8::~TLV8() {
 
 bool TLV8::isValidTLVType(uint8_t type) {
 	switch (type) {
-		case TLV_TYPE_METHOD:
+		case HAP_TLV_METHOD:
 			return false;
-		case TLV_TYPE_IDENTIFIER:
+		case HAP_TLV_IDENTIFIER:
 			return true;
-		case TLV_TYPE_SALT:
+		case HAP_TLV_SALT:
 			return true;
-		case TLV_TYPE_PUBLIC_KEY:
+		case HAP_TLV_PUBLIC_KEY:
 			return true;
-		case TLV_TYPE_PROOF:
+		case HAP_TLV_PROOF:
 			return true;
-		case TLV_TYPE_ENCRYPTED_DATA:
+		case HAP_TLV_ENCRYPTED_DATA:
 			return true;
-		case TLV_TYPE_STATE:
+		case HAP_TLV_STATE:
 			return true;
-		case TLV_TYPE_ERROR:
+		case HAP_TLV_ERROR:
 			return true;
-		case TLV_TYPE_RETRY_DELAY:
+		case HAP_TLV_RETRY_DELAY:
 			return true;
-		case TLV_TYPE_CERTIFICATE:
+		case HAP_TLV_CERTIFICATE:
 			return true;
-		case TLV_TYPE_SIGNATURE:
+		case HAP_TLV_SIGNATURE:
 			return true;
-		case TLV_TYPE_PERMISSIONS:
+		case HAP_TLV_PERMISSIONS:
 			return true;
-		case TLV_TYPE_FRAGMENT_DATA:
+		case HAP_TLV_FRAGMENT_DATA:
 			return true;
-		case TLV_TYPE_FRAGMENT_LAST:
+		case HAP_TLV_FRAGMENT_LAST:
 			return true;
-		case TLV_TYPE_SEPERATOR:
+		case HAP_TLV_SEPERATOR:
 			return true;
 		default:
 			return false;

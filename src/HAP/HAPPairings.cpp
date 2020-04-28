@@ -27,21 +27,18 @@ bool HAPPairings::begin(){
 
 bool HAPPairings::save(){
 	
-	for (int i=0; i < _pairings.size(); i++){
+	for (int i=0; i < pairings.size(); i++){
 		
 
-#if 0	
-		Serial.println("\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>: " + String(HAP_EEPROM_OFFSET_PAIRINGS + ( i * sizeof(HAPPairing) )));	
-		Serial.println("id: ");
-		HAPHelper::arrayPrint(_pairings[i].id, HAP_PAIRINGS_ID_LENGTH);
-
-		Serial.println("key: ");
-		HAPHelper::arrayPrint(_pairings[i].key, HAP_PAIRINGS_LTPK_LENGTH);
-
-		Serial.println("===============================================");
+#if HAP_DEBUG_PAIRINGS
+		LogD(String(HAP_EEPROM_OFFSET_PAIRINGS + ( i * sizeof(HAPPairing) )), true);			
+		HAPHelper::array_print("ID:", pairings[i].id, HAP_PAIRINGS_ID_LENGTH);		
+		HAPHelper::array_print("Key:", pairings[i].key, HAP_PAIRINGS_LTPK_LENGTH);
+		LogD("isAdmin: " + String(pairings[i].isAdmin), true);
+		LogD("===============================================", true);
 #endif
 
-		size_t written = EEPROM.writeBytes( HAP_EEPROM_OFFSET_PAIRINGS + ( i * sizeof(HAPPairing) ), &_pairings[i], sizeof(HAPPairing));
+		size_t written = EEPROM.writeBytes( HAP_EEPROM_OFFSET_PAIRINGS + ( i * sizeof(HAPPairing) ), &pairings[i], sizeof(HAPPairing));
 		if ( written != sizeof(HAPPairing) ) {
 			LogE("[ERROR] Failed to save pairing to EEPROM!", true);
 			return false;
@@ -67,22 +64,22 @@ bool HAPPairings::load(){
 			return false;
 		}
 
-#if 0	
-		Serial.println("\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>: " + String(HAP_EEPROM_OFFSET_PAIRINGS + ( i * sizeof(HAPPairing) )));	
-		Serial.println("id: ");
-		HAPHelper::arrayPrint(tmp.id, HAP_PAIRINGS_ID_LENGTH);
 
-		Serial.println("key: ");
-		HAPHelper::arrayPrint(tmp.key, HAP_PAIRINGS_LTPK_LENGTH);
-
-		Serial.println("===============================================");
+#if HAP_DEBUG_PAIRINGS
+		LogD(String(HAP_EEPROM_OFFSET_PAIRINGS + ( i * sizeof(HAPPairing) )), true);			
+		HAPHelper::array_print("ID:", tmp.id, HAP_PAIRINGS_ID_LENGTH);		
+		HAPHelper::array_print("Key:", tmp.key, HAP_PAIRINGS_LTPK_LENGTH);
+		LogD("isAdmin: " + String(tmp.isAdmin), true);
+		LogD("===============================================", true);
 #endif
+
+
 
 		if (tmp.id[0] == 0x00 && tmp.id[1] == 0x00 && tmp.key[0] == 0x00 && tmp.key[1] == 0x00 ){
 			//do nothing			
 		} else if (tmp.id[0] == 0xFF && tmp.id[1] == 0xFF && tmp.key[0] == 0xFF && tmp.key[1] == 0xFF ){
 		} else {
-			_pairings.push_back(tmp);
+			pairings.push_back(tmp);
 		}
 		
 	}	
@@ -101,71 +98,101 @@ void HAPPairings::resetEEPROM(){
 
 
 
-void HAPPairings::add(uint8_t* id, uint8_t* key){    
 
-	struct HAPPairing item;
-	memcpy(item.id, id, HAP_PAIRINGS_ID_LENGTH);
-	memcpy(item.key, key, HAP_PAIRINGS_LTPK_LENGTH);
+bool HAPPairings::add(const uint8_t* id, const uint8_t* key, bool isAdmin){    
 
-#if HAP_DEBUG	
-	LogD("### Save pairing:", true);
+	bool result = false;
+	int index = getIndex(id);
+	if (index == -1) {
+		struct HAPPairing item;
+		memcpy(item.id, id, HAP_PAIRINGS_ID_LENGTH);
+		memcpy(item.key, key, HAP_PAIRINGS_LTPK_LENGTH);
+		item.isAdmin = isAdmin;
+		
+	#if HAP_DEBUG_PAIRINGS		
+		HAPHelper::array_print("ID:", item.id, HAP_PAIRINGS_ID_LENGTH);	
+		HAPHelper::array_print("Key:", item.key, HAP_PAIRINGS_LTPK_LENGTH);
+	#endif
 
-	LogD("### - ID: ", false);
-	HAPHelper::arrayPrint(item.id, HAP_PAIRINGS_ID_LENGTH);
+		pairings.push_back(item);
+		result = true;
+	} else {
+		if (memcmp(pairings[index].key, key, HAP_PAIRINGS_LTPK_LENGTH) == 0) {
+			result = true;
+		}
+		pairings[index].isAdmin = isAdmin;
+		
+	}
 
-	LogD("### - KEY: ", false);
-	HAPHelper::arrayPrint(item.key, HAP_PAIRINGS_LTPK_LENGTH);
-#endif
-
-	_pairings.push_back(item);
+	return result;	
 }
 
 /*
 struct HAPPairing HAPPairings::get(uint8_t* id) {
-	for(size_t i = 0; i < _pairings.size(); i++)
+	for(size_t i = 0; i < pairings.size(); i++)
 	{
-		if (memcmp(_pairings[i].id, id, HAP_PAIRINGS_ID_SIZE) ) {
-			return _pairings[i];
+		if (memcmp(pairings[i].id, id, HAPpairings_ID_SIZE) ) {
+			return pairings[i];
 		}
 	}
 	return struct HAPPairing;
 }
 */
 
-int HAPPairings::getKey(const uint8_t* id, uint8_t* outkey) {
-	LogD("Get iOS DeviceID LTPK: ", true);
-	for(size_t i = 0; i < _pairings.size(); i++) {
-		struct HAPPairing item = _pairings[i];
 
-		// LogD("### - ID: ", false);
-		// HAPHelper::arrayPrint(item.id, HAP_PAIRINGS_ID_SIZE);
+int HAPPairings::getIndex(const uint8_t* id) {
 
-		if ( memcmp(item.id, id, HAP_PAIRINGS_ID_LENGTH) == 0) {
-		
-			// LogD("### - KEY found: ", false);
-			// HAPHelper::arrayPrint(item.key, HAP_PAIRINGS_LTPK_SIZE);
-			
-			if (outkey != NULL)
-				memcpy(outkey, item.key, HAP_PAIRINGS_LTPK_LENGTH);
-			return 0;
+	int index = -1;
+
+	for(int i = 0; i < pairings.size(); i++) {
+		struct HAPPairing item = pairings[i];
+		if ( memcmp(item.id, id, HAP_PAIRINGS_ID_LENGTH) == 0) {						
+			index = i;
 		}
 
 	}
-	return -1;
+	return index;
+}
+
+
+int HAPPairings::getKey(const uint8_t* id, uint8_t* outkey) {
+	
+	// for(size_t i = 0; i < pairings.size(); i++) {
+	// 	struct HAPPairing item = pairings[i];
+
+	// 	// LogD("### - ID: ", false);
+	// 	// HAPHelper::arrayPrint(item.id, HAPpairings_ID_SIZE);
+
+	// 	if ( memcmp(item.id, id, HAP_PAIRINGS_ID_LENGTH) == 0) {
+		
+	// 		// LogD("### - KEY found: ", false);
+	// 		// HAPHelper::arrayPrint(item.key, HAPpairings_LTPK_SIZE);
+			
+	// 		if (outkey != NULL)
+	// 			memcpy(outkey, item.key, HAP_PAIRINGS_LTPK_LENGTH);
+	// 		return 0;
+	// 	}
+
+	// }
+	// return -1;
+
+	int index = getIndex(id);
+	if (index >= 0) {
+		memcpy(outkey, pairings[index].key, HAP_PAIRINGS_LTPK_LENGTH);
+	}
+	return index;
 }
 
 
 uint8_t HAPPairings::size(){
-	return _pairings.size();
+	return pairings.size();
 }
 
 void HAPPairings::print(){
-	for (int i=0; i < _pairings.size(); i++){
-		Serial.println("id: ");
-		HAPHelper::arrayPrint(_pairings[i].id, HAP_PAIRINGS_ID_LENGTH);
-
-		Serial.println("key: ");
-		HAPHelper::arrayPrint(_pairings[i].key, HAP_PAIRINGS_LTPK_LENGTH);
+	for (int i=0; i < pairings.size(); i++){		
+		HAPHelper::array_print("ID:", pairings[i].id, HAP_PAIRINGS_ID_LENGTH);		
+		HAPHelper::array_print("Key:", pairings[i].key, HAP_PAIRINGS_LTPK_LENGTH);
+		LogD("===============================================", true);
 	}
 }
 
@@ -182,28 +209,24 @@ bool HAPPairings::loadKeys(uint8_t *ltpk, uint8_t *ltsk){
 	memcpy(ltpk, k.ltpk, HAP_PAIRINGS_LTPK_LENGTH);
 	memcpy(ltsk, k.ltsk, HAP_PAIRINGS_LTSK_LENGTH);
 
-#if HAP_DEBUG
-	LogD("Loaded LTPK from EEPROM: ", true);
-	HAPHelper::arrayPrint(ltpk, HAP_PAIRINGS_LTPK_LENGTH);
-
-	LogD("Loaded LTSK from EEPROM: ", true);
-	HAPHelper::arrayPrint(ltsk, HAP_PAIRINGS_LTSK_LENGTH);
+#if HAP_DEBUG_PAIRINGS
+	HAPHelper::array_print("Long-term public key:", ltpk, HAP_PAIRINGS_LTPK_LENGTH);		
+	HAPHelper::array_print("Long-term private key:", ltsk, HAP_PAIRINGS_LTSK_LENGTH);
+	LogD("===============================================", true);
 #endif
 	return true;
 }
 
-bool HAPPairings::saveKeys(uint8_t *ltpk, uint8_t *ltsk){
+bool HAPPairings::saveKeys(const uint8_t *ltpk, const uint8_t *ltsk){
 
 	HAPKeys k;
 	memcpy(k.ltpk, ltpk, HAP_PAIRINGS_LTPK_LENGTH);
 	memcpy(k.ltsk, ltsk, HAP_PAIRINGS_LTSK_LENGTH);
 
-#if 0
-	LogD("Saving LTPK to EEPROM: ", true);
-	HAPHelper::arrayPrint(ltpk, HAP_PAIRINGS_LTPK_LENGTH);
-
-	LogD("Saving LTSK to EEPROM: ", true);
-	HAPHelper::arrayPrint(ltsk, HAP_PAIRINGS_LTSK_LENGTH);
+#if HAP_DEBUG_PAIRINGS
+	HAPHelper::array_print("Long-term public key:", ltpk, HAP_PAIRINGS_LTPK_LENGTH);		
+	HAPHelper::array_print("Long-term private key:", ltsk, HAP_PAIRINGS_LTSK_LENGTH);
+	LogD("===============================================", true);
 #endif
 
 	size_t written = EEPROM.writeBytes( 0, &k, sizeof(HAPKeys));
@@ -221,29 +244,29 @@ bool HAPPairings::saveKeys(uint8_t *ltpk, uint8_t *ltsk){
 	return true;
 }
 
-bool HAPPairings::removePairing(uint8_t *id){
+bool HAPPairings::removePairing(const uint8_t *id){
 
-	const auto orig_size = _pairings.size();
+	const auto orig_size = pairings.size();
 
 	for (int i=0; i < HAP_PAIRINGS_MAX; i++){
-		struct HAPPairing item = _pairings[i];		
+		struct HAPPairing item = pairings[i];		
 		if ( memcmp(item.id, id, HAP_PAIRINGS_ID_LENGTH) == 0) {
 
-#if HAP_DEBUG
+#if HAP_DEBUG_PAIRINGS
 			LogD("Removing pairing for ", false);
-			HAPHelper::arrayPrint(_pairings[i].id, HAP_PAIRINGS_ID_LENGTH);
+			HAPHelper::array_print("ID:", pairings[i].id, HAP_PAIRINGS_ID_LENGTH);
 #endif
-			_pairings.erase(_pairings.begin() + i);
+			pairings.erase(pairings.begin() + i);
 			
-			if (_pairings.size() == orig_size) {
+			if (pairings.size() == orig_size) {
 				return false;
 			}
 
-			if (_pairings.size() == 0) {
-#if HAP_DEBUG				
+			if (pairings.size() == 0) {
+			
 				resetEEPROM();
-				LogD("Removing long term keys", true);
-#endif				
+				LogI("Last pairing was removed!", true);
+
 			} else {
 				save();
 			}
@@ -253,4 +276,16 @@ bool HAPPairings::removePairing(uint8_t *id){
 	}
 
 	return true;
+}
+
+
+bool HAPPairings::isAdmin(const uint8_t *id){
+	int index = -1;
+
+	index = getIndex(id);
+
+	if (index >= 0) {
+		return pairings[index].isAdmin;
+	}
+	return false;
 }
