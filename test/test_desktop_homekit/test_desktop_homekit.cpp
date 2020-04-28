@@ -353,6 +353,31 @@ void test_homekit_put_characteristics_fg_address_33(void) {
     
 }
 
+void test_homekit_list_pairings(void) {
+    
+    //python3 -m homekit.get_accessories -f ${PAIRINGDATAFILE} -a ${ALIAS} -o json | python3 ~/Development/Homekit/utils/accessory_validate/accval.py
+    std::string cmd = "python3 -m homekit.list_pairings ";        
+    cmd += " -f";
+    cmd += PAIRINGDATAFILE;
+    cmd += " -a ";
+    cmd += ALIAS;    
+    
+
+#if TEST_SHOW_CMD
+    std::cout << "cmd: " << cmd << std::endl;    
+#endif
+
+    int ret = system( cmd.c_str() );
+    int exitCode = 0;
+    if (WEXITSTATUS(ret) == 0)
+        exitCode = 0;
+    else
+        exitCode = 1;
+
+    TEST_ASSERT_EQUAL(0, exitCode);
+    
+}
+
 void test_homekit_remove_pairing(void) {
     
     //python3 -m homekit.get_accessories -f ${PAIRINGDATAFILE} -a ${ALIAS} -o json | python3 ~/Development/Homekit/utils/accessory_validate/accval.py
@@ -398,6 +423,10 @@ int main(int argc, char **argv) {
 
     for (int i=0; i < ITERATIONS; i ++){
         RUN_TEST(test_homekit_get_characteristics);
+    }
+
+    for (int i=0; i < ITERATIONS; i ++){
+        RUN_TEST(test_homekit_list_pairings);
     }
 
     for (int i=0; i < ITERATIONS; i ++){
