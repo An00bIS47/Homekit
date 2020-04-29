@@ -11,6 +11,7 @@
 #include "HAPLogger.hpp"
 #include "HAPEncryption.hpp"
 
+
 #if HAP_USE_MBEDTLS_POLY
 #include "m_chacha20_poly1305.h"
 #else
@@ -22,9 +23,9 @@
 
 
 HAPClient::HAPClient()
-: state(CLIENT_STATE_DISCONNECTED)
-, pairState(PAIR_STATE_RESERVED)
-, verifyState(VERIFY_STATE_RESERVED)
+: state(HAP_CLIENT_STATE_DISCONNECTED)
+, pairState(HAP_PAIR_STATE_RESERVED)
+, verifyState(HAP_VERIFY_STATE_RESERVED)
 , _isEncrypted(false)
 , _headerSent(false)
 , _isAdmin(false)
@@ -58,7 +59,8 @@ void HAPClient::clear() {
 	
 	_headers.clear();	
 	request.clear();		
-
+	_sstring.clear();
+	
 }
 
 void HAPClient::subscribe(int aid, int iid, bool value){
@@ -170,16 +172,25 @@ size_t HAPClient::write(const uint8_t* buffer, size_t size) {
 	uint8_t writeBuffer[1360];
 	size_t writeBufferUsed = 0;
 	
+	String headerStr = buildHeaderAndStatus(200, size);
+
+
+#if HAP_DEBUG_REQUESTS
+	LogD(headerStr, true);
+	HAPHelper::array_print("Response:", buffer, size);
+#endif
+
+
 	if (!_isEncrypted) {
+
+		LogV("Sending unencrypted response!", true);
 
 		// size_t bytesHeader = 0;
 		size_t bytesChunk = 0;
 
 		// Send header 
 		// bytesHeader += sendHeaderAndStatus(200, size);
-		// bytesSend 	+= bytesHeader;
-
-		String headerStr = buildHeaderAndStatus(200, size);
+		// bytesSend 	+= bytesHeader;		
 
 		if (headerStr != ""){
 			memcpy(writeBuffer, headerStr.c_str(), headerStr.length());
@@ -187,23 +198,23 @@ size_t HAPClient::write(const uint8_t* buffer, size_t size) {
 			// bytesHeader = headerStr.length();
 			_headerSent = true;
 		}	
-
-		// chunk size for payload
-		if (_chunkedMode) {
-			char chunkSize[8];
-			sprintf(chunkSize, "%x\r\n", size);
-
-			memcpy(writeBuffer + writeBufferUsed, chunkSize, strlen(chunkSize));
-			writeBufferUsed	+= strlen(chunkSize);
-			// bytesChunk += client.write((uint8_t*) chunkSize, strlen(chunkSize));			
-		}
-
 		
 		int remainingSize = size;
 		size_t written = 0;
 
 		while (remainingSize > 0){
 			size_t toWrite = (remainingSize > 1360 - writeBufferUsed) ? 1360 - writeBufferUsed : remainingSize;
+
+			// chunk size for payload
+			if (_chunkedMode) {
+				char chunkSize[8];
+				sprintf(chunkSize, "%x\r\n", toWrite);
+
+				memcpy(writeBuffer + writeBufferUsed, chunkSize, strlen(chunkSize));
+				writeBufferUsed	+= strlen(chunkSize);
+				// bytesChunk += client.write((uint8_t*) chunkSize, strlen(chunkSize));			
+			}
+
 			
 			// Serial.println("remainingSize: " + String(remainingSize));
 			// Serial.println("toWrite: " + String(toWrite));
@@ -217,30 +228,47 @@ size_t HAPClient::write(const uint8_t* buffer, size_t size) {
 
 			// HAPHelper::array_print("writeBuffer", writeBuffer, writeBufferUsed);
 
+#if HAP_DEBUG_REQUESTS_DETAILED	
+			HAPHelper::array_print("Response:", writeBuffer, writeBufferUsed);
+#endif
+
 			bytesSend += client.write(writeBuffer, writeBufferUsed);
 			writeBufferUsed = 0;
 			
 			written += toWrite;
 			remainingSize -= written;
+
+			bytesChunk += client.write((uint8_t*) "\r\n", 2);			
+
+#if HAP_DEBUG_REQUESTS_DETAILED	
+			HAPHelper::array_print("endline:", (uint8_t*)"\r\n", 2);
+#endif			
+			bytesSend += bytesChunk;
 		}
 
-		bytesChunk += client.write((uint8_t*) "\r\n", 2);			
-		bytesSend += bytesChunk;
-		
 
 		// End of request
 		// send end chunk
 		if (_chunkedMode) {
 			char chunkSize[8];
 			sprintf(chunkSize, "%x\r\n", 0);
+
+#if HAP_DEBUG_REQUESTS_DETAILED	
+			HAPHelper::array_print("chunksize 0:", (uint8_t*) chunkSize, strlen(chunkSize));
+#endif			
 			bytesSend += client.write((uint8_t*) chunkSize, strlen(chunkSize));				
 		}
 
+#if HAP_DEBUG_REQUESTS_DETAILED	
+		HAPHelper::array_print("endline:", (uint8_t*)"\r\n", 2);
+#endif
 		// send end of request
 		bytesSend += client.write((uint8_t*) "\r\n", 2);			
 
 		
 	} else {
+
+		LogV("Sending encrypted response!", true);
 
 		size_t bytesHeader = 0;
 		size_t bytesChunk = 0;
@@ -252,8 +280,6 @@ size_t HAPClient::write(const uint8_t* buffer, size_t size) {
 		mbedtls_chachapoly_init(&chachapoly_ctx);
 		mbedtls_chachapoly_setkey(&chachapoly_ctx, encryptionContext.encryptKey);
 
-		// Send header 
-		String headerStr = buildHeaderAndStatus(200, size);
 
 		if (headerStr != ""){
 			memcpy(writeBuffer, headerStr.c_str(), headerStr.length());
@@ -271,8 +297,8 @@ size_t HAPClient::write(const uint8_t* buffer, size_t size) {
 			writeBufferUsed	+= strlen(chunkSize);
 			bytesChunk += strlen(chunkSize);
 
-			Serial.write(writeBuffer, writeBufferUsed);
-			Serial.println();
+			// Serial.write(writeBuffer, writeBufferUsed);
+			// Serial.println();
 
 			// bytesChunk += client.write((uint8_t*) chunkSize, strlen(chunkSize));			
 		}
@@ -321,8 +347,8 @@ size_t HAPClient::write(const uint8_t* buffer, size_t size) {
 				bytesChunk = 0;
 			}
 
-			Serial.println("remainingSize: " + String(remainingSize));
-			Serial.println("toWrite: " + String(toWrite));
+			// Serial.println("remainingSize: " + String(remainingSize));
+			// Serial.println("toWrite: " + String(toWrite));
 
 			memcpy(writeBuffer + writeBufferUsed, buffer + written, toWrite);
 
@@ -399,121 +425,9 @@ size_t HAPClient::write(const uint8_t* buffer, size_t size) {
 		client.write(_sstring);
 
 		
-		// size_t bytesHeader = 0;
-		// size_t bytesChunk = 0;
-
-		// // Send header + chunked
-		// bytesHeader += sendHeaderAndStatus(200, size);
-		// bytesSend 	+= bytesHeader;
-
-		// if (_chunkedMode) {
-		// 	char chunkSize[8];
-		// 	sprintf(chunkSize, "%x\r\n", size);
-		// 	bytesChunk += _sstring.write((uint8_t*) chunkSize, strlen(chunkSize));			
-		// }
-
-		// bytesSend 	+= _sstring.write(buffer, size);
-
-		// // send end chunk
-		// if (_chunkedMode) {
-		// 	char chunkSize[8];
-		// 	sprintf(chunkSize, "%x\r\n", 0);
-		// 	bytesSend += _sstring.write((uint8_t*) chunkSize, strlen(chunkSize));				
-		// }
-
-		// // send end of request
-		// bytesSend += _sstring.write((uint8_t*) "\r\n", 2);	
-
-		// uint8_t encryptedBuffer[bytesHeader + size + CHACHA20_POLY1305_AUTH_TAG_LENGTH];
-
-		// uint8_t b[3192];
-		// _sstring.readBytes(b,_sstring.length());
-
-		// size_t encryptedLen = HAPEncryption::encrypt(b, bytesHeader + size + CHACHA20_POLY1305_AUTH_TAG_LENGTH, encryptedBuffer, encryptionContext->encryptKey, encryptionContext->encryptCount++);
-
-		// client.write(encryptedBuffer, encryptedLen);
-
-		// mbedtls_chachapoly_context chachapoly_ctx;
-		// mbedtls_chachapoly_init(&chachapoly_ctx);
-		// mbedtls_chachapoly_setkey(&chachapoly_ctx, encryptionContext->encryptKey);
-
-
-		// size_t toRead = 0, toWrite = 0, written = 0;
-		// size_t available = stream.available();
-
-		// while(available) {
-		// 	toRead = (available > 1360) ? 1360 : available;
-		// 	toWrite = stream.readBytes(buf, toRead);
-
-		// 	uint8_t* auth_tag = encrypted + plain_text_length;
-
-
-		// 	available = stream.available();
-		// }
-		// free(buf);
-		// return written;
-
-
-
-
-		// size_t encryptedLen = 0;
-
-		// // verschlüssel header == response
-		// String headerStr = buildHeaderAndStatus(200, size);		
-		
-		// size_t bufferSize = headerStr.length() + size > 1024 ? 1024 : headerStr.length() + size;
-
-		// uint8_t encryptedBuffer[bufferSize];
-		
-		// if (headerStr != ""){
-			
-    	// 	encryptedLen = HAPEncryption::encrypt((uint8_t*)headerStr.c_str(), headerStr.length(), encryptedBuffer, encryptionContext->encryptKey, encryptionContext->encryptCount++);
-
-		// 	HAPHelper::array_print("encryptedBuffer", encryptedBuffer, encryptedLen);
-
-		// 	LogD("\n>>> Sending " + String(encryptedLen) + " bytes encrypted headers to client [" + client.remoteIP().toString() + "]", true);
-		// 	bytesSend += _sstring.write(encryptedBuffer, encryptedLen);
-
-		// 	memset(encryptedBuffer, 0, bufferSize);
-		// }
-
-		// // verschlüsselte chunksize
-
-
-		// // verschlüssel payload
-		// size_t bytesChunk = 0;
-		// size_t remainingSize = size;
-		// size_t offset = 0;
-		// size_t written = 0;
-
-		// // while (remainingSize > 0){						
-
-		// 	encryptedLen = 0;
-    	// 	encryptedLen = HAPEncryption::encrypt((uint8_t*)buffer + offset, remainingSize, encryptedBuffer + _sstring.length(), encryptionContext->encryptKey, encryptionContext->encryptCount++);
-			
-		// 	// send payload
-		// 	bytesSend  += _sstring.write(encryptedBuffer, encryptedLen);
-		// 	// bytesSend  += _sstring.write((uint8_t*) "\r\n", 2);
-
-		// 	HAPHelper::array_print("encryptedBuffer", encryptedBuffer, encryptedLen);
-
-		// 	LogD("\n>>> Sending " + String(encryptedLen) + " bytes encrypted payload to client [" + client.remoteIP().toString() + "]", true);
-		// 	remainingSize = 0;						
-		// // }
-
-		// memset(encryptedBuffer, 0, bufferSize);
-		
-		// // verschlüssel end chunked
-		// // verschlüssel end of request
-		// char endRequest[] = {'\r','\n', '0','\r','\n','\r','\n'};
-		// encryptedLen = 0;
-		// encryptedLen = HAPEncryption::encrypt((uint8_t*)endRequest, strlen(endRequest), encryptedBuffer, encryptionContext->encryptKey, encryptionContext->encryptCount++);
-
-		// _sstring.write(encryptedBuffer, encryptedLen);
 	}	
 
-	// client.write(_sstring);
-	// _sstring.clear();	
+	_sstring.clear();
 	return bytesSend;
 }
 

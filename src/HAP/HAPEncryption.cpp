@@ -297,7 +297,7 @@ int HAPEncryption::verifyAndDecrypt(uint8_t *decrypted, uint8_t cipherText[],
     HAPHelper::arrayPrint(cipherText, length);
 
     Serial.println("AAD:");
-    HAPHelper::arrayPrint(aad, HAP_AAD_LENGTH);
+    HAPHelper::arrayPrint(aad, HAP_ENCRYPTION_AAD_SIZE);
 
     Serial.println("mac:");
     HAPHelper::arrayPrint(mac, HAP_ENCRYPTION_HMAC_SIZE);
@@ -416,7 +416,7 @@ size_t HAPEncryption::encrypt(uint8_t *message, size_t length, uint8_t* buffer, 
  * @param encryptCount 
  * @return char* 
  */
-char* HAPEncryption::encrypt(uint8_t *message, size_t length, int* encrypted_len, uint8_t* key, uint16_t encryptCount) {
+uint8_t* HAPEncryption::encrypt(uint8_t *message, size_t length, int* encrypted_len, uint8_t* key, uint16_t encryptCount) {
 
 	// ToDo: Take care of bigger than hap encryp buffer
     //uint32_t tmp = length + (length / HAP_ENCRYPTION_BUFFER_SIZE + 1) * (HAP_ENCRYPTION_AAD_SIZE + CHACHA20_POLY1305_AUTH_TAG_LENGTH) + 1;
@@ -429,7 +429,7 @@ char* HAPEncryption::encrypt(uint8_t *message, size_t length, int* encrypted_len
     uint32_t tmp = (length + HAP_ENCRYPTION_AAD_SIZE + CHACHA20_POLY1305_AUTH_TAG_LENGTH) < HAP_ENCRYPTION_BUFFER_SIZE ? length + HAP_ENCRYPTION_AAD_SIZE + CHACHA20_POLY1305_AUTH_TAG_LENGTH : HAP_ENCRYPTION_BUFFER_SIZE;
     // Serial.printf(">>>>>>>> tmp:                                %d\n", tmp);
 
-    char* encrypted = (char*) calloc(1, tmp);
+    uint8_t* encrypted = (uint8_t*) calloc(1, tmp);
 
 	uint8_t nonce[12] = {0,};
 	uint8_t* decrypted_ptr = (uint8_t*)message;
@@ -451,32 +451,33 @@ char* HAPEncryption::encrypt(uint8_t *message, size_t length, int* encrypted_len
 
 		nonce[4] = encryptCount % 256;
 		nonce[5] = encryptCount++ / 256;
+
+
 #if 1
 
-#if HAP_DEBUG_HOMEKIT
+#if HAP_DEBUG_ENCRYPTION
         Serial.println("=========================================================");
         HAPHelper::array_print("nonce", nonce, 12);
         HAPHelper::array_print("key", key, strlen((const char*)key));
         HAPHelper::array_print("aad", aad, HAP_ENCRYPTION_AAD_SIZE);
         HAPHelper::array_print("decrypted_ptr", decrypted_ptr, strlen((const char*)decrypted_ptr));
-        Serial.printf("chunk_len %d\n", chunk_len);
+        printf("chunk_len %d\n", chunk_len);
+        printf("length %zu\n", length);
 #endif
 		err_code = chacha20_poly1305_encrypt_with_nonce(nonce, key, aad, HAP_ENCRYPTION_AAD_SIZE, decrypted_ptr, chunk_len, encrypted_ptr);	
 
-#if HAP_DEBUG_HOMEKIT
+#if HAP_DEBUG_ENCRYPTION
         HAPHelper::array_print("encrypted_ptr", encrypted_ptr, chunk_len + 16);
         Serial.println("=========================================================");
 #endif
 
 #else
-
+        
 
         mbedtls_chachapoly_context chachapoly_ctx;
         mbedtls_chachapoly_init(&chachapoly_ctx);
 
-        mbedtls_chachapoly_setkey(&chachapoly_ctx,key);
-        
-        uint8_t* auth_tag = (uint8_t*)encrypted + chunk_len;
+        mbedtls_chachapoly_setkey(&chachapoly_ctx,key);        
 
 
         err_code = mbedtls_chachapoly_starts( &chachapoly_ctx, 
@@ -497,7 +498,7 @@ char* HAPEncryption::encrypt(uint8_t *message, size_t length, int* encrypted_len
             LogE("[ERROR] Encrypting failed! 2", true);
         }
 
-        err_code = mbedtls_chachapoly_finish( &chachapoly_ctx, auth_tag );
+        err_code = mbedtls_chachapoly_finish( &chachapoly_ctx, encrypted_ptr + sizeof(decrypted_ptr) );    
 #endif        
 
 		if (err_code != 0 ) {

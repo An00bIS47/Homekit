@@ -32,7 +32,6 @@
 #include "HAPVerifyContext.hpp"
 
 #include "HAPVersion.hpp"
-#include "HAPTypes.hpp"
 #include "HAPPairings.hpp"
 
 #include "HAPPlugins.hpp"
@@ -44,6 +43,7 @@
 #include "HAPConfig.hpp"
 
 #include "HAPWiFiHelper.hpp"
+#include "HAPTLV8Types.hpp"
 
 #define Homekit_setFirmware(name, version, rev) \
 const char* __FLAGGED_FW_NAME 		= "\xbf\x84\xe4\x13\x54" name "\x93\x44\x6b\xa7\x75"; \
@@ -96,6 +96,8 @@ typedef struct Srp_ {
 
 #endif
 
+
+// ToDo: Remove?
 static const char HTTP_200[] PROGMEM 					= "HTTP/1.1 200 OK\r\n";
 static const char HTTP_204[] PROGMEM 					= "HTTP/1.1 204 No Content\r\n";
 static const char HTTP_207[] PROGMEM 					= "HTTP/1.1 207 Multi-Status\r\n";
@@ -112,31 +114,8 @@ static const char HTTP_CRLF[] PROGMEM 					= "\r\n";
 static const char EVENT_200[] PROGMEM 					= "EVENT/1.0 200 OK\r\n";
 
 
-enum HAP_ERROR_TYPE {
-	HAP_ERROR_NONE					= 0x00,
-	HAP_ERROR_UNKNOWN				= 0x01,
-	HAP_ERROR_AUTHENTICATON			= 0x02,
-	HAP_ERROR_BACKOFF				= 0x03,
-	HAP_ERROR_MAX_PEERS				= 0x04,
-	HAP_ERROR_MAX_TRIES				= 0x05,
-	HAP_ERROR_UNAVAILABLE			= 0x06,
-	HAP_ERROR_BUSY					= 0x07,
-};
 
-enum HAP_STATUS_CODE {
-	HAP_STATUS_SUCCESS				= 0,
-	HAP_STATUS_INUSUFFICIENT_PRIV	= -70401,
-	HAP_STATUS_INTERNAL_COMM_ERROR	= -70402,
-	HAP_STATUS_BUSY					= -70403,
-	HAP_STATUS_READONLY_WRITE		= -70404,
-	HAP_STATUS_WRITEONLY_READ		= -70405,
-	HAP_STATUS_NO_NOTIFICATION		= -70406,
-	HAP_STATUS_OUT_OF_RESSOURCES	= -70407,
-	HAP_STATUS_TIMED_OUT			= -70408,
-	HAP_STATUS_RESOURCE_NOT_FOUND	= -70409,
-	HAP_STATUS_INVALID_VALUE		= -70410,
-	HAP_STATUS_AUTH_FAILED			= -70411,
-};
+
 
 
 class HAPServer {
@@ -226,6 +205,21 @@ protected:
 	// Homekit HTTP paths
 	//
 
+	//
+	// Pairing
+	//
+
+	// Pair-Setup states
+	bool handlePairSetupM1(HAPClient* hapClient);
+	bool handlePairSetupM3(HAPClient* hapClient);
+	bool handlePairSetupM5(HAPClient* hapClient);
+
+
+	// Pair-Verify states
+	bool handlePairVerifyM1(HAPClient* hapClient);
+	bool handlePairVerifyM3(HAPClient* hapClient);
+
+
 	// /accessories
 	void handleAccessories(HAPClient* hapClient);
 
@@ -235,6 +229,9 @@ protected:
 
 	// pairings
 	void handlePairingsPost(HAPClient* hapClient, uint8_t* bodyData, size_t bodyDataLen);
+	void handlePairingsRemove(HAPClient* hapClient, const uint8_t* identifier);
+	void handlePairingsList(HAPClient* hapClient);
+	void handlePairingsAdd(HAPClient* hapClient, const uint8_t* identifier, const uint8_t* publicKey, bool isAdmin);
 
 	// Identify
 	void handleIdentify(HAPClient* hapClient);
@@ -256,6 +253,9 @@ private:
 	static void listDir(FS &fs, const char * dirname, uint8_t levels);
 #endif
 
+	bool _isInPairingMode;
+
+	uint8_t _homekitFailedLoginAttempts;
 
 	String _curLine;
 	uint16_t _port;
@@ -306,27 +306,18 @@ private:
 
 
 
-	//
-	// Pairing
-	//
-
-	// Pair-Setup states
-	bool handlePairSetupM1(HAPClient* hapClient);
-	bool handlePairSetupM3(HAPClient* hapClient);
-	bool handlePairSetupM5(HAPClient* hapClient);
-
-
-	// Pair-Verify states
-	bool handlePairVerifyM1(HAPClient* hapClient);
-	bool handlePairVerifyM3(HAPClient* hapClient);
-
 
 
 	//
 	// Sending responses
 	// 
-	bool sendResponse(HAPClient* hapClient, TLV8* response, bool chunked = true);
+	bool sendResponse(HAPClient* hapClient, TLV8* response, bool chunked = true, bool closeConnection = false);
 	bool sendEncrypt(HAPClient* hapClient, String httpStatus, String plainText, bool chunked = true);
+	bool sendEncrypt(HAPClient* hapClient, String httpStatus, const uint8_t* bytes, size_t length, bool chunked, const char* ContentType);
+
+
+	void sendErrorTLV(HAPClient* hapClient, uint8_t state, uint8_t error);
+
 	bool sendEvent(HAPClient* hapClient, String response);
 
 

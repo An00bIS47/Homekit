@@ -50,6 +50,14 @@
 #define HAP_DEBUG_FAKEGATO			0
 #endif
 
+#ifndef HAP_DEBUG_PAIRINGS
+#define HAP_DEBUG_PAIRINGS			0
+#endif
+
+#ifndef HAP_DEBUG_REQUESTS
+#define HAP_DEBUG_REQUESTS			0
+#endif
+
 #ifndef HAP_DEBUG_ENCRYPTION
 #define HAP_DEBUG_ENCRYPTION		0
 #endif
@@ -58,6 +66,8 @@
 #define HAP_DEBUG_FAKEGATO			0
 #endif
 
+#define HAP_HOMEKIT_PYTHON_COMPATIBLE 1
+									
 /**
  * Thresholds
  ********************************************************************/
