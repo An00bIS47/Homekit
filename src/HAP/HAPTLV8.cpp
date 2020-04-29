@@ -224,6 +224,7 @@ void TLV8::addSeperator() {
 	// then return pointer to new node
 	else {
 		ptr->type = HAP_TLV_SEPERATOR;
+		ptr->length = 0;
 		addNode( ptr );
 	}
 }

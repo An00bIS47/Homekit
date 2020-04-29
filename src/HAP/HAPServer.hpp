@@ -253,6 +253,9 @@ private:
 	static void listDir(FS &fs, const char * dirname, uint8_t levels);
 #endif
 
+	bool _isInPairingMode;
+
+	uint8_t _homekitFailedLoginAttempts;
 
 	String _curLine;
 	uint16_t _port;
@@ -311,6 +314,9 @@ private:
 	bool sendResponse(HAPClient* hapClient, TLV8* response, bool chunked = true, bool closeConnection = false);
 	bool sendEncrypt(HAPClient* hapClient, String httpStatus, String plainText, bool chunked = true);
 	bool sendEncrypt(HAPClient* hapClient, String httpStatus, const uint8_t* bytes, size_t length, bool chunked, const char* ContentType);
+
+
+	void sendErrorTLV(HAPClient* hapClient, uint8_t state, uint8_t error);
 
 	bool sendEvent(HAPClient* hapClient, String response);
 

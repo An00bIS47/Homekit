@@ -39,7 +39,7 @@
 #endif
 
 #ifndef HAP_DEBUG_TLV8
-#define HAP_DEBUG_TLV8				1
+#define HAP_DEBUG_TLV8				0
 #endif
 
 #ifndef HAP_DEBUG_HOMEKIT
@@ -55,7 +55,7 @@
 #endif
 
 #ifndef HAP_DEBUG_REQUESTS
-#define HAP_DEBUG_REQUESTS			1
+#define HAP_DEBUG_REQUESTS			0
 #endif
 
 #ifndef HAP_DEBUG_ENCRYPTION
@@ -65,6 +65,8 @@
 #ifndef HAP_DEBUG_FAKEGATO
 #define HAP_DEBUG_FAKEGATO			0
 #endif
+
+#define HAP_HOMEKIT_PYTHON_COMPATIBLE 1
 									
 /**
  * Thresholds
