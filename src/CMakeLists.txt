@@ -1,1 +1,2 @@
-idf_component_register(SRCS "main.cpp")
+idf_component_register(SRC_DIRS "." "HAP" "Crypto"
+                       INCLUDE_DIRS "HAP" "Crypto")

@@ -1255,6 +1255,7 @@ void HAPServer::sendErrorTLV(HAPClient* hapClient, uint8_t state, uint8_t error)
 	stopEvents(false);
 
 	_homekitFailedLoginAttempts++;
+	_isInPairingMode = false;
 
 	hapClient->state = HAP_CLIENT_STATE_DISCONNECTED;
 }
@@ -3297,7 +3298,7 @@ void HAPServer::handlePairingsList(HAPClient* hapClient){
 	size_t length = 0;
 
 	response.decode(data, &length);
-	sendEncrypt(hapClient, HTTP_200, data, length, true, "application/pairing+tlv8");
+	sendEncrypt(hapClient, HTTP_200, data, length, false, "application/pairing+tlv8");
 
 	response.clear();
 	hapClient->request.clear();
@@ -3367,7 +3368,7 @@ void HAPServer::handlePairingsRemove(HAPClient* hapClient, const uint8_t* identi
 		size_t length = 0;
 
 		response.decode(data, &length);
-		sendEncrypt(hapClient, HTTP_200, data, length, true, "application/pairing+tlv8");
+		sendEncrypt(hapClient, HTTP_200, data, length, false, "application/pairing+tlv8");
 		
 		response.clear();
 		hapClient->request.clear();
@@ -3409,7 +3410,8 @@ void HAPServer::handlePairingsRemove(HAPClient* hapClient, const uint8_t* identi
 	if (_srpInitialized) {
 		srp_keypair_delete(_srp->keys);
 		srp_session_delete(_srp->ses);
-	}	
+		_srpInitialized = false;
+	}		
 #else	
 	if(_srp) {
 		//LogW("Free SRP!", false);

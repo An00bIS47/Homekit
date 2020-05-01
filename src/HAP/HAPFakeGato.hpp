@@ -16,9 +16,15 @@
 #include "HAPHelper.hpp"
 #include <vector>
 
+
+#if ESP_IDF_VERSION_MAJOR == 4
+
+#else
 extern "C" {
     #include "crypto/base64.h"
 }
+#endif
+
 
 #define FAKEGATO_EPOCH_OFFSET           978307200
 
