@@ -3372,6 +3372,7 @@ void HAPServer::handlePairingsRemove(HAPClient* hapClient, const uint8_t* identi
 		response.clear();
 		hapClient->request.clear();
 		hapClient->clear();
+		hapClient->client.stop();
 		return;
 	} 
 
@@ -3391,7 +3392,7 @@ void HAPServer::handlePairingsRemove(HAPClient* hapClient, const uint8_t* identi
 	size_t length = 0;
 
 	response.decode(data, &length);
-	sendEncrypt(hapClient, HTTP_200, data, length, true, "application/pairing+tlv8");
+	sendEncrypt(hapClient, HTTP_200, data, length, false, "application/pairing+tlv8");
 
 	response.clear();
 	hapClient->request.clear();

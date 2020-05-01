@@ -19,7 +19,7 @@ CHARACTERISTICS_FG_REQ_ENTRY="3.17"
 CHARACTERISTICS_FG_HISTORY="3.16"
 
 
-ITERATIONS=1
+ITERATIONS=16
 
 # echo "Remove pairings through API" 
 # echo "==========================================="
@@ -232,6 +232,15 @@ echo ""
 echo ""
 echo ""
 
+
+
+echo "Remove admin pairing"
+echo "==========================================="
+python3 -m homekit.remove_pairing -f ${PAIRINGDATAFILE} -a ${ALIAS}
+echo "==========================================="
+echo ""
+echo ""
+echo ""
 
 
 echo "Remove storage file"

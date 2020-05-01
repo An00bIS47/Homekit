@@ -32,6 +32,8 @@
 
 #define TEST_REDIRECT_STDOUT                " > /dev/null 2>&1"
 
+#define TEST_DEBUG                          " --log DEBUG"
+
 
 std::string cmd_info_prepare = "";
 std::string cmd_info_add = "";
@@ -96,6 +98,7 @@ void test_homekit_identify_unpaired(void) {
     
     std::string cmd = "python3 -m homekit.identify -d ";
     cmd += DEVICE_ID;
+    cmd += TEST_DEBUG;
     
     
 #if TEST_SHOW_CMD
@@ -116,6 +119,7 @@ void test_homekit_identify_paired(void) {
     cmd += PAIRINGDATAFILE;
     cmd += " -a ";
     cmd += ALIAS;
+    cmd += TEST_DEBUG;
     
     
 #if TEST_SHOW_CMD
@@ -139,6 +143,7 @@ void test_homekit_pair(void) {
     cmd += PAIRINGDATAFILE;
     cmd += " -a ";
     cmd += ALIAS;
+    cmd += TEST_DEBUG;
     
 
 #if TEST_SHOW_CMD
@@ -190,6 +195,7 @@ void test_homekit_get_characteristics(void) {
     cmd += " -c ";
     cmd += CHARACTERISTICS;
     cmd += TEST_REDIRECT_STDOUT;
+    
     
     
 #if TEST_SHOW_CMD
@@ -389,7 +395,7 @@ void test_homekit_prepare_add_remote_pairing(void) {
     cmd += " -f";
     cmd += PAIRINGDATAFILE;
     cmd += " -a ";
-    cmd += ALIAS_ADDITIONAL_CONTROLLER;    
+    cmd += ALIAS_ADDITIONAL_CONTROLLER;        
     
 #if TEST_SHOW_CMD
     std::cout << "cmd: " << cmd << std::endl;    
@@ -413,6 +419,7 @@ void test_homekit_add_additional_pairing(void) {
     cmd += " -p User";
     cmd += " ";
     cmd += cmd_info_prepare;
+
     
 #if TEST_SHOW_CMD
     std::cout << "cmd: " << cmd << std::endl;    
@@ -461,6 +468,7 @@ void test_homekit_remove_pairing(void) {
     cmd += PAIRINGDATAFILE;
     cmd += " -a ";
     cmd += ALIAS;    
+    cmd += TEST_DEBUG;
     
 
 #if TEST_SHOW_CMD
@@ -534,7 +542,7 @@ int main(int argc, char **argv) {
         RUN_TEST(test_homekit_list_pairings);
     }
 
-    //RUN_TEST(test_homekit_remove_pairing);
+    RUN_TEST(test_homekit_remove_pairing);
 
     UNITY_END();
 
