@@ -400,7 +400,7 @@ or add the according define at end of the file `src/component.mk`, for example
 
 ```
 CPPFLAGS += -DHAP_PLUGIN_USE_BME280=1
-CPPFLAGS += -HAP_PLUGIN_USE_LED=1
+CPPFLAGS += -DHAP_PLUGIN_USE_LED=1
 ```
 
 

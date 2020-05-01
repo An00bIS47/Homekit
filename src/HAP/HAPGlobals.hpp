@@ -43,7 +43,7 @@
 #endif
 
 #ifndef HAP_DEBUG_HOMEKIT
-#define HAP_DEBUG_HOMEKIT			0
+#define HAP_DEBUG_HOMEKIT			1
 #endif
 
 #ifndef HAP_DEBUG_FAKEGATO
@@ -55,18 +55,18 @@
 #endif
 
 #ifndef HAP_DEBUG_REQUESTS
-#define HAP_DEBUG_REQUESTS			0
+#define HAP_DEBUG_REQUESTS			1
 #endif
 
 #ifndef HAP_DEBUG_ENCRYPTION
-#define HAP_DEBUG_ENCRYPTION		0
+#define HAP_DEBUG_ENCRYPTION		1
 #endif
 
 #ifndef HAP_DEBUG_FAKEGATO
 #define HAP_DEBUG_FAKEGATO			0
 #endif
 
-#define HAP_HOMEKIT_PYTHON_COMPATIBLE 1
+#define HAP_HOMEKIT_PYTHON_COMPATIBLE 0
 									
 /**
  * Thresholds

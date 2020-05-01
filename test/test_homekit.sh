@@ -21,8 +21,8 @@ CHARACTERISTICS_FG_HISTORY="3.16"
 
 ITERATIONS=1
 
-echo "Remove pairings through API" 
-echo "==========================================="
+# echo "Remove pairings through API" 
+# echo "==========================================="
 # curl --request DELETE \
 #         --url https://esp32-cafeec/api/pairings \
 #         --header 'Authorization: Basic YWRtaW46c2VjcmV0' \
@@ -30,10 +30,10 @@ echo "==========================================="
 #         --header 'Content-Type: application/json' \
 #         -k \
 # 		-s
-echo "==========================================="
-echo ""
-echo ""
-echo ""
+# echo "==========================================="
+# echo ""
+# echo ""
+# echo ""
 
 
 echo "Init homekit storage file" 
