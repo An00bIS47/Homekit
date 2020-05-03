@@ -11,10 +11,12 @@
 #include <WiFiClientSecure.h>
 #include <ArduinoOTA.h>
 #include <ArduinoJson.h>
+#include "HAPLogger.hpp"
 
+#if HAP_UPDATE_ENABLE_WEB
 #include <HTTPUpdate.h>
 
-#include "HAPLogger.hpp"
+
 
 #if HAP_UPDATE_ENABLE_SSL
 #define HAP_UPDATE_HTTP				"https://"
@@ -25,6 +27,7 @@
 #define HAP_UPDATE_WEB_CHECK_URL_PATH		"/api/update"
 #define HAP_UPDATE_WEB_DOWNLOAD_URL_PATH	"/api/update"
 
+// ToDo: remove this here 
 const char* rootCACertificate = \
 "-----BEGIN CERTIFICATE-----\n" \
 "MIICvzCCAiCgAwIBAgIBBDAKBggqhkjOPQQDAjBkMRAwDgYDVQQDDAdBQ01FIENB\n" \
@@ -44,6 +47,7 @@ const char* rootCACertificate = \
 "ezhOeWBTYCuEbryvRU4CKhTwiQVjpAZJPG+l2TzqZMhSr5A=\n" \
 "-----END CERTIFICATE-----\n";
 
+#endif
 
 HAPUpdate::HAPUpdate()
 {
