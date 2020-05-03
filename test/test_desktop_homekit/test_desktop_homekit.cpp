@@ -8,14 +8,22 @@
 #include <stdio.h>
 #include <sys/wait.h>
 
-#define ITERATIONS                          10
+#define ITERATIONS                          1
 
-//#define DEVICE_ID                         "24:6F:28:AF:5F:A4"
-//#define ALIAS                             "heltec"
+#define BOARD_HELTEC 1
+#define BOARD_CAFEEC 0
 
+
+#if BOARD_HELTEC == 1
+#define DEVICE_ID                         "24:6F:28:AF:5F:A4"
+#define ALIAS                             "heltec"
+#define ALIAS_ADDITIONAL_CONTROLLER         "heltec_remote"
+#elif BOARD_CAFEEC == 1
 #define DEVICE_ID                           "BC:DD:C2:CA:FE:EC"
 #define ALIAS                               "cafeec"
 #define ALIAS_ADDITIONAL_CONTROLLER         "cafeec_remote"
+#endif
+
 
 #define SETUPCODE                           "031-45-712"
 
@@ -27,17 +35,51 @@
 
 #define PAIRINGDATAFILE                     "./.pio/homekitStorage.json"
 
-#define TEST_SHOW_CMD                       0
+#define TEST_SHOW_CMD                       1
 #define TEST_SHOW_RESULT                    0
+#define TEST_KEEP_PAIRING                   0
+
+
 
 #define TEST_REDIRECT_STDOUT                " > /dev/null 2>&1"
 
 //#define TEST_DEBUG                          " --log DEBUG"
 
 
+
+
 std::string cmd_pairing_prepare = "";
 std::string cmd_pairing_add = "";
 std::string additional_pairing_id = "";
+
+
+
+void _setUp(void);
+void _tearDown(void);
+
+std::string exec(const char* cmd);
+
+void test_homekit_identify_paired(void);
+void test_homekit_pair(void);
+void test_homekit_get_accessories(void);
+void test_homekit_get_characteristics(void);
+
+void test_homekit_get_characteristics_fg_entry_count(void);
+void test_homekit_get_characteristics_fg_history(void);
+
+void test_homekit_put_characteristics_fg_address_1(void);
+void test_homekit_put_characteristics_fg_address_17(void);
+void test_homekit_put_characteristics_fg_address_33(void);
+
+void test_homekit_list_pairings(void);
+void test_homekit_prepare_add_remote_pairing(void);
+void test_homekit_add_additional_pairing(void);
+void test_homekit_finish_add_remote_pairing(void);
+
+void test_homekit_remove_additional_pairing(void);
+void test_homekit_remove_pairing(void);
+
+
 
 std::string exec(const char* cmd) {
     std::array<char, 128> buffer;
@@ -59,14 +101,29 @@ std::string exec(const char* cmd) {
 
 void _setUp(void) {
     // set stuff up here
-    std::string cmd = "python3 -m homekit.init_controller_storage -f ";
-    cmd += PAIRINGDATAFILE;
+
+    // remove pairing file
+    {
+        std::string cmd = "rm ";
+        cmd += PAIRINGDATAFILE;
 
 #if TEST_SHOW_CMD
-    std::cout << "cmd: " << cmd << std::endl;    
+        std::cout << "cmd: " << cmd << std::endl;    
+#endif
+        exec( cmd.c_str() );
+    }
+
+    // init pairing file
+    {
+        std::string cmd = "python3 -m homekit.init_controller_storage -f ";
+        cmd += PAIRINGDATAFILE;
+
+#if TEST_SHOW_CMD
+        std::cout << "cmd: " << cmd << std::endl;    
 #endif
 
-    exec( cmd.c_str() );
+        exec( cmd.c_str() );
+    }
 
 //     cmd = "curl --request DELETE \
 // --url https://esp32-cafeec/api/pairings \
@@ -85,13 +142,17 @@ void _setUp(void) {
 
 void _tearDown(void) {
     // clean stuff up here
-    std::string cmd = "rm ";
-    cmd += PAIRINGDATAFILE;
+
+    // remove pairing file
+    {
+        std::string cmd = "rm ";
+        cmd += PAIRINGDATAFILE;
 
 #if TEST_SHOW_CMD
-    std::cout << "cmd: " << cmd << std::endl;    
+        std::cout << "cmd: " << cmd << std::endl;    
 #endif
-    exec( cmd.c_str() );
+        exec( cmd.c_str() );
+    }
 }
 
 void test_homekit_identify_unpaired(void) {
@@ -152,7 +213,10 @@ void test_homekit_pair(void) {
 #endif
     std::string result = exec( cmd.c_str() );
 
-    TEST_ASSERT_EQUAL_STRING_LEN("Pairing for \"cafeec\" was established.\n", result.c_str(), result.length());
+    char cmpstr[256];
+    sprintf(cmpstr, "Pairing for \"%s\" was established.\n", ALIAS);
+
+    TEST_ASSERT_EQUAL_STRING_LEN(cmpstr, result.c_str(), result.length());
 
 }
 
@@ -473,8 +537,12 @@ void test_homekit_remove_additional_pairing(void) {
 #endif
 
     std::string result = exec( cmd.c_str() );
+    
+    char cmpstr[256];
+    sprintf(cmpstr, "Pairing for \"%s\" was removed.\n", ALIAS_ADDITIONAL_CONTROLLER);
 
-    TEST_ASSERT_EQUAL_STRING_LEN("Pairing for \"cafeec_remote\" was removed.\n", result.c_str(), result.length());
+    TEST_ASSERT_EQUAL_STRING_LEN(cmpstr, result.c_str(), result.length());
+
 }
 
 
@@ -494,13 +562,20 @@ void test_homekit_remove_pairing(void) {
 
     std::string result = exec( cmd.c_str() );
 
-    TEST_ASSERT_EQUAL_STRING_LEN("Pairing for \"cafeec\" was removed.\n", result.c_str(), result.length());
+    char cmpstr[256];
+    sprintf(cmpstr, "Pairing for \"%s\" was removed.\n", ALIAS);
+
+    TEST_ASSERT_EQUAL_STRING_LEN(cmpstr, result.c_str(), result.length());
 }
 
 
 int main(int argc, char **argv) {
 
+
+#if TEST_KEEP_PAIRING
+#else
     _setUp();
+#endif
     UNITY_BEGIN();
     
 
@@ -508,14 +583,17 @@ int main(int argc, char **argv) {
 
         std::cout << "Iteration " << (i + 1) << " of " << ITERATIONS << ":" << std::endl;    
 
-        RUN_TEST(test_homekit_identify_unpaired);
+        // RUN_TEST(test_homekit_identify_unpaired);
         
 
         // 
         // Pair
         // 
+#if TEST_KEEP_PAIRING
+#else        
         RUN_TEST(test_homekit_pair);
-        
+#endif
+
         RUN_TEST(test_homekit_identify_paired);
                 
         RUN_TEST(test_homekit_get_accessories);
@@ -567,16 +645,21 @@ int main(int argc, char **argv) {
         RUN_TEST(test_homekit_get_accessories);
 
 
+        
+#if TEST_KEEP_PAIRING
+#else        
         // Remove pairing
         RUN_TEST(test_homekit_remove_pairing);
+#endif
 
-        std::cout << "\n" << std::endl;
-        std::cout << "\n" << std::endl;
-        std::cout << "\n" << std::endl;
+        std::cout << "\n\n" << std::endl;
     }
 
     UNITY_END();
-
+#if TEST_KEEP_PAIRING
+#else
     _tearDown();
+#endif
+
     return 0;
 }

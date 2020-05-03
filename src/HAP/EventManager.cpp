@@ -182,9 +182,7 @@ namespace
 }
 
 
-
-
-#if EVENTMANAGER_DEBUG
+#if HAP_DEBUG_EVENTMANAGER
 #define EVTMGR_DEBUG_PRINT( x )		Serial.print( x );
 #define EVTMGR_DEBUG_PRINTLN( x )	Serial.println( x );
 #define EVTMGR_DEBUG_PRINT_PTR( x )	Serial.print( reinterpret_cast<unsigned long>( x ), HEX );
@@ -214,8 +212,8 @@ int EventManager::processEvent()
 
         EVTMGR_DEBUG_PRINT( "processEvent() hi-pri event " )
         EVTMGR_DEBUG_PRINT( eventCode )
-        EVTMGR_DEBUG_PRINT( ", " )
-        EVTMGR_DEBUG_PRINT( param )
+        // EVTMGR_DEBUG_PRINT( ", " )
+        // EVTMGR_DEBUG_PRINT( param )
         EVTMGR_DEBUG_PRINT( " sent to " )
         EVTMGR_DEBUG_PRINTLN( handledCount )
     }
@@ -228,8 +226,8 @@ int EventManager::processEvent()
 
         EVTMGR_DEBUG_PRINT( "processEvent() lo-pri event " )
         EVTMGR_DEBUG_PRINT( eventCode )
-        EVTMGR_DEBUG_PRINT( ", " )
-        EVTMGR_DEBUG_PRINT( param )
+        // EVTMGR_DEBUG_PRINT( ", " )
+        // EVTMGR_DEBUG_PRINT( param )
         EVTMGR_DEBUG_PRINT( " sent to " )
         EVTMGR_DEBUG_PRINTLN( handledCount )
     }
@@ -250,8 +248,8 @@ int EventManager::processAllEvents()
 
         EVTMGR_DEBUG_PRINT( "processEvent() hi-pri event " )
         EVTMGR_DEBUG_PRINT( eventCode )
-        EVTMGR_DEBUG_PRINT( ", " )
-        EVTMGR_DEBUG_PRINT( param )
+        // EVTMGR_DEBUG_PRINT( ", " )
+        // EVTMGR_DEBUG_PRINT( param )
         EVTMGR_DEBUG_PRINT( " sent to " )
         EVTMGR_DEBUG_PRINTLN( handledCount )
     }
@@ -262,8 +260,8 @@ int EventManager::processAllEvents()
 
         EVTMGR_DEBUG_PRINT( "processEvent() lo-pri event " )
         EVTMGR_DEBUG_PRINT( eventCode )
-        EVTMGR_DEBUG_PRINT( ", " )
-        EVTMGR_DEBUG_PRINT( param )
+        // EVTMGR_DEBUG_PRINT( ", " )
+        // EVTMGR_DEBUG_PRINT( param )
         EVTMGR_DEBUG_PRINT( " sent to " )
         EVTMGR_DEBUG_PRINTLN( handledCount )
     }
@@ -439,8 +437,8 @@ int EventManager::ListenerList::sendEvent( int eventCode, struct HAPEvent param 
 {
     EVTMGR_DEBUG_PRINT( "sendEvent() enter " )
     EVTMGR_DEBUG_PRINT( eventCode )
-    EVTMGR_DEBUG_PRINT( ", " )
-    EVTMGR_DEBUG_PRINTLN( param )
+    // EVTMGR_DEBUG_PRINT( ", " )
+    // EVTMGR_DEBUG_PRINTLN( param )
 
     int handlerCount = 0;
     for ( int i = 0; i < mNumListeners; i++ )

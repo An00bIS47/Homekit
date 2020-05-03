@@ -6,8 +6,12 @@
 //      Author: michael
 //
 
+
 #include "HAPPluginSSD1331.hpp"
 #include "HAPServer.hpp"
+
+#if HAP_PLUGIN_USE_SSD1331
+
 
 #include "qrcode.h"
 #include "_fonts/homekit36.c"
@@ -49,6 +53,10 @@ HAPPluginSSD1331::HAPPluginSSD1331(){
     // _tft->setForeground(WHITE);
 }
 
+HAPPluginSSD1331::~HAPPluginSSD1331(){
+    delete _tft;
+}
+
 bool HAPPluginSSD1331::begin(){
 
     _tft = new SSD_13XX(__CS, __DC, __RST);
@@ -75,7 +83,7 @@ void HAPPluginSSD1331::handleEvents(int eventCode, struct HAPEvent eventParam){
         }
 
         if (eventCode == EventManager::kEventHomekitStarted){        
-            if (!_accessorySet->isPaired){
+            if (!_accessorySet->isPaired()){
                 _tft->clearScreen();
                 displayQRCode();   
                 _updateDisplay = false;                             
@@ -95,7 +103,7 @@ void HAPPluginSSD1331::handleImpl(bool forced){
         _tft->clearScreen();
     }
 
-    if ( (_accessorySet->isPaired ) && (_numberOfScreens > 0) ) {
+    if ( (_accessorySet->isPaired()) && (_numberOfScreens > 0) ) {
         struct screenInfo s = _screenMap[_currentScreen];
 
         // Serial.println("_numberOfScreens: " + String(_numberOfScreens));
@@ -246,3 +254,5 @@ JsonObject HAPPluginSSD1331::getConfigImpl(){
 void HAPPluginSSD1331::setConfigImpl(JsonObject root){
 
 }
+
+#endif

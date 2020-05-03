@@ -230,10 +230,11 @@ public:
 	
 		// Add listener to event manager
 		_eventManager = eventManager;
-		// for accessory notifications and values
-		_eventManager->addListener( EventManager::kEventNotifyAccessory, &_listenerMemberFunctionPlugin );
-		// _eventManager->addListener( EventManager::kEventPairingComplete, &_listenerMemberFunctionPlugin );
-		// _eventManager->addListener( EventManager::kEventNotifyController, &_listenerMemberFunctionPlugin );		
+
+		// for accessory notifications and values			
+		_eventManager->addListener( EventManager::kEventPairingComplete, &_listenerMemberFunctionPlugin );
+		_eventManager->addListener( EventManager::kEventNotifyController, &_listenerMemberFunctionPlugin );	
+		
 	}
 
 	inline void setAccessorySet(HAPAccessorySet* accessorySet){

@@ -32,7 +32,7 @@
 #include "HAPVerifyContext.hpp"
 
 #include "HAPVersion.hpp"
-#include "HAPPairings.hpp"
+
 
 #include "HAPPlugins.hpp"
 #include "Plugins/Plugins.hpp"
@@ -193,7 +193,7 @@ protected:
 	MemberFunctionCallable<HAPServer> listenerNotificaton;	
 	MemberFunctionCallable<HAPServer> listenerRebootNow;	
 
-	HAPPairings _pairings;
+	
 
 #if HAP_UPDATE_ENABLE_OTA || HAP_UPDATE_ENABLE_FROM_WEB 	
 	HAPUpdate _updater;

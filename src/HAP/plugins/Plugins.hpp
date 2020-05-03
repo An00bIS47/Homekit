@@ -46,6 +46,10 @@
 #include "HAPPluginSSD1331.hpp"
 #endif
 
+#if HAP_PLUGIN_USE_SSD1306
+#include "HAPPluginSSD1306.hpp"
+#endif
+
 #if HAP_PLUGIN_USE_PCA301
 #include "HAPPluginPCA301.hpp"
 #endif

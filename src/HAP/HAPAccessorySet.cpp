@@ -25,8 +25,7 @@
 uint32_t HAPAccessorySet::configurationNumber = HAP_CONFIGURATION_NUMBER;
 
 HAPAccessorySet::HAPAccessorySet() 
-: isPaired(false)
-, _accessoryType(HAP_ACCESSORY_TYPE_OTHER)
+: _accessoryType(HAP_ACCESSORY_TYPE_OTHER)
 , _modelName("")
 , _pinCode("000-00-000")
 {

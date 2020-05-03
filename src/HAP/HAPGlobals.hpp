@@ -67,9 +67,14 @@
 #endif
 
 #define HAP_HOMEKIT_PYTHON_COMPATIBLE 0
+
+#ifndef HAP_DEBUG_EVENTMANAGER		
+#define HAP_DEBUG_EVENTMANAGER		0
+#endif
+
 									
 /**
- * Thresholds
+ * Homekit Thresholds
  ********************************************************************/
 #define HAP_BATTERY_LEVEL_LOW_THRESHOLD	15
 
@@ -110,8 +115,9 @@
  * WebServer 
  ********************************************************************/
 
+#ifndef HAP_ENABLE_WEBSERVER
 #define HAP_ENABLE_WEBSERVER		1		// Enable Webinterface
-											// Default: 1
+#endif										// Default: 1
 
 #define HAP_ENABLE_WEBSERVER_CORE_0	0		// Run webserver on core 0 in a seperate task
 											// default 0 - Still work-in-progress
@@ -122,16 +128,29 @@
 											// TODO: Proper token signature verification
 											// currently not implemented properly
 
-
+#ifndef HAP_WEBSERVER_USE_SSL
 #define HAP_WEBSERVER_USE_SSL		1		// use SSL for WebServer 
-											// Default: 1	
+#endif										// Default: 1	
 
 
+#ifndef HAP_WEBSERVER_ADMIN_USERNAME
 #define HAP_WEBSERVER_ADMIN_USERNAME	"admin"
-#define HAP_WEBSERVER_ADMIN_PASSWORD	"secret"
+#endif
 
+
+#ifndef HAP_WEBSERVER_ADMIN_PASSWORD
+#define HAP_WEBSERVER_ADMIN_PASSWORD	"secret"
+#endif
+
+
+#ifndef HAP_WEBSERVER_API_USERNAME
 #define HAP_WEBSERVER_API_USERNAME		"api"
+#endif
+
+#ifndef HAP_WEBSERVER_API_PASSWORD
 #define HAP_WEBSERVER_API_PASSWORD		"test"
+#endif
+
 
 #define HAP_WEBSERVER_USE_SPIFFS	0
 #define HTTPS_DISABLE_SELFSIGNING 	1		// Disable self signed certificate generation on the fly
@@ -166,6 +185,79 @@
 
 
 /**
+ * OTA + HAP Update Server
+ ********************************************************************/
+
+#ifndef HAP_UPDATE_ENABLE_OTA
+#define HAP_UPDATE_ENABLE_OTA		1		// Enable ArduinoOTA	
+#endif										// Default: 0	
+
+#ifndef HAP_UPDATE_ENABLE_FROM_WEB
+#define HAP_UPDATE_ENABLE_FROM_WEB 	0		// Use HAP update server to check
+#endif										// if a update is available on the
+											// provided webserver
+											// Default: 0
+
+
+#ifndef HAP_UPDATE_WEB_INTERVAL
+#define HAP_UPDATE_WEB_INTERVAL		60000	// Interval for web update check in ms
+#endif
+
+
+#if HAP_UPDATE_ENABLE_FROM_WEB
+//#define HAP_UPDATE_SERVER_URL 	"192.168.178.151"	
+#define HAP_UPDATE_SERVER_HOST 		"homebridge"		// HTTP Server url for updates
+#define HAP_UPDATE_SERVER_PORT		3001				// Update Server port
+#define HAP_UPDATE_ENABLE_SSL		1					// enable SSL for HAP Update
+#endif
+
+
+#define HAP_UPDATE_TIMEOUT 			2000
+
+
+
+/**
+ * NTP Settings
+ ********************************************************************/
+#define HAP_NTP_ENABLED 			1		// Enable SNTP client
+											// Default: 1
+
+
+#if HAP_NTP_ENABLED
+
+#ifndef HAP_NTP_SERVER_URL
+#define HAP_NTP_SERVER_URL			"time.euro.apple.com"						// NTP server url
+#endif
+
+#ifndef HAP_NTP_TIME_FORMAT
+#define HAP_NTP_TIME_FORMAT			"%Y-%m-%d %H:%M:%S.%f"						// strftime format
+#endif
+
+#ifndef HAP_NTP_TZ_INFO
+#define HAP_NTP_TZ_INFO     		"WET-1WEST,M3.5.0/01:00,M10.5.0/01:00"		// timezone for berlin
+#endif
+
+#endif
+
+
+
+/**
+ * Event Manager
+ ********************************************************************/
+#ifndef HAP_EVENTMANAGER_LISTENER_SIZE		
+#define HAP_EVENTMANAGER_LISTENER_SIZE	32
+#endif
+
+#ifndef HAP_EVENTMANAGER_QUEUE_SIZE
+#define HAP_EVENTMANAGER_QUEUE_SIZE		16
+#endif
+
+
+#define EVENTMANAGER_LISTENER_LIST_SIZE		HAP_EVENTMANAGER_LISTENER_SIZE
+#define EVENTMANAGER_EVENT_QUEUE_SIZE 		HAP_EVENTMANAGER_QUEUE_SIZE
+
+
+/**
  * Crypto 
  ********************************************************************/
 #define HAP_USE_MBEDTLS_HKDF		1		// Use MBEDTLS HDKF
@@ -183,20 +275,24 @@
 
 
 
+
 /**
- * Features 
+ * QR Code 
  ********************************************************************/
 #define HAP_GENERATE_XHM			1		// Create hash for qr codes
 											// Default: 1
 
-#define HAP_PRINT_QRCODE			1		// !!! HAP_GENERATE_XHM must be enabled !!!
+#define HAP_PRINT_QRCODE			0		// !!! HAP_GENERATE_XHM must be enabled !!!
 											// Print QR code on console
 											// Default: 0								
 
 #define HAP_PRINT_QRCODE_SVG		0
 
-#define HAP_NTP_ENABLED 			1		// Enable SNTP client
-											// Default: 1
+#if HAP_PRINT_QRCODE == 1
+#undef HAP_GENERATE_XHM
+#define HAP_GENERATE_XHM 1
+#endif
+
 
 /**
  * Plugins
@@ -204,6 +300,10 @@
  *     add themas well on top of the defne bellow !!!
  ********************************************************************/
 
+
+#ifndef HAP_PLUGIN_USE_SSD1306
+#define HAP_PLUGIN_USE_SSD1306		0
+#endif
 
 #ifndef HAP_PLUGIN_USE_LED
 #define HAP_PLUGIN_USE_LED			0
@@ -253,7 +353,9 @@
 #define HAP_PLUGIN_USE_BME280		0	// < last digit of feature number
 #endif
 
+// Add new plugins on top!
 #define HAP_PLUGIN_FEATURE_NUMBER \
+STR(HAP_PLUGIN_USE_SSD1306) \
 STR(HAP_PLUGIN_USE_LED) \
 STR(HAP_PLUGIN_USE_SWITCH) \
 STR(HAP_PLUGIN_USE_MIFLORA) \
@@ -270,39 +372,8 @@ STR(HAP_PLUGIN_USE_BME280)
 #define STR_HELPER(x) #x
 #define STR(x) STR_HELPER(x)
 
-/**
- * HAP Update Server
- ********************************************************************/
-
-#define HAP_UPDATE_ENABLE_FROM_WEB 	0		// Use HAP update server to check
-											// if a update is available on the
-											// provided webserver
-											// Default: 0
-
-#define HAP_UPDATE_ENABLE_OTA		1		// Enable ArduinoOTA	
-											// Default: 0	
-
-#define HAP_UPDATE_WEB_INTERVAL		60000	// Interval for web update check in ms
-
-#if HAP_UPDATE_ENABLE_FROM_WEB
-//#define HAP_UPDATE_SERVER_URL 	"192.168.178.151"	
-#define HAP_UPDATE_SERVER_HOST 		"homebridge"		// HTTP Server url for updates
-#define HAP_UPDATE_SERVER_PORT		3001				// Update Server port
-#define HAP_UPDATE_ENABLE_SSL		1					// enable SSL for HAP Update
-
-#endif
-#define HAP_UPDATE_TIMEOUT 			2000
 
 
-
-/**
- * HAP NTP Server and Timezone
- ********************************************************************/
-#if HAP_NTP_ENABLED
-#define HAP_NTP_SERVER_URL			"time.euro.apple.com"						// NTP server url
-#define HAP_NTP_TIME_FORMAT			"%Y-%m-%d %H:%M:%S.%f"						// strftime format
-#define HAP_NTP_TZ_INFO     		"WET-1WEST,M3.5.0/01:00,M10.5.0/01:00"		// timezone for berlin
-#endif
 
 /**
  * Options - Do not edit !!!
@@ -354,18 +425,6 @@ STR(HAP_PLUGIN_USE_BME280)
  * SRP - Do not edit !!!
  ********************************************************************/
 #define SRP_TEST					0		// Test SRP - keep disabled !
-
-
-/**
- * Logic
- * Do not edit!
- ********************************************************************/
-#if HAP_PRINT_QRCODE == 1
-#undef HAP_GENERATE_XHM
-#define HAP_GENERATE_XHM 1
-#endif
-
-#endif /* HAPGLOBALS_HPP_ */
 
 
 
@@ -424,3 +483,6 @@ STR(HAP_PLUGIN_USE_BME280)
 #ifndef HKDF_KEY_LEN
 #define HKDF_KEY_LEN      CHACHA20_POLY1305_AEAD_KEYSIZE
 #endif
+
+
+#endif /* HAPGLOBALS_HPP_ */

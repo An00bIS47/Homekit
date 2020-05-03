@@ -7,115 +7,166 @@
 # please read the ESP-IDF documents if you need to do this.
 #
 
+WOLFSSL 	= 0
+DEBUG  		= 1
+SRP_TEST 	= 0
+#BOARD		= ARDUINO_FEATHER_ESP32
+BOARD		= ARDUINO_HELTEC_WIFI_KIT_32
 
+ENABLE_OTA			= 1
+ENABLE_WEBSERVER 	= 1
 #
-# Feather32 Variant
+# ESP32
 # 
-CXXFLAGS += -I$(PROJECT_PATH)/components/arduino/variants/feather_esp32/
-CPPFLAGS += -DARDUINO_FEATHER_ESP32 -DESP32
+CXXFLAGS += -DESP32 -DARDUINO_ARCH_ESP32
+
+
 
 #
-# For NeoPixelBus
-#
-#CPPFLAGS += -DARDUINO_ARCH_ESP32
-
-#
-# WOLFSSL
+# Boards
 # 
-# WOLFSSL_SETTINGS =        \
-#     -DSIZEOF_LONG_LONG=8  \
-#     -DSMALL_SESSION_CACHE \
-#     -DWOLFSSL_SMALL_STACK \
-# 	-DWOLFCRYPT_HAVE_SRP  \
-# 	-DWOLFSSL_SHA512      \
-#     -DHAVE_CHACHA         \
-# 	-DHAVE_HKDF			  \
-#     -DHAVE_ONE_TIME_AUTH  \
-#     -DHAVE_ED25519        \
-# 	-DHAVE_ED25519_KEY_EXPORT\
-# 	-DHAVE_ED25519_KEY_IMPORT\
-#     -DHAVE_OCSP           \
-#     -DHAVE_CURVE25519     \
-# 	-DHAVE_POLY1305       \
-#     -DHAVE_SNI            \
-#     -DHAVE_TLS_EXTENSIONS \
-#     -DTIME_OVERRIDES      \
-#     -DNO_DES              \
-#     -DNO_DES3             \
-#     -DNO_DSA              \
-#     -DNO_ERROR_STRINGS    \
-#     -DNO_HC128            \
-#     -DNO_MD4              \
-#     -DNO_OLD_TLS          \
-#     -DNO_PSK              \
-#     -DNO_PWDBASED         \
-#     -DNO_RC4              \
-#     -DNO_RABBIT           \
-#     -DNO_STDIO_FILESYSTEM \
-#     -DNO_WOLFSSL_DIR      \
-#     -DNO_DH               \
-#     -DWOLFSSL_STATIC_RSA  \
-#     -DWOLFSSL_IAR_ARM     \
-#     -DNDEBUG              \
-#     -DHAVE_CERTIFICATE_STATUS_REQUEST \
-#     -DCUSTOM_RAND_GENERATE_SEED=os_get_random
+ifeq ($(BOARD),ARDUINO_FEATHER_ESP32)
+	#$(info ************ Feather variant ************)
+	CXXFLAGS += -DARDUINO_FEATHER_ESP32
+	CXXFLAGS += -I$(PROJECT_PATH)/components/arduino/variants/feather_esp32/
 
-# CFLAGS += -I$(PROJECT_PATH)/components/wolfssl/
-# CFLAGS += -I$(PROJECT_PATH)/components/
-# CFLAGS += $(WOLFSSL_SETTINGS) -DFREERTOS -DED25519_ENABLED -DMBEDTLS_ED25519_C
+	
+	#$(info Change the Serial Flasher baud rate to 2MB)
+endif	
+
+ifeq ($(BOARD),ARDUINO_HELTEC_WIFI_KIT_32)
+	#$(info ************ Heltec variant ************)
+	CXXFLAGS += -DARDUINO_HELTEC_WIFI_KIT_32
+	CXXFLAGS += -I$(PROJECT_PATH)/components/arduino/variants/heltec_wifi_kit_32/
+
+	CPPFLAGS += -DHAP_PLUGIN_USE_SSD1306=1
+
+	
+	#$(info Change the Serial Flasher baud rate to 921K)
+endif	
+
+# 
+# WolfSSL
+# 
+ifeq ($(WOLFSSL),1)
+    WOLFSSL_SETTINGS =        \
+	    -DSIZEOF_LONG_LONG=8  \
+	    -DSMALL_SESSION_CACHE \
+	    -DWOLFSSL_SMALL_STACK \
+		-DWOLFCRYPT_HAVE_SRP  \
+		-DWOLFSSL_SHA512      \
+	    -DHAVE_CHACHA         \
+		-DHAVE_HKDF			  \
+	    -DHAVE_ONE_TIME_AUTH  \
+	    -DHAVE_ED25519        \
+		-DHAVE_ED25519_KEY_EXPORT\
+		-DHAVE_ED25519_KEY_IMPORT\
+	    -DHAVE_OCSP           \
+	    -DHAVE_CURVE25519     \
+		-DHAVE_POLY1305       \
+	    -DHAVE_SNI            \
+	    -DHAVE_TLS_EXTENSIONS \
+	    -DTIME_OVERRIDES      \
+	    -DNO_DES              \
+	    -DNO_DES3             \
+	    -DNO_DSA              \
+	    -DNO_ERROR_STRINGS    \
+	    -DNO_HC128            \
+	    -DNO_MD4              \
+	    -DNO_OLD_TLS          \
+	    -DNO_PSK              \
+	    -DNO_PWDBASED         \
+	    -DNO_RC4              \
+	    -DNO_RABBIT           \
+	    -DNO_STDIO_FILESYSTEM \
+	    -DNO_WOLFSSL_DIR      \
+	    -DNO_DH               \
+	    -DWOLFSSL_STATIC_RSA  \
+	    -DWOLFSSL_IAR_ARM     \
+	    -DNDEBUG              \
+	    -DHAVE_CERTIFICATE_STATUS_REQUEST \
+	    -DCUSTOM_RAND_GENERATE_SEED=os_get_random
+
+	CFLAGS += -I$(PROJECT_PATH)/components/wolfssl/
+	CFLAGS += -I$(PROJECT_PATH)/components/
+	CFLAGS += $(WOLFSSL_SETTINGS) -DFREERTOS -DED25519_ENABLED -DMBEDTLS_ED25519_C
+else
+        
+endif
+
+
+
+
 
 #
-# Homekit
+# Add soruce files
 #
+#  HAP
 COMPONENT_SRCDIRS += HAP 
 COMPONENT_ADD_INCLUDEDIRS += HAP
 
-#
-# Crypto
-#
+#  Crypto
 COMPONENT_SRCDIRS += Crypto
 COMPONENT_ADD_INCLUDEDIRS += Crypto
 
-#
-# ArduinoJson
-#
-# COMPONENT_SRCDIRS += ArduinoJson
-# COMPONENT_ADD_INCLUDEDIRS += ArduinoJson
-# CPPFLAGS += -I$(PROJECT_PATH)/components/ArduinoJson/src/
+
 
 #
 # Plugins incl. all subdirectories
 #
-COMPONENT_SRCDIRS += $(shell gfind $(COMPONENT_PATH)/HAP/plugins -type d -printf 'HAP/plugins/%P ')
-COMPONENT_ADD_INCLUDEDIRS += $(shell gfind $(COMPONENT_PATH)/HAP/plugins -type d -printf 'HAP/plugins/%P ')
+ifeq ($(OS),Windows_NT)
+
+else
+	UNAME_S := $(shell uname -s)
+    ifeq ($(UNAME_S),Linux)
+        COMPONENT_SRCDIRS += $(shell find $(COMPONENT_PATH)/HAP/plugins -type d -printf 'HAP/plugins/%P ')
+		COMPONENT_ADD_INCLUDEDIRS += $(shell find $(COMPONENT_PATH)/HAP/plugins -type d -printf 'HAP/plugins/%P ')
+    endif
+    ifeq ($(UNAME_S),Darwin)
+        COMPONENT_SRCDIRS += $(shell gfind $(COMPONENT_PATH)/HAP/plugins -type d -printf 'HAP/plugins/%P ')
+		COMPONENT_ADD_INCLUDEDIRS += $(shell gfind $(COMPONENT_PATH)/HAP/plugins -type d -printf 'HAP/plugins/%P ')
+    endif
+endif	
+
 # Print included components dir while compiling
 #$(warning COMPONENT_SRCDIRS=$(COMPONENT_SRCDIRS))	# __deprecated__
 
-#
-# Certificates and keys
-#
-COMPONENT_EMBED_FILES := $(PROJECT_PATH)/certs/server_cert.der
-COMPONENT_EMBED_FILES += $(PROJECT_PATH)/certs/server_privatekey.der
-COMPONENT_EMBED_FILES += $(PROJECT_PATH)/certs/server_publickey.der
+
+# 
+# Webserver and certs
+# 
+ifeq ($(ENABLE_WEBSERVER),0)
+	CPPFLAGS += -DHAP_ENABLE_WEBSERVER=0
+else
+	#
+	# Certificates and keys
+	#
+	COMPONENT_EMBED_FILES := $(PROJECT_PATH)/certs/server_cert.der
+	COMPONENT_EMBED_FILES += $(PROJECT_PATH)/certs/server_privatekey.der
+	COMPONENT_EMBED_FILES += $(PROJECT_PATH)/certs/server_publickey.der
+
+	#
+	# Website incl. Font, css. images and javascripts
+	#
+	COMPONENT_EMBED_TXTFILES := $(PROJECT_PATH)/www/index.html
+	COMPONENT_EMBED_TXTFILES += $(PROJECT_PATH)/www/qrcode_font.css
+	COMPONENT_EMBED_TXTFILES += $(PROJECT_PATH)/www/qrcode_container.svg
+endif
+
+
 
 #
 # InfluxDB server cert
 #
 #COMPONENT_EMBED_TXTFILES := $(PROJECT_PATH)/certs/localCA.pem	__not_yet_working__
 
-#
-# Website incl. Font, css. images and javascripts
-#
-#COMPONENT_EMBED_FILES += $(PROJECT_PATH)/www/index.html # __deprecated__
-COMPONENT_EMBED_TXTFILES := $(PROJECT_PATH)/www/index.html
-# COMPONENT_EMBED_TXTFILES += $(PROJECT_PATH)/www/vanilla_qr.js # __deprecated__
-COMPONENT_EMBED_TXTFILES += $(PROJECT_PATH)/www/qrcode_font.css
-COMPONENT_EMBED_TXTFILES += $(PROJECT_PATH)/www/qrcode_container.svg
 
 #
-# Uncomment for SRP debugging
+# SRP TESTING
 #
-#CFLAGS += -DSRP_TEST -Wno-pointer-sign 
+ifeq ($(SRP_TEST),1)
+	CFLAGS += -DSRP_TEST -Wno-pointer-sign 
+endif	
 
 
 # Create a SPIFFS image from the contents of the 'spiffs' directory
@@ -125,23 +176,55 @@ COMPONENT_EMBED_TXTFILES += $(PROJECT_PATH)/www/qrcode_container.svg
 #SPIFFS_IMAGE_FLASH_IN_PROJECT := 1
 #$(eval $(call spiffs_create_partition_image,storage,spiffs))	# requires esp-idf > 4.0
 
-#
-# For testing
-#
-CPPFLAGS += -DHAP_DEBUG=1
-CPPFLAGS += -DHAP_FAKEGATO_INTERVAL=500
 
-CPPFLAGS += -DHAP_PLUGIN_USE_DHT=1
-CPPFLAGS += -DHAP_PLUGIN_DHT_USE_DUMMY=1
+ifeq ($(ENABLE_OTA),0)
+	CPPFLAGS += -DHAP_UPDATE_ENABLE_OTA=0	
+endif
 
-CPPFLAGS += -DHAP_PLUGIN_USE_BME280=1
-CPPFLAGS += -DHAP_PLUGIN_BME280_USE_DUMMY=1
+ifeq ($(DEBUG),1)	
+	#
+	# DEBUG
+	#
+	#$(info ************ TEST VERSION ************)
+	CPPFLAGS += -DHAP_DEBUG=1
 
-CPPFLAGS += -DHAP_PLUGIN_USE_HYGROMETER=0
-CPPFLAGS += -DHAP_PLUGIN_HYGROMETER_USE_DUMMY=0
+	ifeq ($(BOARD),ARDUINO_FEATHER_ESP32)
+		CPPFLAGS += -DHAP_FAKEGATO_INTERVAL=500
+	endif
 
-CPPFLAGS += -DHAP_PLUGIN_USE_INFLUXDB=0
+	ifeq ($(BOARD),ARDUINO_HELTEC_WIFI_KIT_32)
+		CPPFLAGS += -DHAP_FAKEGATO_INTERVAL=3000
 
-CPPFLAGS += -DHAP_PLUGIN_USE_RCSWITCH=0
+		
+		CPPFLAGS += -DHAP_DEBUG_HOMEKIT=0
+		CPPFLAGS += -DHAP_DEBUG_ENCRYPTION=0
+		CPPFLAGS += -DHAP_DEBUG_TLV8=0
+		CPPFLAGS += -DHAP_DEBUG_REQUESTS=0
+	endif
 
-CPPFLAGS += -DHAP_PLUGIN_USE_LED=1
+	CPPFLAGS += -DHAP_PLUGIN_USE_DHT=1
+	CPPFLAGS += -DHAP_PLUGIN_DHT_USE_DUMMY=1
+
+	CPPFLAGS += -DHAP_PLUGIN_USE_BME280=1
+	CPPFLAGS += -DHAP_PLUGIN_BME280_USE_DUMMY=1
+
+	CPPFLAGS += -DHAP_PLUGIN_USE_HYGROMETER=0
+	CPPFLAGS += -DHAP_PLUGIN_HYGROMETER_USE_DUMMY=0
+
+	CPPFLAGS += -DHAP_PLUGIN_USE_INFLUXDB=0
+
+	CPPFLAGS += -DHAP_PLUGIN_USE_RCSWITCH=0
+
+	CPPFLAGS += -DHAP_PLUGIN_USE_LED=1
+else
+	#
+	# RELEASE
+	#
+	#$(info ************ RELEASE VERSIOIN **********)
+
+	CPPFLAGS += -DCONFIG_ESP32_PANIC_PRINT_REBOOT="y"
+	
+	CPPFLAGS += -DHAP_PLUGIN_DHT_USE_DUMMY=0
+	CPPFLAGS += -DHAP_PLUGIN_BME280_USE_DUMMY=0
+	CPPFLAGS += -DHAP_PLUGIN_HYGROMETER_USE_DUMMY=0
+endif

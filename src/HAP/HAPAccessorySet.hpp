@@ -14,6 +14,7 @@
 
 #include "HAPAccessory.hpp"
 #include "HAPCategories.hpp"
+#include "HAPPairings.hpp"
 
 class HAPAccessorySet {
 public:
@@ -24,8 +25,14 @@ public:
 
 	int aid(){ return _aid; };
 	void begin();
-	bool isPaired;
-
+	
+	bool isPaired(){
+		return _pairings.size() > 0;
+	}
+	
+	HAPPairings* getPairings() {
+		return &_pairings;
+	}
 
 	uint8_t accessoryType();
 	void setAccessoryType(enum HAP_ACCESSORY_TYPE accessoryType);
@@ -79,6 +86,7 @@ private:
 
 	void generateXMI();
 
+	HAPPairings _pairings;
 	std::vector<HAPAccessory *> _accessories;
     int _aid = 0;
 
