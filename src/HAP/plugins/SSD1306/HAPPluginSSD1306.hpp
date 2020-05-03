@@ -14,6 +14,7 @@
 #include "HAPLogger.hpp"
 #include "HAPAccessory.hpp"
 
+#if HAP_PLUGIN_USE_SSD1306
 #include <Wire.h>
 #include "SSD1306Wire.h"
 
@@ -66,5 +67,7 @@ private:
 };
 
 REGISTER_PLUGIN(HAPPluginSSD1306)
+
+#endif
 
 #endif

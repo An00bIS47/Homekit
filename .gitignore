@@ -2,6 +2,10 @@
 build/
 
 
+### Platformio
+.pio/
+
+
 ### macOS ###
 *.DS_Store
 .AppleDouble
@@ -90,8 +94,6 @@ git-sizer
 spiffs/config.json
 *.spiffs
 
-
-
 ### config.json
 config.json
 config.*
@@ -99,5 +101,8 @@ config.*
 ### www/dev
 www/dev/*
 
-# homekit.bin
+### homekit.bin
 utils/update_server/Homekit.bin
+
+### heapGraph.py
+heapGraph.py

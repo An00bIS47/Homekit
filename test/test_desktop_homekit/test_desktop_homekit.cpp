@@ -8,15 +8,15 @@
 #include <stdio.h>
 #include <sys/wait.h>
 
-#define ITERATIONS                          1
+#define ITERATIONS                          5
 
-#define BOARD_HELTEC 1
-#define BOARD_CAFEEC 0
+#define BOARD_HELTEC                        0
+#define BOARD_CAFEEC                        1
 
 
 #if BOARD_HELTEC == 1
-#define DEVICE_ID                         "24:6F:28:AF:5F:A4"
-#define ALIAS                             "heltec"
+#define DEVICE_ID                           "24:6F:28:AF:5F:A4"
+#define ALIAS                               "heltec"
 #define ALIAS_ADDITIONAL_CONTROLLER         "heltec_remote"
 #elif BOARD_CAFEEC == 1
 #define DEVICE_ID                           "BC:DD:C2:CA:FE:EC"

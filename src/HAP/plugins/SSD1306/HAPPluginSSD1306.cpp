@@ -9,6 +9,8 @@
 #include "HAPPluginSSD1306.hpp"
 #include "HAPServer.hpp"
 
+#if HAP_PLUGIN_USE_SSD1306
+
 #include "qrcode.h"
 
 
@@ -384,3 +386,5 @@ void HAPPluginSSD1306::setConfigImpl(JsonObject root){
 void HAPPluginSSD1306::updateProgressbar(uint8_t percentage){
     _tft->drawProgressBar(3, 52, 122, 12, percentage);
 }
+
+#endif

@@ -245,7 +245,7 @@ protected:
 	bool startPlugin(std::unique_ptr<HAPPlugin> plugin);
 	
 	// Callbacks
-	void handleAdminRemoved();
+	void handleAllPairingsRemoved();
 
 private:
 
