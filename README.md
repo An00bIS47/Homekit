@@ -5,31 +5,50 @@
 
 ## What is this
 
-This application exposes sensors like temperature and humidity to Apple's Homekit on a ESP32. No other Bridge, like [homebridge](https://github.com/nfarina/homebridge). It is build upon the [esp-idf](https://github.com/espressif/esp-idf) and uses [arduino-esp32](https://github.com/espressif/arduino-esp32) as a component.
+This application exposes sensors like temperature and humidity to Apple's Homekit on a ESP32. No other Bridge, like [homebridge](https://github.com/nfarina/homebridge) is required! It is build upon the [esp-idf](https://github.com/espressif/esp-idf) and uses [arduino-esp32](https://github.com/espressif/arduino-esp32) as a component.
 
 To expose different sensors simultaneously, a plugin system is used. 
-A plugin can expose multiple sensors like a temperature probe to a Homekit accessory or a plugin can display or process the current values of all exposed accessories of this device. 
+A plugin can 
+* expose multiple sensors like a temperature probe as Homekit accessory 
+* display information on e.g. a OLED display
+* forward sensor values to e.g. a database or mqtt broker
+* be configured via a webinterface or a REST API
+* etc.
+
 You can use multiple plugin at once.
 
 There are several example plugins available like 
 
-#### BME280
+
+#### BME280 
 Exposes a temperature, humidity and pressure sensor with EVE history support.
 
 #### DHT22
 Exposes a temperatue and a humidity sensor with EVE history support.
 
-#### InfluxDB
-Uploads every x seconds the values of each characteristics to an influxdb server.
 
 #### SSD1331
 View the QR code for pairing and the sensor values on an SSD1331 OLED Display.
+
+#### SSD1306
+View the QR code for pairing and the sensor values on an SSD1306 OLED Display.
+
 
 #### MiFlora
 Connects MiFlora Flower bluetooth devices to Homekit. This plugin exposes a temperature, moisture, fertility and light itensity sensor with EVE history support.
 
 #### RCSwitch
-Exposes multiple Intertechno outlets as a switch with fakegato history support. 
+Exposes multiple Intertechno outlets as a switch with EVE history support. 
+
+
+#### InfluxDB
+Uploads every x seconds the values of each characteristics to an influxdb server.
+
+
+#### LED
+Exposes the blinking buildin LED as Light to Homekit.
+
+
 
 
 ### EVE History
@@ -46,7 +65,7 @@ Currently the following services supported EVE history
 
 
 
-### Required Versions
+## Required Versions
 * esp-idf v3.3.x
 * arduino-esp32 v1.0.4
 
@@ -187,7 +206,28 @@ To reset the configuration and remove all pairing data, you can use the followin
 make erase_flash
 ```
 
-## Webserver
+## Webserver and API
+
+### Access to the Webinterface and API
+
+Two possible groups of users are available:
+* `admin`: Users of this group have access to the webinterface with all admin options
+* `api`: Users of this group have access to the api only without admin options
+
+The default username for admin access is `admin` with the password `secret`.
+The default username for (only!) access to the api is `api` with the password `test`.
+
+You edit one user of each group in the `HAPGlobals.hpp` file:
+```
+#define HAP_WEBSERVER_ADMIN_USERNAME	"admin"
+#define HAP_WEBSERVER_ADMIN_PASSWORD	"secret"
+
+#define HAP_WEBSERVER_API_USERNAME		"api"
+#define HAP_WEBSERVER_API_PASSWORD		"test"
+```
+You can add/change/remove multiple users via the REST interface.
+
+
 
 ### HTTPS
 
@@ -234,26 +274,6 @@ To create the required partition for `SPIFFS`, you can use the following command
 mkspiffs -c www -b 4096 -p 256 -s 0x00C000 build/spiffs.bin
 esptool.py --chip esp32 --port  /dev/cu.SLAB_USBtoUART --baud 2000000 write_flash -z 0x3F2800 build/spiffs.bin
 ```
-
-
-### Access to the Webinterface
-
-Two possible groups of users are available:
-* `admin`: Users of this group have access to the webinterface with all admin options
-* `api`: Users of this group have access to the api only without admin options
-
-The default username for admin access is `admin` with the password `secret`.
-The default username for (only!) access to the api is `api` with the password `test`.
-
-You edit one user of each group in the `HAPGlobals.hpp` file:
-```
-#define HAP_WEBSERVER_ADMIN_USERNAME	"admin"
-#define HAP_WEBSERVER_ADMIN_PASSWORD	"secret"
-
-#define HAP_WEBSERVER_API_USERNAME		"api"
-#define HAP_WEBSERVER_API_PASSWORD		"test"
-```
-You can add/change/remove multiple users via the REST interface.
 
 
 ## Rest API
@@ -322,6 +342,7 @@ Otherwise the default pin code to pair is `031-45-712`.
 Pairings will be stored in the nvs and can be deleted via Homekit, REST API (admin only) and `make erase_flash`.
 
 
+
 ## Partition Table
 
 A `partitions.csv` is included in the project and should be compiled and flashed once. 
@@ -329,24 +350,72 @@ Use `make partition_table` to create the partition table bin.
 Use `make partition_table-flash` to flash only the partition table.
 `make flash` will flash everything including the partition table.
 
+The filesize of the compiled binary with debug options and without BLE is around 2MB.
+
+There are 3 different partition tables provided:
+*  4MB
+*  8MB
+* 16MB
+
+
+### 4MB Flash
+
+Filename: paritions4.csv
+
+Only one factory partition is available, therefore you have to disable all update components, such as OTA, WEB Update.
+
+
+The partition table is defined as follows:
+
+| Name     | Type  | Subtype  | Offset    | Size      |
+|----------|-------|----------|-----------|-----------|
+| phy_init | data  | phy      | 0xF000    | 4K        |
+| factory  | app   |          | 0x10000   | 3192K     |
+| nvs_key  | data  | nvs_keys |           | 4K        |
+| nvs      | data  | nvs      |           | 32K       |
+
+
+
+### 8MB Flash
+
+Filename: paritions.csv
+
 The partition table is defined as follows:
 
 | Name     | Type  | Subtype  | Offset    | Size      |
 |----------|-------|----------|-----------|-----------|
 | otadata  | data  | ota      | 0xD000    | 8K        |
 | phy_init | data  | phy      | 0xF000    | 4K        |
-| ota_0    | app   | ota_0    | 0x10000   | 1958K     |
-| ota_1    | app   | ota_1    |           | 1958K     |
+| ota_0    | app   | ota_0    | 0x10000   | 3192K     |
+| ota_1    | app   | ota_1    |           | 3192K     |
 | nvs_key  | data  | nvs_keys |           | 4K        |
 | nvs      | data  | nvs      |           | 32K       |
-| storage  | data  | spiffs   |           | 48K       |
 
 
-The filesize of the compiled binary with debug options and without BLE is around 2MB.
+### 16MB Flash
+
+Filename: paritions16.csv
+
+The partition table is defined as follows:
+
+| Name     | Type  | Subtype  | Offset    | Size      |
+|----------|-------|----------|-----------|-----------|
+| otadata  | data  | ota      | 0xD000    | 8K        |
+| phy_init | data  | phy      | 0xF000    | 4K        |
+| ota_0    | app   | ota_0    | 0x10000   | 6384K     |
+| ota_1    | app   | ota_1    |           | 6384K     |
+| nvs_key  | data  | nvs_keys |           | 4K        |
+| nvs      | data  | nvs      |           | 32K       |
+| spiffs   | data  | spiffs   |           | 2048K     |
+
+
+
+
+
 
 ## Plugins
 
-Plugins are meant to provide services and characteristics to Homekit like a temperature sensor.
+Plugins are meant to provide services and characteristics to Homekit like a temperature sensor or process the values of the accessory.
 
 Have a look at the plugins available in this folder `src/HAP/plugins/`. 
 
@@ -413,6 +482,8 @@ CPPFLAGS += -DHAP_PLUGIN_USE_LED=1
 
 This project uses by default mbedtls and libsodium for cryptography. 
 WolfSSL is also support but commented out in the makefile. (will be removed completely)
+
+
 
 
 ## Used Libraries

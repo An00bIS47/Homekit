@@ -1,2 +1,9 @@
-idf_component_register(SRC_DIRS "." "HAP" "Crypto"
-                       INCLUDE_DIRS "." "HAP" "Crypto")
+set(COMPONENT_ADD_INCLUDEDIRS include HAP Crypto $(shell gfind $(COMPONENT_PATH)/HAP/plugins -type d -printf 'HAP/plugins/%P '))
+
+# Edit following two lines to set component requirements (see docs)
+set(COMPONENT_REQUIRES )
+set(COMPONENT_PRIV_REQUIRES )
+
+set(COMPONENT_SRCS HAP/base36.c HAP/concat.c Crypto/m_chacha20_poly1305.c Crypto/m_curve25519.c Crypto/m_hkdf.c Crypto/m_srp.c Crypto/tutils.c ./main.cpp HAP/EventManager.cpp HAP/HAPAccessory.cpp HAP/HAPAccessorySet.cpp HAP/HAPBonjour.cpp HAP/HAPCharacteristic.cpp HAP/HAPClient.cpp HAP/HAPConfig.cpp HAP/HAPDeviceID.cpp HAP/HAPEncryption.cpp HAP/HAPFakeGato.cpp HAP/HAPFakeGatoEnergy.cpp HAP/HAPFakeGatoFactory.cpp HAP/HAPFakeGatoSwitch.cpp HAP/HAPFakeGatoWeather.cpp HAP/HAPHelper.cpp HAP/HAPLogger.cpp HAP/HAPPairings.cpp HAP/HAPPlugins.cpp HAP/HAPRequest.cpp HAP/HAPSVG.cpp HAP/HAPServer.cpp HAP/HAPService.cpp HAP/HAPTLV8.cpp HAP/HAPUpdate.cpp HAP/HAPWebServer.cpp HAP/HAPWebServerBodyParserMultipart.cpp HAP/HAPWebServerBodyParserURLEncoded.cpp HAP/HAPWebServerJWT.cpp HAP/HAPWebServerTemplateProcessor.cpp HAP/HAPWiFiHelper.cpp HAP/base64url.cpp HAP/plugins/Hygrometer/HAPPluginHygrometer.cpp HAP/plugins/RCSwitch/HAPPluginRCSwitch.cpp HAP/plugins/RCSwitch/HAPPluginRCSwitchDevice.cpp HAP/plugins/LED/HAPPluginLED.cpp HAP/plugins/DHT/HAPPluginDHT.cpp HAP/plugins/NeoPixel/HAPPluginNeoPixel.cpp HAP/plugins/MiFlora/HAPPluginMiFlora.cpp HAP/plugins/MiFlora/HAPPluginMiFlora2.cpp HAP/plugins/MiFlora/HAPPluginMiFloraDevice.cpp HAP/plugins/BME280/HAPPluginBME280.cpp HAP/plugins/InfluxDB/HAPPluginInfluxDB.cpp HAP/plugins/SSD1306/HAPPluginSSD1306.cpp HAP/plugins/SSD1306/OLEDDisplay.cpp HAP/plugins/SSD1306/OLEDDisplayUi.cpp HAP/plugins/PCA301/HAPPluginPCA301.cpp HAP/plugins/PCA301/HAPPluginPCA301Device.cpp HAP/plugins/PCA301/funky_rfm69.cpp HAP/plugins/SSD1331/HAPPluginSSD1331.cpp)
+
+register_component()
