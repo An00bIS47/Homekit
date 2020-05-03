@@ -1,22 +1,21 @@
 //
-// HAPPluginSSD1331.hpp
+// HAPPluginSSD1306.hpp
 // Homekit
 //
 //  Created on: 29.04.2018
 //      Author: michael
 //
 
-#ifndef HAPPLUGINSSD1331_HPP_
-#define HAPPLUGINSSD1331_HPP_
-
-#if HAP_PLUGIN_USE_SSD1331
+#ifndef HAPPLUGINSSD1306_HPP_
+#define HAPPLUGINSSD1306_HPP_
 
 #include <Arduino.h>
 #include "HAPPlugins.hpp"
 #include "HAPLogger.hpp"
 #include "HAPAccessory.hpp"
 
-#include "SSD_13XX.h"
+#include <Wire.h>
+#include "SSD1306Wire.h"
 
 #include <map>
 
@@ -35,10 +34,10 @@ struct screenInfo {
 	String accessoryName;
 };
 
-class HAPPluginSSD1331: public HAPPlugin {
+class HAPPluginSSD1306: public HAPPlugin {
 public:
-	HAPPluginSSD1331();
-	~HAPPluginSSD1331();
+	HAPPluginSSD1306();
+	~HAPPluginSSD1306();
 	HAPAccessory* initAccessory();
 	bool begin();
 
@@ -52,7 +51,7 @@ public:
 	void setConfigImpl(JsonObject root);
 
 private:
-    SSD_13XX* _tft;	
+	SSD1306Wire *_tft;
 	bool _updateDisplay;
 	uint8_t _currentScreen;
 	uint8_t _numberOfScreens;
@@ -62,11 +61,10 @@ private:
 	void displayQRCode();
 	void setupScreens();
 
+	void updateProgressbar(uint8_t percentage);
 	
 };
 
-REGISTER_PLUGIN(HAPPluginSSD1331)
-
-#endif
+REGISTER_PLUGIN(HAPPluginSSD1306)
 
 #endif

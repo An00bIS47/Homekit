@@ -41,13 +41,13 @@
 // Size of the listener list.  Adjust as appropriate for your application.
 // Requires a total of sizeof(*f())+sizeof(int)+sizeof(boolean) bytes of RAM for each unit of size
 #ifndef EVENTMANAGER_LISTENER_LIST_SIZE
-#define EVENTMANAGER_LISTENER_LIST_SIZE		8
+#define EVENTMANAGER_LISTENER_LIST_SIZE		32
 #endif
 
 // Size of the event two queues.  Adjust as appropriate for your application.
 // Requires a total of 4 * sizeof(int) bytes of RAM for each unit of size
 #ifndef EVENTMANAGER_EVENT_QUEUE_SIZE
-#define EVENTMANAGER_EVENT_QUEUE_SIZE		8
+#define EVENTMANAGER_EVENT_QUEUE_SIZE		16
 #endif
 
 
@@ -129,9 +129,10 @@ public:
     // provided for convenience.  Any integer value can be used as an event code.
     enum EventType
     {
-        // No event occurred; param: none
-        kEventNone = 200,
+        // // No event occurred; param: none
+        kEventNone = 0,
 
+#if 0
         // A key was pressed;  param: key code
         kEventKeyPress,
 
@@ -189,16 +190,31 @@ public:
         kEventUser7,
         kEventUser8,
         kEventUser9,
+#endif
+
 
         // Homekit specific
-        kEventNotifyController,
-        kEventNotifyAccessory,
-        kEventPairingComplete,
-        kEventHomekitStarted,
-        kEventIncrementConfigNumber,
-        kEventUpdatedConfig,
+        kEventHomekitStarted            = 100,
+        kEventIncrementConfigNumber     = 101,
+        kEventUpdatedConfig             = 102,
+        
+        kEventNotifyController          = 110,
+        kEventNotifyAccessory           = 111,
+        
+        kEventPairingStep1              = 120,
+        kEventPairingStep2              = 121,
+        kEventPairingStep3              = 122,
+        kEventPairingStep4              = 123,     
+        kEventPairingComplete           = 124,
 
-        kEventRebootNow
+        kEventVerifyStep1               = 130,
+        kEventVerifyStep2               = 131,   
+        kEventVerifyComplete            = 132,
+
+        kEventAllPairingsRemoved        = 140,
+
+        kEventErrorOccurred             = 254,
+        kEventRebootNow                 = 255
     };
 
 

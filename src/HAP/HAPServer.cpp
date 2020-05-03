@@ -204,7 +204,7 @@ bool HAPServer::begin(bool resume) {
 
 #if HAP_RESET_EEPROM
 		LogW("Reset EEPROM - Delete pairings ...", false);
-		_pairings.resetEEPROM();		
+		_accessorySet->getPairings()->resetEEPROM();		
 		LogW("OK", true);
 #endif
 
@@ -249,15 +249,15 @@ bool HAPServer::begin(bool resume) {
 
 	// Todo: Move pairings to accessorySet
 	LogV("Loading pairings ...", false);	
-	if (_pairings.begin()) {
+	if (_accessorySet->getPairings()->begin()) {
 
-		_pairings.load();		
+		_accessorySet->getPairings()->load();		
 	} 
 	LogV("OK", true);
-	LogV("Loaded " + String(_pairings.size()) + " pairings from EEPROM", true);
+	LogV("Loaded " + String(_accessorySet->getPairings()->size()) + " pairings from EEPROM", true);
 
 #if HAP_DEBUG
-	_pairings.print();
+	_accessorySet->getPairings()->print();
 #endif
 
 
@@ -274,7 +274,7 @@ bool HAPServer::begin(bool resume) {
 		_longTermContext->privateKey = (uint8_t*) malloc(sizeof(uint8_t) * ED25519_PRIVATE_KEY_LENGTH);
 		_longTermContext->privateKeyLength = ED25519_PRIVATE_KEY_LENGTH;
 		
-	 	_pairings.loadKeys(_longTermContext->publicKey, _longTermContext->privateKey);
+	 	_accessorySet->getPairings()->loadKeys(_longTermContext->publicKey, _longTermContext->privateKey);
 
 
 // #if HAP_DEBUG
@@ -577,7 +577,7 @@ bool HAPServer::begin(bool resume) {
 	// Startup completed
 	// 	
 	LogI("Homekit has started successfully!", true);	
-	if (_pairings.size() == 0) {
+	if (_accessorySet->isPaired()) {
 		LogI("Homekit pin code: ", false);
 		LogI(_accessorySet->pinCode(), true);
 	}
@@ -606,6 +606,8 @@ bool HAPServer::begin(bool resume) {
 
 	free(hostname);
 
+	// Handle any events that are in the queue
+	_eventManager.processEvent();	
 
 	return true;
 }
@@ -644,7 +646,7 @@ bool HAPServer::updateServiceTxt() {
 	// This value must persist across reboots, power cycles, etc.
 	hapTxtData[0].key 		= (char*) "c#";
 	hapTxtData[0].value 	= (char*) malloc(sizeof(char) * HAPHelper::numDigits(_accessorySet->configurationNumber) );
-	sprintf(hapTxtData[0].value, "%d", _accessorySet->configurationNumber );		
+	sprintf(hapTxtData[0].value, "%lu", (unsigned long)_accessorySet->configurationNumber );		
 
 	// id - unique identifier
 	hapTxtData[1].key 		= (char*) "id";
@@ -655,7 +657,7 @@ bool HAPServer::updateServiceTxt() {
 	// Supports HAP Pairing. This flag is required for all HomeKit accessories.
 	hapTxtData[2].key 		= (char*) "ff";
 	hapTxtData[2].value 	= (char*) malloc(sizeof(char));
-	sprintf(hapTxtData[2].value, "%d", isPaired() );
+	sprintf(hapTxtData[2].value, "%d", _accessorySet->isPaired() );
 	
 	// md - model name	
 	hapTxtData[3].key 		= (char*) "md";
@@ -678,7 +680,7 @@ bool HAPServer::updateServiceTxt() {
 	// 0 if paired ??
 	hapTxtData[6].key 		= (char*) "sf";
 	hapTxtData[6].value 	= (char*) malloc(sizeof(char));
-	sprintf(hapTxtData[6].value, "%d", !isPaired() );
+	sprintf(hapTxtData[6].value, "%d", !_accessorySet->isPaired() );
 
 	 // ci - Accessory category indicator
 	hapTxtData[7].key 		= (char*) "ci";
@@ -1250,13 +1252,16 @@ void HAPServer::sendErrorTLV(HAPClient* hapClient, uint8_t state, uint8_t error)
 	
 	hapClient->request.clear();	
 	hapClient->clear();			
-	hapClient->client.stop();						
-
-	stopEvents(false);
+	hapClient->client.stop();							
 
 	_homekitFailedLoginAttempts++;
+	_isInPairingMode = false;
 
 	hapClient->state = HAP_CLIENT_STATE_DISCONNECTED;
+
+	_eventManager.queueEvent(EventManager::kEventErrorOccurred, HAPEvent());
+
+	stopEvents(false);
 }
 
 
@@ -1301,7 +1306,7 @@ void HAPServer::processIncomingRequest(HAPClient* hapClient){
 					// pair-setup M1
 					if ( (hapClient->request.path == "/pair-setup" ) && (hapClient->pairState == HAP_PAIR_STATE_M1) ) {
 						
-						if (_accessorySet->isPaired == true) {
+						if (_accessorySet->isPaired() == true) {
 							// accessory is already paired
 							LogE( "ERROR: Accessory is already paired!", true);						
 							sendErrorTLV(hapClient, HAP_PAIR_STATE_M2, HAP_ERROR_AUTHENTICATON);
@@ -2008,6 +2013,7 @@ bool HAPServer::handlePairSetupM1(HAPClient* hapClient){
 
 	LogV( "<<< Handle client [" + hapClient->client.remoteIP().toString() + "] -> /pair-setup Step 1/4 ...", false);	
 
+	_eventManager.queueEvent(EventManager::kEventPairingStep1, HAPEvent());
 	
 	_isInPairingMode = true;
 	TLV8 response;
@@ -2041,7 +2047,7 @@ bool HAPServer::handlePairSetupM1(HAPClient* hapClient){
 
  	// _pairings.saveLTPK(_longTermContext->publicKey);
  	// _pairings.saveLTSK(_longTermContext->privateKey);
- 	_pairings.saveKeys(_longTermContext->publicKey, _longTermContext->privateKey);
+ 	_accessorySet->getPairings()->saveKeys(_longTermContext->publicKey, _longTermContext->privateKey);
 
 
  	LogD("Initializing srp ...", false);
@@ -2195,6 +2201,8 @@ bool HAPServer::handlePairSetupM3(HAPClient* hapClient) {
 
 
 	LogV( "<<< Handle client [" + hapClient->client.remoteIP().toString() + "] -> /pair-setup Step 2/4 ...", false);
+
+	_eventManager.queueEvent(EventManager::kEventPairingStep3, HAPEvent());
 
 #if HAP_USE_MBEDTLS_SRP
 #else
@@ -2400,6 +2408,9 @@ bool HAPServer::handlePairSetupM5(HAPClient* hapClient) {
 
 	LogV( "<<< Handle client [" + hapClient->client.remoteIP().toString() + "] -> /pair-setup Step 3/4 ...", false);
 
+	_eventManager.queueEvent(EventManager::kEventPairingStep3, HAPEvent());
+
+
 	int err_code = 0;
 	TLV8 response;
 
@@ -2564,8 +2575,8 @@ bool HAPServer::handlePairSetupM5(HAPClient* hapClient) {
 	// ToDo: When is admin set?
 	// Save to Pairings as admin
 	LogD( F("Saving pairing ..."), false);
-	_pairings.add(ios_device_pairing_id, ios_device_ltpk, true);
-	_pairings.save();		
+	_accessorySet->getPairings()->add(ios_device_pairing_id, ios_device_ltpk, true);
+	_accessorySet->getPairings()->save();		
 	LogD( F("OK"), true);
 	
 	encTLV.clear();
@@ -2573,6 +2584,9 @@ bool HAPServer::handlePairSetupM5(HAPClient* hapClient) {
 
 
 	LogV( "<<< Handle [" + hapClient->client.remoteIP().toString() + "] -> /pair-setup Step 4/4 ...", true);
+	_eventManager.queueEvent(EventManager::kEventPairingStep4, HAPEvent());
+
+
 	//  _acc_m6_subtlv(srp_key, ps->acc_id, ps->keys.public, ps->keys.private, &acc_subtlv, &acc_subtlv_length);
 	uint8_t accessoryx[HKDF_KEY_LEN] = {0,};
 	hkdf_key_get(HKDF_KEY_TYPE_PAIR_SETUP_ACCESSORY, srp_key, SRP_SESSION_KEY_LENGTH, 
@@ -2705,15 +2719,13 @@ bool HAPServer::handlePairSetupM5(HAPClient* hapClient) {
 	updateServiceTxt();
 	
 	LogV("OK", true);
-	LogI(">>> Pairing with client [" + hapClient->client.remoteIP().toString() + "] complete!", true);
-	_accessorySet->isPaired = true;
+	LogI(">>> Pairing with client [" + hapClient->client.remoteIP().toString() + "] complete!", true);	
 	
 	// ToDo: set timeout for resetting to false automatically?
 	_isInPairingMode = false;
 
 
-	struct HAPEvent event = HAPEvent(hapClient, 0, 0, "Pairing complete");					
-	_eventManager.queueEvent( EventManager::kEventPairingComplete, event);
+	_eventManager.queueEvent(EventManager::kEventPairingComplete, HAPEvent());
 
 
 	hapClient->request.clear();
@@ -2742,6 +2754,7 @@ bool HAPServer::handlePairVerifyM1(HAPClient* hapClient){
 
 	LogV( "<<< Handle client [" + hapClient->client.remoteIP().toString() + "] -> /pair-verify Step 1/2 ...", false);
 
+	_eventManager.queueEvent(EventManager::kEventVerifyStep1, HAPEvent());
 	
 	int err_code = 0;
 	
@@ -3035,6 +3048,7 @@ bool HAPServer::handlePairVerifyM3(HAPClient* hapClient){
 #endif
 
 	LogV( "<<< Handle client [" + hapClient->client.remoteIP().toString() + "] -> /pair-verify Step 2/2 ...", false);
+	_eventManager.queueEvent(EventManager::kEventVerifyStep2, HAPEvent());
 
 	int err_code = 0;
 	
@@ -3115,7 +3129,7 @@ bool HAPServer::handlePairVerifyM3(HAPClient* hapClient){
 #endif
 
 	uint8_t ios_device_ltpk[ED25519_PUBLIC_KEY_LENGTH];
-	err_code = _pairings.getKey(ios_device_pairing_id, ios_device_ltpk);
+	err_code = _accessorySet->getPairings()->getKey(ios_device_pairing_id, ios_device_ltpk);
 	
 	if (err_code == -1) {
 		LogE( F("[ERROR] No iOS Device LTPK found!"), true);		    	
@@ -3221,6 +3235,7 @@ bool HAPServer::handlePairVerifyM3(HAPClient* hapClient){
 	LogV("OK", true);
 	LogI(">>> Verification with client [" + hapClient->client.remoteIP().toString() + "] complete!", true);
 
+	_eventManager.queueEvent(EventManager::kEventVerifyComplete, HAPEvent());
 
 #if HAP_DEBUG_HEAP            
 	LogE("=================== " + String(__CLASS_NAME__) + "->" + String(__FUNCTION__) + " end", true);
@@ -3275,7 +3290,7 @@ void HAPServer::handlePairingsList(HAPClient* hapClient){
 	TLV8 response;
 	response.encode(HAP_TLV_STATE, 1, HAP_PAIR_STATE_M2);
 
-	for (int i=0; i<_pairings.size(); i++){
+	for (int i=0; i<_accessorySet->getPairings()->size(); i++){
 
 #if HAP_HOMEKIT_PYTHON_COMPATIBLE == 0
 		if (i > 0) {
@@ -3283,9 +3298,9 @@ void HAPServer::handlePairingsList(HAPClient* hapClient){
 		}
 #endif
 
-		response.encode(HAP_TLV_IDENTIFIER, HAP_PAIRINGS_ID_LENGTH, _pairings.pairings[i].id);
-		response.encode(HAP_TLV_PUBLIC_KEY, HAP_PAIRINGS_LTPK_LENGTH, _pairings.pairings[i].key);
-		response.encode(HAP_TLV_PERMISSIONS, 1, _pairings.pairings[i].isAdmin);
+		response.encode(HAP_TLV_IDENTIFIER, HAP_PAIRINGS_ID_LENGTH, _accessorySet->getPairings()->pairings[i].id);
+		response.encode(HAP_TLV_PUBLIC_KEY, HAP_PAIRINGS_LTPK_LENGTH, _accessorySet->getPairings()->pairings[i].key);
+		response.encode(HAP_TLV_PERMISSIONS, 1, _accessorySet->getPairings()->pairings[i].isAdmin);
 	}
 
 #if HAP_DEBUG_TLV8	
@@ -3297,7 +3312,7 @@ void HAPServer::handlePairingsList(HAPClient* hapClient){
 	size_t length = 0;
 
 	response.decode(data, &length);
-	sendEncrypt(hapClient, HTTP_200, data, length, true, "application/pairing+tlv8");
+	sendEncrypt(hapClient, HTTP_200, data, length, false, "application/pairing+tlv8");
 
 	response.clear();
 	hapClient->request.clear();
@@ -3315,13 +3330,13 @@ void HAPServer::handlePairingsAdd(HAPClient* hapClient, const uint8_t* identifie
 	TLV8 response;
 	response.encode(HAP_TLV_STATE, 1, HAP_PAIR_STATE_M2);
 
-	if (_pairings.size() >= HAP_PAIRINGS_MAX) {		
+	if (_accessorySet->getPairings()->size() >= HAP_PAIRINGS_MAX) {		
 		response.encode(HAP_TLV_ERROR, 1, HAP_ERROR_MAX_PEERS);
 	} else {
 		
-		bool result = _pairings.add(identifier, publicKey, isAdmin);
+		bool result = _accessorySet->getPairings()->add(identifier, publicKey, isAdmin);
 		
-		if (!_pairings.save() || (result == false) ) {
+		if (!_accessorySet->getPairings()->save() || (result == false) ) {
 			response.encode(HAP_TLV_ERROR, 1, HAP_ERROR_UNKNOWN);
 		}
 	}
@@ -3356,7 +3371,7 @@ void HAPServer::handlePairingsRemove(HAPClient* hapClient, const uint8_t* identi
 
 	// if not paired 
 	LogD("Removing pairings ...", false);
-	if (!_pairings.removePairing(identifier)){
+	if (!_accessorySet->getPairings()->removePairing(identifier)){
 		
 		LogE("ERROR: No pairings found!", true);
 		
@@ -3367,16 +3382,17 @@ void HAPServer::handlePairingsRemove(HAPClient* hapClient, const uint8_t* identi
 		size_t length = 0;
 
 		response.decode(data, &length);
-		sendEncrypt(hapClient, HTTP_200, data, length, true, "application/pairing+tlv8");
+		sendEncrypt(hapClient, HTTP_200, data, length, false, "application/pairing+tlv8");
 		
 		response.clear();
 		hapClient->request.clear();
 		hapClient->clear();
+		hapClient->client.stop();
 		return;
 	} 
 
 	// ToDo: Check if needed here!?
-	_pairings.save();
+	_accessorySet->getPairings()->save();
 
 	LogD(" OK", true);
 
@@ -3391,24 +3407,29 @@ void HAPServer::handlePairingsRemove(HAPClient* hapClient, const uint8_t* identi
 	size_t length = 0;
 
 	response.decode(data, &length);
-	sendEncrypt(hapClient, HTTP_200, data, length, true, "application/pairing+tlv8");
+	sendEncrypt(hapClient, HTTP_200, data, length, false, "application/pairing+tlv8");
 
 	response.clear();
 	hapClient->request.clear();
 	hapClient->client.stop();
 	
-	// tear down all other pairings if admin removed
-	hapClient->state = HAP_CLIENT_STATE_ADMIN_REMOVED;
 	
-	_accessorySet->isPaired = false;
-	// update mdns
-	updateServiceTxt();
+	// tear down all other pairings if admin removed
+	// and update mdns
+	if (_accessorySet->isPaired()) {
+		_eventManager.queueEvent(EventManager::kEventAllPairingsRemoved, HAPEvent());
+		hapClient->state = HAP_CLIENT_STATE_ADMIN_REMOVED;
+
+		// update mdns
+		updateServiceTxt();
+	}	
 
 #if HAP_USE_MBEDTLS_SRP		
 	if (_srpInitialized) {
 		srp_keypair_delete(_srp->keys);
 		srp_session_delete(_srp->ses);
-	}	
+		_srpInitialized = false;
+	}		
 #else	
 	if(_srp) {
 		//LogW("Free SRP!", false);
@@ -3833,10 +3854,8 @@ bool HAPServer::sendEvent(HAPClient* hapClient, String response){
 
 }
 
-bool HAPServer::isPaired(){
-	_accessorySet->isPaired = _pairings.size() > 0;
-	return _pairings.size() > 0;
-
+bool HAPServer::isPaired(){	
+	return _accessorySet->isPaired();
 }
 
 void HAPServer::stopPlugins(bool value){

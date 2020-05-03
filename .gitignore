@@ -98,3 +98,6 @@ config.*
 
 ### www/dev
 www/dev/*
+
+# homekit.bin
+utils/update_server/Homekit.bin

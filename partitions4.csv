@@ -5,28 +5,24 @@
 ##
 ## Version 1.0
 ##
-## Size:      8MB
+## Size:      4MB
 ##
 ## Offset:    52K
 ##
 ## ota_data    8 K
 ## phy         4 K   =    64 K
-## ota 1    2958 K   
-## ota 2    2958 K   = 12768 K
+## factory  3192 K   
 ## nsv_key:    4 K
 ## nsv:       32 K
 ## ============================
 ##               K
 
+
+## Available: 4194304		=> 6144
+
 ## Name,    Type,       SubType,    Offset,     Size,   Flags
 
 ## Offset:      0xD000   == 0000D000       =   53248    == 52K
-
-##
-## OTA data
-## required for OTA
-## Name,    Type,       SubType,    Offset,     Size,   Flags
-otadata,    data, 		ota,        0xD000,  	8K
 
 ##
 ## PHY INIT
@@ -34,11 +30,10 @@ otadata,    data, 		ota,        0xD000,  	8K
 phy_init, 	data, 		phy,        0xF000,     4K
 
 ##
-## OTA 
+## Factory 
 ##
 ## Name,    Type,       SubType,    Offset,     Size,   Flags
-ota_0,      app,        ota_0,      0x10000,    2958K,
-ota_1,      app,        ota_1,      ,           2958K,
+factory,    app,        factory,    0x10000,    3192K,
 
 ##
 ## NVS Keys (Preferences Keys)

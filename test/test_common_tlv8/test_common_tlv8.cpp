@@ -106,15 +106,36 @@ void test_tlv_stream(void) {
     TEST_ASSERT_EQUAL(s, sizeof(data));   
 }
 
+void test_tlv_separator(void) {
+    
+    TLV8 tlv;
+    const int length = 6;
+    uint8_t data[length] = {0xFF, 0x00, 0x01, 0x02, 0x03, 0x04};
+    tlv.encode(data, length);
+    
+
+    uint8_t result[128];
+    size_t s = 0;
+    tlv.decode(result, &s);  
+    
+    tlv.clear();
+
+    TEST_ASSERT_EQUAL_MEMORY(data, result, length);
+    TEST_ASSERT_EQUAL(s, sizeof(data)); 
+    TEST_ASSERT_EQUAL(s, length);   
+}
+
 void process() {
     UNITY_BEGIN();
 
     RUN_TEST(test_tlv_simple);    
     RUN_TEST(test_tlv_duo);  
     RUN_TEST(test_tlv_duo_get_single);  
+    
+    RUN_TEST(test_tlv_separator);
 
 #ifdef ARDUINO
-    RUN_TEST(test_tlv_stream);
+    RUN_TEST(test_tlv_stream);    
 #endif
     
 

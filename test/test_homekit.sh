@@ -19,10 +19,10 @@ CHARACTERISTICS_FG_REQ_ENTRY="3.17"
 CHARACTERISTICS_FG_HISTORY="3.16"
 
 
-ITERATIONS=1
+ITERATIONS=16
 
-echo "Remove pairings through API" 
-echo "==========================================="
+# echo "Remove pairings through API" 
+# echo "==========================================="
 # curl --request DELETE \
 #         --url https://esp32-cafeec/api/pairings \
 #         --header 'Authorization: Basic YWRtaW46c2VjcmV0' \
@@ -30,10 +30,10 @@ echo "==========================================="
 #         --header 'Content-Type: application/json' \
 #         -k \
 # 		-s
-echo "==========================================="
-echo ""
-echo ""
-echo ""
+# echo "==========================================="
+# echo ""
+# echo ""
+# echo ""
 
 
 echo "Init homekit storage file" 
@@ -232,6 +232,15 @@ echo ""
 echo ""
 echo ""
 
+
+
+echo "Remove admin pairing"
+echo "==========================================="
+python3 -m homekit.remove_pairing -f ${PAIRINGDATAFILE} -a ${ALIAS}
+echo "==========================================="
+echo ""
+echo ""
+echo ""
 
 
 echo "Remove storage file"

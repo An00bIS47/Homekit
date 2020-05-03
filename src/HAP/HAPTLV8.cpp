@@ -148,9 +148,9 @@ void TLV8::decode(uint8_t* out, size_t *outSize){
 
 	while(_head) {
 		out[offset++] = _head->type;
-
+		out[offset++] = _head->length;
+		
 		if (_head->type != HAP_TLV_SEPERATOR) {
-			out[offset++] = _head->length;
 			memcpy(out + offset, _head->value, _head->length);
 			offset += _head->length;
 		}
@@ -224,7 +224,7 @@ void TLV8::addSeperator() {
 	// then return pointer to new node
 	else {
 		ptr->type = HAP_TLV_SEPERATOR;
-		ptr->length = 0;
+		ptr->length = 0x00;
 		addNode( ptr );
 	}
 }
@@ -255,7 +255,7 @@ bool TLV8::encode(uint8_t* rawData, size_t dataLen){
 		else {
 			ptr->type = rawData[encoded];
 			ptr->length = rawData[encoded+1];
-
+			
 			ptr->value = new unsigned char[ptr->length];
 			memcpy(ptr->value, rawData + (encoded+2), ptr->length);
 
@@ -615,7 +615,7 @@ TLV8::~TLV8() {
 bool TLV8::isValidTLVType(uint8_t type) {
 	switch (type) {
 		case HAP_TLV_METHOD:
-			return false;
+			return true;
 		case HAP_TLV_IDENTIFIER:
 			return true;
 		case HAP_TLV_SALT:

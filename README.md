@@ -65,13 +65,18 @@ Once the ESP-IDF is installed:
 ```shell
 $ git clone https://github.com/An00bIS47/Homekit
 $ cd Homekit
-$ chmod +x init_submodules.sh
-$ ./init_submodules.sh
-$ make 
+$ git submodule update --init --recursive
 $ make menuconfig
 $ make app flash monitor
 ```
 
+## macOS
+The Makefile uses `gfind` to look for source code file for compilation. You need to install it via:
+```shell
+brew install findutils
+```
+
+## Linker Errors
 If you encounter errors regarding compiling the components, add a file called `components.mk` to the affected directory and specify where to find the source files.
 For example the `components.mk` for the `SSD13XX` component it would look like this:
 
@@ -86,12 +91,12 @@ or
 COMPONENT_SRCDIRS:=src
 COMPONENT_ADD_INCLUDEDIRS:=src
 ```
-depending where the source files of the library are located.
+depending where the source files of the libraries are located.
 
 
 ## SDK configuration
 
-There seems to be a bug with `Enable hardware MPI (bignum) acceleration` so you have to disable it when working with `mbedtls srp`
+There seems to be a bug with `Enable hardware MPI (bignum) acceleration` so you have to disable it when working with `mbedtls srp` (default)
 
 Add the following defines to `$IDF_PATH/components/mbedtls/port/include/mbedtls/esp_config.h` to fix linker errors regarding HKDF and POLY1305CHACHA20.
 
@@ -400,7 +405,7 @@ or add the according define at end of the file `src/component.mk`, for example
 
 ```
 CPPFLAGS += -DHAP_PLUGIN_USE_BME280=1
-CPPFLAGS += -HAP_PLUGIN_USE_LED=1
+CPPFLAGS += -DHAP_PLUGIN_USE_LED=1
 ```
 
 
