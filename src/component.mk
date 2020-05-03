@@ -10,8 +10,8 @@
 WOLFSSL 	= 0
 DEBUG  		= 1
 SRP_TEST 	= 0
-#BOARD		= ARDUINO_FEATHER_ESP32
-BOARD		= ARDUINO_HELTEC_WIFI_KIT_32
+BOARD		= ARDUINO_FEATHER_ESP32
+#BOARD		= ARDUINO_HELTEC_WIFI_KIT_32
 
 ENABLE_OTA			= 1
 ENABLE_WEBSERVER 	= 1
@@ -30,7 +30,7 @@ ifeq ($(BOARD),ARDUINO_FEATHER_ESP32)
 	CXXFLAGS += -DARDUINO_FEATHER_ESP32
 	CXXFLAGS += -I$(PROJECT_PATH)/components/arduino/variants/feather_esp32/
 
-	
+	CPPFLAGS += -DHAP_PLUGIN_USE_SSD1306=0
 	#$(info Change the Serial Flasher baud rate to 2MB)
 endif	
 
@@ -114,19 +114,19 @@ COMPONENT_ADD_INCLUDEDIRS += Crypto
 #
 # Plugins incl. all subdirectories
 #
-ifeq ($(OS),Windows_NT)
+# ifeq ($(OS),Windows_NT)
 
-else
-	UNAME_S := $(shell uname -s)
-    ifeq ($(UNAME_S),Linux)
-        COMPONENT_SRCDIRS += $(shell find $(COMPONENT_PATH)/HAP/plugins -type d -printf 'HAP/plugins/%P ')
-		COMPONENT_ADD_INCLUDEDIRS += $(shell find $(COMPONENT_PATH)/HAP/plugins -type d -printf 'HAP/plugins/%P ')
-    endif
-    ifeq ($(UNAME_S),Darwin)
-        COMPONENT_SRCDIRS += $(shell gfind $(COMPONENT_PATH)/HAP/plugins -type d -printf 'HAP/plugins/%P ')
-		COMPONENT_ADD_INCLUDEDIRS += $(shell gfind $(COMPONENT_PATH)/HAP/plugins -type d -printf 'HAP/plugins/%P ')
-    endif
-endif	
+# else
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Linux)
+	COMPONENT_SRCDIRS += $(shell find $(COMPONENT_PATH)/HAP/plugins -type d -printf 'HAP/plugins/%P ')
+	COMPONENT_ADD_INCLUDEDIRS += $(shell find $(COMPONENT_PATH)/HAP/plugins -type d -printf 'HAP/plugins/%P ')
+endif
+ifeq ($(UNAME_S),Darwin)
+	COMPONENT_SRCDIRS += $(shell gfind $(COMPONENT_PATH)/HAP/plugins -type d -printf 'HAP/plugins/%P ')
+	COMPONENT_ADD_INCLUDEDIRS += $(shell gfind $(COMPONENT_PATH)/HAP/plugins -type d -printf 'HAP/plugins/%P ')
+endif
+# endif	
 
 # Print included components dir while compiling
 #$(warning COMPONENT_SRCDIRS=$(COMPONENT_SRCDIRS))	# __deprecated__
@@ -190,6 +190,7 @@ ifeq ($(DEBUG),1)
 
 	ifeq ($(BOARD),ARDUINO_FEATHER_ESP32)
 		CPPFLAGS += -DHAP_FAKEGATO_INTERVAL=500
+		
 	endif
 
 	ifeq ($(BOARD),ARDUINO_HELTEC_WIFI_KIT_32)

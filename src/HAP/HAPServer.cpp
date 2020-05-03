@@ -918,14 +918,14 @@ void HAPServer::handleClientState(HAPClient* hapClient) {
 		case HAP_CLIENT_STATE_IDLE:
 			LogD( "<<< client [" + hapClient->client.remoteIP().toString() + "] idle", true );
 			break;
-		case HAP_CLIENT_STATE_ADMIN_REMOVED:
+		case HAP_CLIENT_STATE_ALL_PAIRINGS_REMOVED:
 			LogD( "<<< client [" + hapClient->client.remoteIP().toString() + "] admin removed", true );
-			handleAdminRemoved();
+			handleAllPairingsRemoved();
 			break;
 	}
 }
 
-void HAPServer::handleAdminRemoved(){
+void HAPServer::handleAllPairingsRemoved(){
 	LogV( F("<<< Handle admin removed ..."), false);
 	for (int i=0; i < _clients.size(); i++){
 		LogD("\nClosing connection to client [" + _clients[i].client.remoteIP().toString() + "]", true);
@@ -2904,6 +2904,7 @@ bool HAPServer::handlePairVerifyM1(HAPClient* hapClient){
 	if (crypto_sign_detached(acc_signature, &acc_signature_length, acc_info, acc_info_len, _longTermContext->privateKey) != 0) {
 		LogE( F("[ERROR] crypto_sign_detached failed"), true);
 		sendErrorTLV(hapClient, HAP_VERIFY_STATE_M2, HAP_ERROR_AUTHENTICATON);
+		concat_free(acc_info);
 		return false;
 	}
 
@@ -3231,6 +3232,8 @@ bool HAPServer::handlePairVerifyM3(HAPClient* hapClient){
 
 	// following messages from this client will be encrypted
 	hapClient->setEncryped(true);
+	hapClient->setId(ios_device_pairing_id);
+	hapClient->setAdmin(_accessorySet->getPairings()->isAdmin(ios_device_pairing_id));
 	
 	LogV("OK", true);
 	LogI(">>> Verification with client [" + hapClient->client.remoteIP().toString() + "] complete!", true);
@@ -3286,6 +3289,11 @@ void HAPServer::handleAccessories(HAPClient* hapClient) {
 void HAPServer::handlePairingsList(HAPClient* hapClient){
 	LogV( "<<< Handle client [" + hapClient->client.remoteIP().toString() + "] -> POST /pairings list ...", false);
 
+	if (hapClient->isAdmin() == false){
+		LogE("ERROR: Non-Admin controllers are not allowed to call this method!", true);
+		sendErrorTLV(hapClient, HAP_PAIR_STATE_M2, HAP_ERROR_AUTHENTICATON);
+		return;
+	}
 	
 	TLV8 response;
 	response.encode(HAP_TLV_STATE, 1, HAP_PAIR_STATE_M2);
@@ -3327,13 +3335,20 @@ void HAPServer::handlePairingsList(HAPClient* hapClient){
 void HAPServer::handlePairingsAdd(HAPClient* hapClient, const uint8_t* identifier, const uint8_t* publicKey, bool isAdmin){
 	LogV( "<<< Handle client [" + hapClient->client.remoteIP().toString() + "] -> POST /pairings add ...", false);	
 
+
+	if (hapClient->isAdmin() == false){
+		LogE("ERROR: Non-Admin controllers are not allowed to call this method!", true);
+		sendErrorTLV(hapClient, HAP_PAIR_STATE_M2, HAP_ERROR_AUTHENTICATON);
+		return;
+	}
+
 	TLV8 response;
 	response.encode(HAP_TLV_STATE, 1, HAP_PAIR_STATE_M2);
 
 	if (_accessorySet->getPairings()->size() >= HAP_PAIRINGS_MAX) {		
 		response.encode(HAP_TLV_ERROR, 1, HAP_ERROR_MAX_PEERS);
 	} else {
-		
+
 		bool result = _accessorySet->getPairings()->add(identifier, publicKey, isAdmin);
 		
 		if (!_accessorySet->getPairings()->save() || (result == false) ) {
@@ -3365,9 +3380,29 @@ void HAPServer::handlePairingsRemove(HAPClient* hapClient, const uint8_t* identi
 	
 	LogV( "<<< Handle client [" + hapClient->client.remoteIP().toString() + "] -> POST /pairings remove ...", false);	
 	
-	TLV8 response;	
+	bool removeItsOwnPairings = false;
 
+	// id identifier is controllers id, then disonnect 
+	if (memcmp(identifier, hapClient->getId(), HAP_PAIRINGS_ID_LENGTH) == 0) {
+		Serial.println("removie its own pairings");
+		removeItsOwnPairings = true;
+	}
+	
+	// ToDo:
+	// According to the spec, only admin controllers can delete pairings.
+	// 
+	// But this will deny removing ones own pairings
+	// i will allow this
+	// 
+	if ( (hapClient->isAdmin() == false) && (removeItsOwnPairings == false) ) {
+		LogE("ERROR: Non-Admin controllers are not allowed to call this method!", true);
+		sendErrorTLV(hapClient, HAP_PAIR_STATE_M2, HAP_ERROR_AUTHENTICATON);
+		return;
+	}
+
+	TLV8 response;	
 	response.encode(HAP_TLV_STATE, 1, HAP_PAIR_STATE_M2);
+
 
 	// if not paired 
 	LogD("Removing pairings ...", false);
@@ -3410,15 +3445,21 @@ void HAPServer::handlePairingsRemove(HAPClient* hapClient, const uint8_t* identi
 	sendEncrypt(hapClient, HTTP_200, data, length, false, "application/pairing+tlv8");
 
 	response.clear();
-	hapClient->request.clear();
-	hapClient->client.stop();
+	hapClient->request.clear();	
+
+	if (removeItsOwnPairings) {
+		hapClient->client.stop();
+	}
 	
+	
+	hapClient->clear();
 	
 	// tear down all other pairings if admin removed
 	// and update mdns
 	if (_accessorySet->isPaired()) {
+		
+		hapClient->state = HAP_CLIENT_STATE_ALL_PAIRINGS_REMOVED;
 		_eventManager.queueEvent(EventManager::kEventAllPairingsRemoved, HAPEvent());
-		hapClient->state = HAP_CLIENT_STATE_ADMIN_REMOVED;
 
 		// update mdns
 		updateServiceTxt();
@@ -3437,6 +3478,8 @@ void HAPServer::handlePairingsRemove(HAPClient* hapClient, const uint8_t* identi
 		//LogW("OK", true);
 	}
 #endif
+
+
 	LogV("OK", true);
 }
 
@@ -3444,7 +3487,7 @@ void HAPServer::handlePairingsPost(HAPClient* hapClient, uint8_t* bodyData, size
 
 	
 	LogV( "<<< Handle client [" + hapClient->client.remoteIP().toString() + "] -> POST /pairings ...", false);
-	
+
 	TLV8 tlv;
 	tlv.encode(bodyData, bodyDataLen);
 
@@ -3452,35 +3495,10 @@ void HAPServer::handlePairingsPost(HAPClient* hapClient, uint8_t* bodyData, size
 	tlv.print();
 #endif
 	
-	// TLV8Entry *entryState = tlv.searchType(tlv._head, HAP_TLV_STATE); // 0x01
-	
 	TLV8Entry *entry = tlv.searchType(tlv._head, HAP_TLV_METHOD); // 0x01
 
 	HAP_TLV_PAIR_TYPE method = (HAP_TLV_PAIR_TYPE) entry->value[0];
 
-
-	// if (entryState->value[0] != HAP_PAIR_STATE_M1) {
-		
-	// 	TLV8 response;	
-	// 	response.encode(HAP_TLV_STATE, 1, HAP_PAIR_STATE_M2);
-	// 	response.encode(HAP_TLV_ERROR, 1, HAP_ERROR_UNKNOWN);
-		
-	// 	uint8_t data[response.size()];
-	// 	size_t length = 0;
-		
-	// 	response.decode(data, &length);
-	// 	sendEncrypt(hapClient, HTTP_200, data, length, true, "application/pairing+tlv8");
-
-	// 	response.clear();
-	// 	hapClient->request.clear();
-	// 	hapClient->clear();
-
-
-	// 	tlv.clear();
-
-	// 	hapClient->state = HAP_CLIENT_STATE_IDLE;
-	// 	return;
-	// }
 
 	if (method == HAP_TLV_PAIR_ADD) {
 
@@ -3488,8 +3506,7 @@ void HAPServer::handlePairingsPost(HAPClient* hapClient, uint8_t* bodyData, size
 		TLV8Entry *entryPublicKey = tlv.searchType(tlv._head, HAP_TLV_PUBLIC_KEY); // 0x03		
 		TLV8Entry *entryAdmin = tlv.searchType(tlv._head, HAP_TLV_PERMISSIONS); // 0x0b
 
-		
-		handlePairingsAdd(hapClient, entryIdentifier->value, entryPublicKey->value, entryAdmin->value == 0x00 ? false : true);
+		handlePairingsAdd(hapClient, entryIdentifier->value, entryPublicKey->value, *(entryAdmin->value) );
 
 	} else if (method == HAP_TLV_PAIR_REMOVE) {
 		TLV8Entry *entryIdentifier = tlv.searchType(tlv._head, HAP_TLV_IDENTIFIER); // 0x01

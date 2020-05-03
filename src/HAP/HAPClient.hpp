@@ -31,8 +31,8 @@ enum HAP_CLIENT_STATE {
 	HAP_CLIENT_STATE_AVAILABLE,
 	HAP_CLIENT_STATE_SENT,
 	HAP_CLIENT_STATE_RECEIVED,
-	HAP_CLIENT_STATE_IDLE,
-	HAP_CLIENT_STATE_ADMIN_REMOVED,
+	HAP_CLIENT_STATE_IDLE,	
+	HAP_CLIENT_STATE_ALL_PAIRINGS_REMOVED
 };
 
 
@@ -152,6 +152,14 @@ public:
 
 	static String statusMessage(int statusCode);
 
+	const uint8_t* getId(){
+		return _idPtr;
+	}
+
+	void setId(const uint8_t *id){
+		memcpy(_idPtr, id, HAP_PAIRINGS_ID_LENGTH);
+	}
+
 private:
 	bool			_isEncrypted;
 	bool			_headerSent;
@@ -163,6 +171,8 @@ private:
 	String buildHeaderAndStatus(int statusCode, size_t size = 0);
 
 	StreamString 	_sstring;
+
+	uint8_t	_idPtr[HAP_PAIRINGS_ID_LENGTH];
 			
 };
 

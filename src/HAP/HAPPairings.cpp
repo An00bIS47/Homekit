@@ -280,9 +280,8 @@ bool HAPPairings::removePairing(const uint8_t *id){
 
 
 bool HAPPairings::isAdmin(const uint8_t *id){
-	int index = -1;
 
-	index = getIndex(id);
+	int index = getIndex(id);
 
 	if (index >= 0) {
 		return pairings[index].isAdmin;
