@@ -25,7 +25,7 @@
 #define HAP_MANUFACTURER			"An00bIS47"
 #define HAP_MODELL_NAME				"Huzzah32"
 #define HAP_RESET_EEPROM 			0
-
+#define HOMEKIT_PROTOKOL_VERSION	"1.0"
 
 /**
  * Debug
@@ -54,8 +54,8 @@
 #define HAP_DEBUG_PAIRINGS			0
 #endif
 
-#ifndef HAP_DEBUG_REQUESTS
-#define HAP_DEBUG_REQUESTS			0
+#ifndef HAP_DEBUG_RESPONSES
+#define HAP_DEBUG_RESPONSES			0
 #endif
 
 #ifndef HAP_DEBUG_ENCRYPTION

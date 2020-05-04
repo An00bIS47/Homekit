@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <sys/wait.h>
 
-#define ITERATIONS                          5
+#define ITERATIONS                          1
 
 #define BOARD_HELTEC                        0
 #define BOARD_CAFEEC                        1
@@ -201,11 +201,10 @@ void test_homekit_pair(void) {
     cmd += DEVICE_ID;
     cmd += " -p ";
     cmd += SETUPCODE;
-    cmd += " -f";
+    cmd += " -f ";
     cmd += PAIRINGDATAFILE;
     cmd += " -a ";
-    cmd += ALIAS;
-    
+    cmd += ALIAS;    
     
 
 #if TEST_SHOW_CMD
