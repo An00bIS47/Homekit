@@ -1661,8 +1661,9 @@ bool HAPServer::sendEncrypt(HAPClient* hapClient, String httpStatus, const uint8
 		encrypted = HAPEncryption::encrypt((uint8_t*)response.c_str(), response.length(), &encryptedLen, hapClient->encryptionContext.encryptKey, hapClient->encryptionContext.encryptCount++);
 
 	} else {
-		response += String( "Content-Type:" ); 
+		response += String( "Content-Type: " ); 
 		response += String(ContentType);
+		response += String(HTTP_CRLF);
 
 
 		if ( httpStatus != EVENT_200 ) {
@@ -1688,17 +1689,37 @@ bool HAPServer::sendEncrypt(HAPClient* hapClient, String httpStatus, const uint8
 		uint8_t* buffer;
 
 		buffer = (uint8_t*) malloc(sizeof(uint8_t) * buffersize);
+		buffersize = 0;
 
 		memcpy(buffer, response.c_str(), response.length());
+		buffersize += response.length();
+
 		memcpy(buffer + response.length(), bytes, length);
+		buffersize += length;
+
+		// CRLF after payload
+		{
+			const char* chunkSize = "\r\n";
+			memcpy(buffer + buffersize, chunkSize, strlen(chunkSize));
+			buffersize	+= strlen(chunkSize);
+		}
+
 
 		if (chunked) {
 			char chunkSize[8];
 			sprintf(chunkSize, "%x\r\n", 0);
-			memcpy(buffer + response.length() + length, (uint8_t*)chunkSize, strlen(chunkSize));
+			memcpy(buffer + buffersize, (uint8_t*)chunkSize, strlen(chunkSize));
 			
-			buffersize = response.length() + length + strlen(chunkSize);
+			buffersize += strlen(chunkSize);
 		}
+
+		// CRLF for ending
+		{
+			const char* chunkSize = "\r\n";
+			memcpy(buffer + buffersize, chunkSize, strlen(chunkSize));
+			buffersize	+= strlen(chunkSize);
+		}
+		
 		
 #if HAP_DEBUG_REQUESTS		
 		HAPHelper::array_print("Response Buffer:", buffer, buffersize);
@@ -1752,19 +1773,6 @@ bool HAPServer::sendEncrypt(HAPClient* hapClient, String httpStatus, const uint8
 	return result;
 }
 
-// ToDo: Rewrite for streaming !!
-/**
- * @brief Send an encrypted response to the hapClient
- * 		  Used after a secured connection is established
- * 
- * // ToDo: Make it dynamically? Check if encryption allows partial encoding and send response in chunks		
- * @param hapClient 	Pointer to the hapClient
- * @param httpStatus 	The HTTP Status Code to send
- * @param plainText 	The message in plaintext to send
- * @param chunked 		Use chunked mode
- * @return true 		Return true on success
- * @return false 		Return false on failure
- */
 bool HAPServer::sendEncrypt(HAPClient* hapClient, String httpStatus, String plainText, bool chunked){		
 	return sendEncrypt(hapClient, httpStatus, (const uint8_t*)plainText.c_str(), plainText.length(), chunked, "application/hap+json");
 }
@@ -3271,7 +3279,7 @@ void HAPServer::handleAccessories(HAPClient* hapClient) {
 	// // hapClient->write( (uint8_t*)_accessorySet->describe().c_str(), _accessorySet->describe().length());
 	
 	// serializeJson(doc, *hapClient);	
-	sendEncrypt(hapClient, HTTP_200, _accessorySet->describe());	
+	sendEncrypt(hapClient, HTTP_200, _accessorySet->describe(), true);	
 
 	LogV("OK", true);
 	hapClient->state = HAP_CLIENT_STATE_IDLE;
@@ -3320,7 +3328,7 @@ void HAPServer::handlePairingsList(HAPClient* hapClient){
 	size_t length = 0;
 
 	response.decode(data, &length);
-	sendEncrypt(hapClient, HTTP_200, data, length, false, "application/pairing+tlv8");
+	sendEncrypt(hapClient, HTTP_200, data, length, true, "application/pairing+tlv8");
 
 	response.clear();
 	hapClient->request.clear();
@@ -3417,7 +3425,7 @@ void HAPServer::handlePairingsRemove(HAPClient* hapClient, const uint8_t* identi
 		size_t length = 0;
 
 		response.decode(data, &length);
-		sendEncrypt(hapClient, HTTP_200, data, length, false, "application/pairing+tlv8");
+		sendEncrypt(hapClient, HTTP_200, data, length, true, "application/pairing+tlv8");
 		
 		response.clear();
 		hapClient->request.clear();
@@ -3442,7 +3450,7 @@ void HAPServer::handlePairingsRemove(HAPClient* hapClient, const uint8_t* identi
 	size_t length = 0;
 
 	response.decode(data, &length);
-	sendEncrypt(hapClient, HTTP_200, data, length, false, "application/pairing+tlv8");
+	sendEncrypt(hapClient, HTTP_200, data, length, true, "application/pairing+tlv8");
 
 	response.clear();
 	hapClient->request.clear();	
@@ -3614,13 +3622,13 @@ void HAPServer::handleCharacteristicsGet(HAPClient* hapClient){
 
 	if (errorCode == -1){
 		// Accessory not found
-		sendEncrypt(hapClient, HTTP_400, response, false);
+		sendEncrypt(hapClient, HTTP_400, response, true);
 	} else if (errorOccured == false) {
 		// everything ok
-		sendEncrypt(hapClient, HTTP_200, response, false);	
+		sendEncrypt(hapClient, HTTP_200, response, true);	
 	} else if (errorOccured == true) {
 		// partial ok
-    	sendEncrypt(hapClient, HTTP_207, response, false);	
+    	sendEncrypt(hapClient, HTTP_207, response, true);	
 	}
 
 	LogV("OK", true);
