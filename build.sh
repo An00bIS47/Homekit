@@ -17,13 +17,13 @@ echo Increasing build number
 make -j8 app
 
 echo Flash
-#make flash 
+make flash 
 
-echo Uploading
-scp build/Homekit.bin pi@homebridge:/home/pi/docker/docker-update_server/firmwares/
+#echo Uploading
+#scp build/Homekit.bin pi@homebridge:/home/pi/docker/docker-update_server/firmwares/
 
-echo Copy to local update server
-cp build/Homekit.bin utils/update_server/
+#echo Copy to local update server
+#cp build/Homekit.bin utils/update_server/
 
 echo Start monitor
-#make monitor
+make monitor
