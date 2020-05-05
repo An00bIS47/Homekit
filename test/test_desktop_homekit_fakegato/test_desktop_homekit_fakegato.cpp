@@ -112,7 +112,7 @@ void _setUp(void) {
 #if TEST_SHOW_CMD
         std::cout << "cmd: " << cmd << std::endl;    
 #endif
-        // exec( cmd.c_str() );
+        exec( cmd.c_str() );
     }
 
     // init pairing file
@@ -124,7 +124,7 @@ void _setUp(void) {
         std::cout << "cmd: " << cmd << std::endl;    
 #endif
 
-        // exec( cmd.c_str() );
+        exec( cmd.c_str() );
     }
 
 
@@ -141,7 +141,7 @@ void _tearDown(void) {
 #if TEST_SHOW_CMD
         std::cout << "cmd: " << cmd << std::endl;    
 #endif
-        // exec( cmd.c_str() );
+        exec( cmd.c_str() );
     }
 }
 

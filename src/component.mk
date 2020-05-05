@@ -7,11 +7,11 @@
 # please read the ESP-IDF documents if you need to do this.
 #
 
-DEBUG  		= 0
+DEBUG  		= 1
 
-# BOARD		= ARDUINO_FEATHER_ESP32
-# BOARD		= ARDUINO_HELTEC_WIFI_KIT_32
-BOARD		= HUZZAH
+BOARD		= SPARKFUN
+# BOARD		= HELTEC
+# BOARD		= HUZZAH
 
 ENABLE_OTA			= 0
 ENABLE_WEBSERVER 	= 1
@@ -34,14 +34,14 @@ CXXFLAGS += -DESP32 -DARDUINO_ARCH_ESP32
 #
 # Boards
 # 
-ifeq ($(BOARD),ARDUINO_FEATHER_ESP32)
+ifeq ($(BOARD),SPARKFUN)
 	#$(info ************ Feather variant ************)
 	CXXFLAGS += -DARDUINO_FEATHER_ESP32
 	CXXFLAGS += -I$(PROJECT_PATH)/components/arduino/variants/feather_esp32/
 	#$(info Change the Serial Flasher baud rate to 2MB)
 endif	
 
-ifeq ($(BOARD),ARDUINO_HELTEC_WIFI_KIT_32)
+ifeq ($(BOARD),HELTEC)
 	#$(info ************ Heltec variant ************)
 	CXXFLAGS += -DARDUINO_HELTEC_WIFI_KIT_32
 	CXXFLAGS += -I$(PROJECT_PATH)/components/arduino/variants/heltec_wifi_kit_32/
@@ -202,7 +202,7 @@ ifeq ($(DEBUG),1)
 	#$(info ************ TEST VERSION ************)
 	CPPFLAGS += -DHAP_DEBUG=1
 
-	ifeq ($(BOARD),ARDUINO_FEATHER_ESP32)
+	ifeq ($(BOARD),SPARKFUN)
 		CPPFLAGS += -DHAP_FAKEGATO_INTERVAL=500
 		CPPFLAGS += -DHAP_DEBUG_REQUESTS=0
 		
@@ -224,7 +224,7 @@ ifeq ($(DEBUG),1)
 		CPPFLAGS += -DHAP_PLUGIN_USE_LED=1
 	endif
 
-	ifeq ($(BOARD),ARDUINO_HELTEC_WIFI_KIT_32)
+	ifeq ($(BOARD),HELTEC)
 		CPPFLAGS += -DHAP_FAKEGATO_INTERVAL=3000
 		
 		CPPFLAGS += -DHAP_DEBUG_HOMEKIT=0
