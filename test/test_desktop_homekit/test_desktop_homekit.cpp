@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <sys/wait.h>
 
-#define ITERATIONS                          10
+#define ITERATIONS                          1
 
 #define BOARD_HELTEC                        0
 #define BOARD_CAFEEC                        1

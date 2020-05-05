@@ -12,11 +12,6 @@
 #include <Arduino.h>
 #include "HAPFakeGato.hpp"
 
-
-
-
-#define HAP_DEBUG_FAKEGATO      0
-
 struct HAPFakeGatoWeatherData {
     uint32_t timestamp;     // unix
     // bool     setRefTime;    

@@ -160,7 +160,7 @@ union HAPFakeGatoInfoEnd {
 // template <class TFakeGatoData>
 class HAPFakeGato {
 public:    
-    HAPFakeGato() {};    
+    HAPFakeGato();
     ~HAPFakeGato() {};
 
     void registerFakeGatoService(HAPAccessory* accessory, String name);
@@ -207,15 +207,6 @@ public:
         _callbackAddEntry = callback;
     }
     
-    // bool addEntry(TFakeGatoData data){
-    //     LogD(String(__CLASS_NAME__) + "->" + String(__FUNCTION__) + " [   ] " + "Handle fakegato weather", true);
-    //     if (_ringbuffer == nullptr) {
-    //         begin();
-    //     }
-            
-    //     return _ringbuffer->push(data);
-    //     return false;
-    // }
 
 protected:
     std::function<bool()> _callbackAddEntry = NULL;  
@@ -277,7 +268,7 @@ protected:
     void updateS2R2Value();
 
     bool shouldHandle();
-private:
+
 
     void setS2R1Characteristics(String oldValue, String newValue);
     void setS2R2Characteristics(String oldValue, String newValue);

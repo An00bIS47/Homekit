@@ -573,11 +573,15 @@ bool HAPServer::begin(bool resume) {
   	LogV( "Number of event listeners:  ", false );
   	LogV( String(_eventManager.numListeners()), true );
 
+
+
+	LogD(_accessorySet->describe(), true);
+
 	// 
 	// Startup completed
 	// 	
 	LogI("Homekit has started successfully!", true);	
-	if (_accessorySet->isPaired()) {
+	if (!_accessorySet->isPaired()) {
 		LogI("Homekit pin code: ", false);
 		LogI(_accessorySet->pinCode(), true);
 	}
@@ -3853,15 +3857,14 @@ void HAPServer::handleEvents( int eventCode, struct HAPEvent eventParam )
 
 
 bool HAPServer::sendEvent(HAPClient* hapClient, String response){
-	LogV(">>> Sending event to client [" + hapClient->client.remoteIP().toString() + "] ...", false);
+	LogD(">>> Sending event to client [" + hapClient->client.remoteIP().toString() + "] ...", false);
 	if ( hapClient->client.connected() ){				
-		sendEncrypt(hapClient, EVENT_200, response, false);	
-		LogV("OK", true);
-		return true;
-		
+		sendEncrypt(hapClient, EVENT_200, response, true);	
+		LogD(" OK", true);
+		return true;		
 	} 
 	
-	LogW("[WARNING] No client available to send the event to!", true);		
+	LogW("WARNING: No client available to send the event to!", true);		
 	return false;
 
 }

@@ -13,7 +13,6 @@
 #include "HAPFakeGato.hpp"
 
 
-
 struct HAPFakeGatoSwitchData {
     uint32_t timestamp;     // unix
     // bool     setRefTime;    

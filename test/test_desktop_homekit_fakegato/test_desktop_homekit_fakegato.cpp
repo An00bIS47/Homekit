@@ -8,7 +8,13 @@
 #include <stdio.h>
 #include <sys/wait.h>
 
-#define ITERATIONS                          10
+#include <cctype>
+#include <string>
+#include <algorithm>
+
+#include <mbedtls/base64.h>
+
+#define ITERATIONS                          1
 
 #define BOARD_HELTEC                        0
 #define BOARD_CAFEEC                        1
@@ -37,7 +43,6 @@
 
 #define TEST_SHOW_CMD                       1
 #define TEST_SHOW_RESULT                    0
-#define TEST_KEEP_PAIRING                   0
 
 
 
@@ -46,11 +51,8 @@
 //#define TEST_DEBUG                          " --log DEBUG"
 
 
-
-
-std::string cmd_pairing_prepare = "";
-std::string cmd_pairing_add = "";
-std::string additional_pairing_id = "";
+int entryCounter    = 0;
+int expectedEntries = 0;
 
 
 
@@ -63,17 +65,23 @@ std::string exec(const char* cmd);
 void test_homekit_pair(void);
 void test_homekit_get_accessories(void);
 
-void test_homekit_list_pairings(void);
-void test_homekit_prepare_add_remote_pairing(void);
-void test_homekit_add_additional_pairing(void);
-void test_homekit_finish_add_remote_pairing(void);
 
-void test_homekit_get_accessories_additional(void);
+void test_homekit_get_characteristics_fg_entry_count(void);
+void test_homekit_get_characteristics_fg_history(void);
 
-void test_homekit_remove_additional_pairing(void);
+void test_homekit_put_characteristics_fg_address_1(void);
+
+
 void test_homekit_remove_pairing(void);
 
+std::string trim(const std::string &s);
 
+std::string trim(const std::string &s)
+{
+   auto wsfront=std::find_if_not(s.begin(),s.end(),[](int c){return std::isspace(c);});
+   auto wsback=std::find_if_not(s.rbegin(),s.rend(),[](int c){return std::isspace(c);}).base();
+   return (wsback<=wsfront ? std::string() : std::string(wsfront,wsback));
+}
 
 std::string exec(const char* cmd) {
     std::array<char, 128> buffer;
@@ -104,7 +112,7 @@ void _setUp(void) {
 #if TEST_SHOW_CMD
         std::cout << "cmd: " << cmd << std::endl;    
 #endif
-        exec( cmd.c_str() );
+        // exec( cmd.c_str() );
     }
 
     // init pairing file
@@ -116,22 +124,10 @@ void _setUp(void) {
         std::cout << "cmd: " << cmd << std::endl;    
 #endif
 
-        exec( cmd.c_str() );
+        // exec( cmd.c_str() );
     }
 
-//     cmd = "curl --request DELETE \
-// --url https://esp32-cafeec/api/pairings \
-// --header 'Authorization: Basic YWRtaW46c2VjcmV0' \
-// --header 'Connection: keep-alive' \
-// --header 'Content-Type: application/json' \
-// -k \
-// -s";
 
-// #if TEST_SHOW_CMD
-//     std::cout << "cmd: " << cmd << std::endl;    
-// #endif
-
-    //exec( cmd.c_str() );
 }
 
 void _tearDown(void) {
@@ -145,10 +141,9 @@ void _tearDown(void) {
 #if TEST_SHOW_CMD
         std::cout << "cmd: " << cmd << std::endl;    
 #endif
-        exec( cmd.c_str() );
+        // exec( cmd.c_str() );
     }
 }
-
 
 
 void test_homekit_pair(void) {
@@ -205,123 +200,105 @@ void test_homekit_get_accessories(void) {
 
 }
 
-void test_homekit_get_accessories_additional(void){
-    //python3 -m homekit.get_accessories -f ${PAIRINGDATAFILE} -a ${ALIAS} -o json | python3 ~/Development/Homekit/utils/accessory_validate/accval.py
-    std::string cmd = "python3 -m homekit.get_accessories ";        
-    cmd += " -f ";
-    cmd += PAIRINGDATAFILE;
-    cmd += " -a ";
-    cmd += ALIAS_ADDITIONAL_CONTROLLER;
-    cmd += " -o json";
-    cmd += " | python3 ~/Development/Homekit/utils/accessory_validate/accval.py";
-    
-#if TEST_SHOW_CMD
-    std::cout << "cmd: " << cmd << std::endl;    
-#endif
-
-    int ret = system( cmd.c_str() );
-    int exitCode = 0;
-    if (WEXITSTATUS(ret) == 0)
-        exitCode = 0;
-    else
-        exitCode = 1;
 
 
-    TEST_ASSERT_EQUAL(0, exitCode);
-}
-
-
-void test_homekit_list_pairings(void) {
+void test_homekit_get_characteristics_fg_entry_count(void) {
     
     //python3 -m homekit.get_accessories -f ${PAIRINGDATAFILE} -a ${ALIAS} -o json | python3 ~/Development/Homekit/utils/accessory_validate/accval.py
-    std::string cmd = "python3 -m homekit.list_pairings";        
-    cmd += " -f ";
-    cmd += PAIRINGDATAFILE;
-    cmd += " -a ";
-    cmd += ALIAS;    
-    
-
-#if TEST_SHOW_CMD
-    std::cout << "cmd: " << cmd << std::endl;    
-#endif
-
-    int ret = system( cmd.c_str() );
-    int exitCode = 0;
-    if (WEXITSTATUS(ret) == 0)
-        exitCode = 0;
-    else
-        exitCode = 1;
-
-    TEST_ASSERT_EQUAL(0, exitCode);
-    
-}
-
-
-void test_homekit_prepare_add_remote_pairing(void) {
-    
-    //python3 -m homekit.get_accessories -f ${PAIRINGDATAFILE} -a ${ALIAS} -o json | python3 ~/Development/Homekit/utils/accessory_validate/accval.py
-    std::string cmd = "python3 -m homekit.prepare_add_remote_pairing";        
-    cmd += " -f ";
-    cmd += PAIRINGDATAFILE;
-    cmd += " -a ";
-    cmd += ALIAS_ADDITIONAL_CONTROLLER;        
-    
-#if TEST_SHOW_CMD
-    std::cout << "cmd: " << cmd << std::endl;    
-#endif
-
-    std::string result = exec( cmd.c_str() );
-    cmd_pairing_prepare = result.substr(51);
-    additional_pairing_id = cmd_pairing_prepare.substr(6,36);
-
-#if TEST_SHOW_CMD
-    std::cout << "additional_pairing_id: " << additional_pairing_id << std::endl;    
-#endif
-
-    TEST_ASSERT_EQUAL_STRING_LEN("Please add this to homekit.add_additional_pairing:", result.c_str(), 50);
-}
-
-
-void test_homekit_add_additional_pairing(void) {
-    
-    //python3 -m homekit.get_accessories -f ${PAIRINGDATAFILE} -a ${ALIAS} -o json | python3 ~/Development/Homekit/utils/accessory_validate/accval.py
-    std::string cmd = "python3 -m homekit.add_additional_pairing";        
+    std::string cmd = "python3 -m homekit.get_characteristic ";        
     cmd += " -f ";
     cmd += PAIRINGDATAFILE;
     cmd += " -a ";
     cmd += ALIAS;
-    cmd += " -p User";
-    cmd += " ";
-    cmd += cmd_pairing_prepare;
-
-    
+    cmd += " -c ";
+    cmd += CHARACTERISTICS_FAKEGATO_READ;
+    cmd += TEST_REDIRECT_STDOUT;
+        
 #if TEST_SHOW_CMD
     std::cout << "cmd: " << cmd << std::endl;    
 #endif
+    
 
-    std::string result = exec( cmd.c_str() );
-    cmd_pairing_add = result.substr(54);
+    int ret = system( cmd.c_str() );
+    int exitCode = 0;
+    if (WEXITSTATUS(ret) == 0)
+        exitCode = 0;
+    else
+        exitCode = 1;
 
-    TEST_ASSERT_EQUAL_STRING_LEN("Please add this to homekit.finish_add_remote_pairing:", result.c_str(), 53);
+    //std::cout << result << std::endl;          
+    TEST_ASSERT_EQUAL(0, exitCode);
+    
 }
 
 
-void test_homekit_finish_add_remote_pairing(void) {
+void test_homekit_get_characteristics_fg_history(void) {
     
     //python3 -m homekit.get_accessories -f ${PAIRINGDATAFILE} -a ${ALIAS} -o json | python3 ~/Development/Homekit/utils/accessory_validate/accval.py
-    std::string cmd = "python3 -m homekit.finish_add_remote_pairing";        
+    std::string cmd = "python3 -m homekit.get_characteristic ";        
     cmd += " -f ";
     cmd += PAIRINGDATAFILE;
     cmd += " -a ";
-    cmd += ALIAS_ADDITIONAL_CONTROLLER;
-    cmd += " ";
-    cmd += cmd_pairing_add;
+    cmd += ALIAS;
+    cmd += " -c ";
+    cmd += CHARACTERISTICS_FAKEGATO_HISTORY;
+    cmd += " | jq '.\"3.16\".value' -r";
+    //cmd += TEST_REDIRECT_STDOUT;
 
-    
 #if TEST_SHOW_CMD
     std::cout << "cmd: " << cmd << std::endl;    
 #endif
+
+    bool stop = false;
+
+    while(!stop) {
+        std::string result = exec( cmd.c_str() );
+
+        result = trim(result);
+
+        std::cout << "result: *" << result << "*" << std::endl;
+
+        if (strncmp(result.c_str(), "null", 4) == 0) {
+
+        } else if (strncmp(result.c_str(), "AA==", 4) == 0) {
+            std::cout << "Stopping now: " << entryCounter << std::endl;
+
+            stop = true;
+        } else {            
+        
+        size_t len;
+        uint8_t buffer[512];
+        if( mbedtls_base64_decode( buffer, sizeof( buffer ), &len, (const uint8_t*)result.c_str(), result.length() ) != 0) {
+            std::cout << "base64 decode failed" << std::endl;
+            stop = true;
+        }
+            std::cout << "len: " << len << std::endl;
+            std::cout << "entryCounter: " << entryCounter << std::endl;
+
+            entryCounter += len / 16;
+        }
+    }
     
+}
+
+void test_homekit_put_characteristics_fg_address_1(void) {
+    
+    //python3 -m homekit.get_accessories -f ${PAIRINGDATAFILE} -a ${ALIAS} -o json | python3 ~/Development/Homekit/utils/accessory_validate/accval.py
+    std::string cmd = "python3 -m homekit.put_characteristic ";        
+    cmd += " -f ";
+    cmd += PAIRINGDATAFILE;
+    cmd += " -a ";
+    cmd += ALIAS;
+    cmd += " -c ";
+    cmd += CHARACTERISTICS_FAKEGATO_REQ_ENTRY;
+    cmd += " ";
+    cmd += "MkIwMjEwMDAwMDAwMDA=";
+    
+
+#if TEST_SHOW_CMD
+    std::cout << "cmd: " << cmd << std::endl;    
+#endif
+
     int ret = system( cmd.c_str() );
     int exitCode = 0;
     if (WEXITSTATUS(ret) == 0)
@@ -333,27 +310,6 @@ void test_homekit_finish_add_remote_pairing(void) {
     
 }
 
-void test_homekit_remove_additional_pairing(void) {
-    
-    //python3 -m homekit.get_accessories -f ${PAIRINGDATAFILE} -a ${ALIAS} -o json | python3 ~/Development/Homekit/utils/accessory_validate/accval.py
-    std::string cmd = "python3 -m homekit.remove_pairing";        
-    cmd += " -f ";
-    cmd += PAIRINGDATAFILE;
-    cmd += " -a ";
-    cmd += ALIAS_ADDITIONAL_CONTROLLER;    
-    
-#if TEST_SHOW_CMD
-    std::cout << "cmd: " << cmd << std::endl;    
-#endif
-
-    std::string result = exec( cmd.c_str() );
-    
-    char cmpstr[256];
-    sprintf(cmpstr, "Pairing for \"%s\" was removed.\n", ALIAS_ADDITIONAL_CONTROLLER);
-
-    TEST_ASSERT_EQUAL_STRING_LEN(cmpstr, result.c_str(), result.length());
-
-}
 
 
 void test_homekit_remove_pairing(void) {
@@ -381,50 +337,46 @@ void test_homekit_remove_pairing(void) {
 
 int main(int argc, char **argv) {
 
-
-#if TEST_KEEP_PAIRING
-#else
     _setUp();
-#endif
+
     UNITY_BEGIN();
     
     // 
-    // Pair       
+    // Pair
+    //        
     RUN_TEST(test_homekit_pair);
 
     for (int i=0; i < ITERATIONS; i ++){
 
         std::cout << "Iteration " << (i + 1) << " of " << ITERATIONS << ":" << std::endl;    
 
-                       
-        RUN_TEST(test_homekit_get_accessories);               
+        // RUN_TEST(test_homekit_identify_unpaired);
         
 
-        RUN_TEST(test_homekit_list_pairings);
-        
-        // 
-        // Additional Pairings
-        // 
-        RUN_TEST(test_homekit_prepare_add_remote_pairing);
-        RUN_TEST(test_homekit_add_additional_pairing);
-        RUN_TEST(test_homekit_finish_add_remote_pairing);
-
-        RUN_TEST(test_homekit_list_pairings);
-        
+ 
         RUN_TEST(test_homekit_get_accessories);
-        RUN_TEST(test_homekit_get_accessories_additional);
+            
 
-        // Remove additional pairing
-        RUN_TEST(test_homekit_remove_additional_pairing);
+        // 
+        // FakeGato
+        // 
+        RUN_TEST(test_homekit_get_characteristics_fg_entry_count);        
+        RUN_TEST(test_homekit_put_characteristics_fg_address_1);
+        RUN_TEST(test_homekit_get_accessories);
 
+        
+        RUN_TEST(test_homekit_get_characteristics_fg_history);
 
-        RUN_TEST(test_homekit_list_pairings);    
+        
 
+        
         std::cout << "\n\n" << std::endl;
     }
-      
+
+       
     // Remove pairing
     RUN_TEST(test_homekit_remove_pairing);
+
 
     UNITY_END();
 #if TEST_KEEP_PAIRING

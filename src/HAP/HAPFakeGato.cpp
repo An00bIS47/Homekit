@@ -11,6 +11,37 @@
 #include "HAPHelper.hpp"
 #include "HAPLogger.hpp"
 
+HAPFakeGato::HAPFakeGato() {
+    
+    _s2r1Characteristics = nullptr;
+    _s2r2Characteristics = nullptr;
+    _s2w1Characteristics = nullptr;
+    _s2w2Characteristics = nullptr;
+    
+    _type = HAPFakeGatoType_weather;
+    _isEnabled = true;
+    _refTime = 0;    
+
+    
+    _rolledOver = false;
+
+    _memoryUsed = 0;    // last physical memory position occupied
+
+    _idxWrite = 0;      // Write index
+    _idxRead = 0;       // Read index
+
+    _requestedEntry = 0;
+
+
+    _ptrTimestampLastEntry = nullptr;
+
+
+    _transfer = false;
+    _interval = 0; 
+    _previousMillis = 0;
+}
+
+
 void HAPFakeGato::registerFakeGatoService(HAPAccessory* accessory, String name){
         
     HAPService* fgService = new HAPService(HAP_SERVICE_FAKEGATO_HISTORY);    
@@ -208,10 +239,20 @@ void HAPFakeGato::getS2R2Callback(){
 #endif
     if (_transfer)
     {
+
         uint8_t data[HAP_FAKEGATO_CHUNK_BUFFER_SIZE];
-        size_t len = 0;
         uint16_t offset = 0;
-        getData(HAP_FAKEGATO_CHUNK_SIZE, data, &len, offset);
+        uint8_t chunksize = HAP_FAKEGATO_CHUNK_SIZE;
+        size_t len = 0;
+
+        // if (_requestedEntry == 1) {
+        //     getRefTime(data, &len, 0);
+        //     offset += len;
+        //     chunksize--;
+        //     len = 0;
+        // }                
+        
+        getData(chunksize, data, &len, offset);
 
 #if HAP_DEBUG_FAKEGATO
         HAPHelper::array_print("data (next entry)", (uint8_t*)data, len);
@@ -269,6 +310,7 @@ void HAPFakeGato::setS2W1Characteristics(String oldValue, String newValue){
 
     ui32_to_ui8 address;
     address.ui32 = __builtin_bswap32(tmp.ui32);
+
 #if HAP_DEBUG_FAKEGATO    
     HAPHelper::array_print("S2W1 address",  address.ui8, 4);
 #endif    
@@ -282,26 +324,23 @@ void HAPFakeGato::setS2W1Characteristics(String oldValue, String newValue){
     // LogE("REQUESTED ENTRY: " + String(_requestedEntry) + " - ALREADY SENT: " +  String(_noOfEntriesSent), true);
 
     if (_requestedEntry == 0) {
+        // Set reference time for EVE.app to S2R2        
 #if HAP_DEBUG_FAKEGATO        
-        Serial.println(" - > Restart entry data");
+        Serial.println("_requestedEntry == 0 - > Set reftime from iOS device -> send entries");
 #endif        
-        _requestedEntry = 1;
+
+    } else if (_requestedEntry == 1) {
+        // set reftime as first entry
 #if HAP_DEBUG_FAKEGATO        
-        Serial.println(" - > Set entries data");
-#endif        
-        _transfer = true;
-        getS2R2Callback(); 
-    } else if (_requestedEntry - 1 == 0){
-        // set reference time for EVE.app to S2R2
-#if HAP_DEBUG_FAKEGATO        
-        Serial.println(" - > Set reftime");
-#endif        
+        Serial.println("_requestedEntry == 1 - > Set Reftime as 1st entry");
+#endif           
         uint8_t data[22];
         size_t len = 0;
         getRefTime(data, &len, 0);
         _s2r2Characteristics->setValue(base64::encode(data, len));
+
     } else {        
-        // set the data entries for EVE.app to S2R2  
+        // set the data entries in S2R2 char for EVE.app   
 #if HAP_DEBUG_FAKEGATO           
         Serial.println(" - > Set entries data");
 #endif        

@@ -96,6 +96,7 @@ bool HAPFakeGatoWeather::addEntry(HAPFakeGatoWeatherData data){
         _memoryUsed++;
     }
 
+    // ToDo: Fix
     _ptrTimestampLastEntry = &data.timestamp;
     
 
@@ -118,7 +119,7 @@ bool HAPFakeGatoWeather::addEntry(HAPFakeGatoWeatherData data){
     // Serial.print("_idxRead: ");
     // Serial.println(_idxRead);
 
-#if HAP_DEBUG_FAKEGATO
+#if HAP_DEBUG_FAKEGATO_DETAILED
     Serial.print("_memoryUsed: ");
     Serial.println(_memoryUsed);
 
@@ -149,7 +150,7 @@ void HAPFakeGatoWeather::getData(const size_t count, uint8_t *data, size_t* leng
     LogD(HAPServer::timeString() + " " + String(__CLASS_NAME__) + "->" + String(__FUNCTION__) + " [   ] " + "Get fakegato data for " + _name + " ..." , true);
 #endif
 
-#if HAP_DEBUG_FAKEGATO
+#if HAP_DEBUG_FAKEGATO_DETAILED
     for (int i=0; i< HAP_FAKEGATO_BUFFER_SIZE; i++){
         HAPFakeGatoWeatherData entryData;    
         entryData = (*_vectorBuffer)[i];
@@ -163,21 +164,6 @@ void HAPFakeGatoWeather::getData(const size_t count, uint8_t *data, size_t* leng
     uint32_t tmpRequestedEntry = (_requestedEntry - 1) % HAP_FAKEGATO_BUFFER_SIZE;
 
 
-#if HAP_DEBUG_FAKEGATO    
-    Serial.println(">>>>> getData");
-    Serial.print("0 tmpRequestedEntry: ");
-    Serial.println(tmpRequestedEntry);
-
-    Serial.print("0 _idxRead: ");
-    Serial.println(_idxRead);
-
-    Serial.print("0 _requestedEntry: ");
-    Serial.println(_requestedEntry);
-
-    Serial.print("0 _idxWrite: ");
-    Serial.println(_idxWrite);
-#endif
-
     if ( (tmpRequestedEntry >= _idxWrite) && ( _rolledOver == false) ){
         _transfer = false;
         LogW("WARNING: Fakegato could not send the requested entry. The requested index does not exist!", true);                          
@@ -187,18 +173,7 @@ void HAPFakeGatoWeather::getData(const size_t count, uint8_t *data, size_t* leng
     HAPFakeGatoWeatherData entryData;    
     entryData = (*_vectorBuffer)[tmpRequestedEntry];
        
-    for (int i = 0; i < count; i++){
-            
-#if HAP_DEBUG_FAKEGATO    
-        Serial.print("tmpRequestedEntry: ");
-        Serial.println(tmpRequestedEntry);
-
-        Serial.print("_idxRead: ");
-        Serial.println(_idxRead);
-
-        Serial.print("_requestedEntry: ");
-        Serial.println(_requestedEntry);
-#endif
+    for (int i = 0; i < count; i++){            
 
         uint8_t size = HAP_FAKEGATO_DATA_LENGTH;
         uint8_t typ = HAP_FAKEGATO_TYPE_WEATHER;
@@ -246,17 +221,5 @@ void HAPFakeGatoWeather::getData(const size_t count, uint8_t *data, size_t* leng
                 break;
             }
         }
-#if HAP_DEBUG_FAKEGATO    
-        Serial.print("2 _idxWrite: ");
-        Serial.println(_idxWrite);  
-
-        Serial.print("2 _idxRead: ");
-        Serial.println(_idxRead);  
-
-        Serial.print("2 tmpRequestedEntry: ");
-        Serial.println(tmpRequestedEntry);
-
-        Serial.println("=====================================================================");
-#endif
     }             
 }

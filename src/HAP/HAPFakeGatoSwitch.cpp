@@ -111,13 +111,13 @@ bool HAPFakeGatoSwitch::addEntry(HAPFakeGatoSwitchData data){
     Serial.println(_memoryUsed);
 
     for (int i=0; i< HAP_FAKEGATO_BUFFER_SIZE; i++){
-        HAPFakeGatoWeatherData entryData;    
+        HAPFakeGatoSwitchData entryData;    
         entryData = (*_vectorBuffer)[i];
 
         if (i == _idxWrite) {
-            Serial.printf("No. %d - %d  temp: %d <<< w:%d\n", i, entryData.timestamp,entryData.temperature, _idxWrite);
+            Serial.printf("No. %d - %d  status: %d <<< w:%d\n", i, entryData.timestamp,entryData.status, _idxWrite);
         } else {
-            Serial.printf("No. %d - %d  temp: %d\n", i, entryData.timestamp,entryData.temperature);
+            Serial.printf("No. %d - %d  status: %d\n", i, entryData.timestamp,entryData.status);
         }        
     }
 #endif
@@ -137,12 +137,12 @@ void HAPFakeGatoSwitch::getData(const size_t count, uint8_t *data, size_t* lengt
 
 #if HAP_DEBUG_FAKEGATO
     for (int i=0; i< HAP_FAKEGATO_BUFFER_SIZE; i++){
-        HAPFakeGatoWeatherData entryData;    
+        HAPFakeGatoSwitchData entryData;    
         entryData = (*_vectorBuffer)[i];
         if (i == _idxWrite) {
-            Serial.printf("No. %d - %d  temp: %d <<< w:%d\n", i, entryData.timestamp,entryData.temperature, _idxWrite);
+            Serial.printf("No. %d - %d  status: %d <<< w:%d\n", i, entryData.timestamp,entryData.status, _idxWrite);
         } else {
-            Serial.printf("No. %d - %d  temp: %d\n", i, entryData.timestamp,entryData.temperature);
+            Serial.printf("No. %d - %d  status: %d\n", i, entryData.timestamp,entryData.status);
         }
     }
 #endif
