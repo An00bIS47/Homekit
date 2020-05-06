@@ -14,7 +14,7 @@
 
 #include <mbedtls/base64.h>
 
-#define ITERATIONS                          1
+#define ITERATIONS                          10
 
 #define BOARD_HELTEC                        0
 #define BOARD_CAFEEC                        1

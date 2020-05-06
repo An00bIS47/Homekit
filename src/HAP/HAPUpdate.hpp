@@ -14,6 +14,7 @@
 
 #include "HAPVersion.hpp"
 #include "HAPGlobals.hpp"
+#include "HAPConfig.hpp"
 
 
 struct HAPUpdateVersionInfo {
@@ -29,7 +30,7 @@ public:
 	HAPUpdate();
 	~HAPUpdate();
 
-	void begin(const char* local_hostname);
+	void begin(HAPConfig* config);
 	void handle();
 
 	void setHostAndPort(const char* url, int port, uint32_t interval = HAP_UPDATE_WEB_INTERVAL) {

@@ -71,6 +71,8 @@ void HAPConfig::begin(){
     update_web["enabled"]       = intToBool(HAP_UPDATE_ENABLE_FROM_WEB);
     JsonObject update_ota       = update.createNestedObject("ota");
     update_ota["enabled"]       = intToBool(HAP_UPDATE_ENABLE_OTA);
+    update_ota["port"]          = HAP_UPDATE_OTA_PORT;
+    update_ota["password"]      = HAP_UPDATE_OTA_PASSWORD;
 
     // plugins
     JsonObject plugins = _config.createNestedObject("plugins");
@@ -193,7 +195,7 @@ HAPConfigValidationResult HAPConfig::validateConfigHomekit(const JsonObject obje
     HAPConfigValidationResult result;
     result.valid = false;
 
-    // accessory.pincode - string
+    // homekit.loglevel - int
     if (!object["homekit"].as<JsonObject>().containsKey("loglevel") || !object["homekit"]["loglevel"].is<uint8_t>()) {
         result.reason = "homekit.loglevel is not an integer";        
         return result;
@@ -450,7 +452,9 @@ HAPConfigValidationResult HAPConfig::validateConfigUpdate(const JsonObject objec
                 "enabled": true    	
             },
             "ota": {
-                "enabled": true
+                "enabled": true,
+                "port": 3232,
+                "password": "admin"
             }
         }
      */
@@ -485,6 +489,24 @@ HAPConfigValidationResult HAPConfig::validateConfigUpdate(const JsonObject objec
         result.reason = "update.ota.enabled is not a bool";
         return result;
     }
+
+    // update.ota.password
+    if (object["update"]["ota"].as<JsonObject>().containsKey("password") && !object["update"]["ota"]["password"].is<const char*>()) {
+        result.reason = "update.ota.password is not a string";
+        return result;
+    }   
+
+    // update.ota.password - length        
+    if ((object["update"]["ota"].as<JsonObject>().containsKey("password")) && (strlen(object["update"]["ota"]["password"].as<const char*>()) + 1 > HAP_STRING_LENGTH_MAX)) {
+        result.reason = "update.ota.password is too long";
+        return result;
+    }
+
+    // update.ota.port
+    if (object["update"]["ota"].as<JsonObject>().containsKey("port") && !object["update"]["ota"]["port"].is<uint16_t>()) {
+        result.reason = "update.ota.port is not a integer";
+        return result;
+    } 
 
     result.valid = true;
     return result;

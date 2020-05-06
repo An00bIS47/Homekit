@@ -8,11 +8,6 @@
 #ifndef HAPGLOBALS_HPP_
 #define HAPGLOBALS_HPP_
 
-#ifndef ARDUINO_ARCH_ESP32
-#define ARDUINO_ARCH_ESP32			0
-#endif
-
-
 
 // ToDo: Use KConfig
 
@@ -25,7 +20,23 @@
 #define HAP_MANUFACTURER			"An00bIS47"
 #define HAP_MODELL_NAME				"Huzzah32"
 #define HAP_RESET_EEPROM 			0
+
+
+/**
+ * H.A.P.
+ ********************************************************************/
 #define HOMEKIT_PROTOKOL_VERSION	"1.0"
+#define HOMEKIT_CONFIGURATION_NUMBER 1		// Internal - keep value at 1
+#define HAP_BATTERY_LEVEL_LOW_THRESHOLD	15	// Battery threshold for alert
+
+
+/**
+ * Version
+ ********************************************************************/
+#define HOMEKIT_VERSION_MAJOR 		0
+#define HOMEKIT_VERSION_MINOR 		3
+#define HOMEKIT_VERSION_REVISION 	0
+
 
 /**
  * Debug
@@ -69,13 +80,7 @@
 #ifndef HAP_DEBUG_EVENTMANAGER		
 #define HAP_DEBUG_EVENTMANAGER		0
 #endif
-
-									
-/**
- * Homekit Thresholds
- ********************************************************************/
-#define HAP_BATTERY_LEVEL_LOW_THRESHOLD	15
-
+								
 
 /**
  * WiFi
@@ -154,6 +159,10 @@
 #define HTTPS_DISABLE_SELFSIGNING 	1		// Disable self signed certificate generation on the fly
 #define DEBUG_MULTIPART_PARSER 		0		// Enable to debug multipart form parser
 
+
+
+
+
 /**
  * Captive Portal 
  ********************************************************************/
@@ -161,6 +170,9 @@
 #define HAP_CAPTIVE_AP_IP			"192.168.0.1"
 #define HAP_CAPTIVE_AP_SSID			"Homekit Captive Portal"	// ssid of the access point
 #define HAP_CAPTIVE_TITLE			"Homekit Captive Portal"	// Title of the webpage for captive portal
+
+
+
 
 /**
  * Fakegato 
@@ -196,6 +208,13 @@
 											// provided webserver
 											// Default: 0
 
+#ifndef HAP_UPDATE_OTA_PASSWORD
+#define HAP_UPDATE_OTA_PASSWORD		"secret"
+#endif
+
+#ifndef HAP_UPDATE_OTA_PORT
+#define HAP_UPDATE_OTA_PORT			3232
+#endif
 
 #ifndef HAP_UPDATE_WEB_INTERVAL
 #define HAP_UPDATE_WEB_INTERVAL		60000	// Interval for web update check in ms
@@ -253,6 +272,10 @@
 
 #define EVENTMANAGER_LISTENER_LIST_SIZE		HAP_EVENTMANAGER_LISTENER_SIZE
 #define EVENTMANAGER_EVENT_QUEUE_SIZE 		HAP_EVENTMANAGER_QUEUE_SIZE
+
+
+
+
 
 
 /**
@@ -392,15 +415,11 @@ STR(HAP_PLUGIN_USE_BME280)
 											// ToDo: Nedded ??
 
 
-/**
- * Other - Do not edit !!!
- ********************************************************************/
-#define HAP_CONFIGURATION_NUMBER	1		// Internal - keep value at 1
-
 
 
 /**
- * Limits - Do not edit !!!
+ * Limits 
+ * !! Do not edit !!!
  ********************************************************************/
 #if HAP_BUFFERED_SEND
 #define HAP_BUFFER_SEND_SIZE		3192	// 3192 max ?
@@ -420,10 +439,24 @@ STR(HAP_PLUGIN_USE_BME280)
 
 
 /**
- * SRP - Do not edit !!!
+ * SRP 
+ * !! Do not edit !!!
  ********************************************************************/
 #define SRP_TEST					0		// Test SRP - keep disabled !
 
+
+
+/**
+ * Arduino + EXP32 specific
+ * !! Do not edit !!!
+ ********************************************************************/
+#ifndef ARDUINO_ARCH_ESP32
+#define ARDUINO_ARCH_ESP32			0
+#endif
+
+#ifndef ESP32
+#define ESP32						0
+#endif
 
 
 /**

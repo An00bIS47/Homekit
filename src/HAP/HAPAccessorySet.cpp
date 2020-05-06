@@ -22,7 +22,7 @@
 
 #include "HAPDeviceID.hpp"
 
-uint32_t HAPAccessorySet::configurationNumber = HAP_CONFIGURATION_NUMBER;
+uint32_t HAPAccessorySet::configurationNumber = HOMEKIT_CONFIGURATION_NUMBER;
 
 HAPAccessorySet::HAPAccessorySet() 
 : _accessoryType(HAP_ACCESSORY_TYPE_OTHER)

@@ -5,13 +5,13 @@
 //  Created on: 20.08.2017
 //      Author: michael
 //
-
-
 #include "HAPUpdate.hpp"
 #include <WiFiClientSecure.h>
 #include <ArduinoOTA.h>
 #include <ArduinoJson.h>
 #include "HAPLogger.hpp"
+#include "HAPBonjour.hpp"
+
 
 #if HAP_UPDATE_ENABLE_WEB
 #include <HTTPUpdate.h>
@@ -28,6 +28,7 @@
 #define HAP_UPDATE_WEB_DOWNLOAD_URL_PATH	"/api/update"
 
 // ToDo: remove this here 
+// ToDo: Add password protection for OTA Update
 const char* rootCACertificate = \
 "-----BEGIN CERTIFICATE-----\n" \
 "MIICvzCCAiCgAwIBAgIBBDAKBggqhkjOPQQDAjBkMRAwDgYDVQQDDAdBQ01FIENB\n" \
@@ -54,11 +55,12 @@ HAPUpdate::HAPUpdate()
 	_isOTADone = false;
 	// _contentLength = 0;
 	// _isValidContentType = false;
-	_host = "";
+	// _host = "";
 	_port = 3001;
 	_previousMillis = 0;
 	_interval = 0;
 	_available = false;
+	_remoteInfo = HAPUpdateVersionInfo();
 	// _localVersion = nullptr;
 }
 
@@ -66,18 +68,24 @@ HAPUpdate::~HAPUpdate() {
 	// TODO Auto-generated destructor stub
 }
 
-void HAPUpdate::begin(const char* local_hostname) {
+void HAPUpdate::begin(HAPConfig* config) {
 
 #if HAP_UPDATE_ENABLE_OTA	
-	// Port defaults to 3232
-	// ArduinoOTA.setPort(3232);
+
+	// Disable mDNS cause we use our own!
+	ArduinoOTA.setMdnsEnabled(false);
 
 	// Hostname defaults to esp3232-[MAC]
-	ArduinoOTA.setHostname(local_hostname);
+	ArduinoOTA.setHostname(config->config()["hostname"]);
+
+	// Port defaults to 3232
+	ArduinoOTA.setPort(config->config()["update"]["ota"]["port"].as<uint16_t>());
 
 	// No authentication by default
-	// ArduinoOTA.setPassword("admin");
-
+	if (config->config()["update"]["ota"]["password"].as<String>().length() > 0) {
+		ArduinoOTA.setPassword(config->config()["update"]["ota"]["password"].as<const char*>());
+	}
+	
 	// Password can be set with it's md5 value as well
 	// MD5(admin) = 21232f297a57a5a743894a0e4a801fc3
 	// ArduinoOTA.setPasswordHash("21232f297a57a5a743894a0e4a801fc3");
@@ -106,7 +114,12 @@ void HAPUpdate::begin(const char* local_hostname) {
 		else if (error == OTA_RECEIVE_ERROR) 	LogE( F("Receive Failed"), true);
 		else if (error == OTA_END_ERROR) 		LogE( F("End Failed"), true);
 	});
+
 	ArduinoOTA.begin();
+
+	// set ArduinoOTA mDNS
+	mDNSExt.enableArduino(config->config()["update"]["ota"]["port"].as<uint16_t>(), (config->config()["update"]["ota"]["password"].as<String>().length() > 0));
+
 #endif	
 	// Delay first update check for 3 seconds
 	_previousMillis = (millis() + HAP_UPDATE_WEB_INTERVAL) - 3000;

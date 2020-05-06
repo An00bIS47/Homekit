@@ -134,8 +134,10 @@ There are several ways to provide WiFi credentials. It uses `WiFiMulti`, so you 
 
 Currently supported methods are:
     * WPS (Push Button)
-    * via `WiFiCredentials.hpp`
-    * Compile-time CFLAG
+    * via `WiFiCredentials.hpp` or compile time CFLAG
+    * BLE Provisioning (under construction)
+    * Access Point Provisioning (under construction)
+    * Captive Portal (under construction)
 
 
 ### WPS
@@ -177,7 +179,20 @@ And add a file called `WiFiCredentials.hpp` in the `src` folder and edit the set
 #endif /* WIFICREDENTIALS_HPP_ */
 ```
 
-Once configured and online, you can add additional networks via the REST interface.
+Once configured and online, you can add additional networks via the REST API.
+
+### BLE
+
+under construction
+
+### Access Point Provisioning
+
+under construction
+
+### Captive Portal
+
+under construction
+
 
 
 ## Working example
@@ -193,10 +208,11 @@ CPPFLAGS += -DHAP_PLUGIN_BME280_USE_DUMMY=1
 This will expose one Light Bulb Accessory for the buildin LED and an accessory with temperature, relative humidity and air pressure sensor, complete with EVE history support. 
 
 
-
 ## Configuration
 
-Have a look at the file `src/HAP/HAPGlobals.hpp` in order to change some configs to your needs. There you can enable the plugins you want to use.
+Have a look at the file `src/HAP/HAPGlobals.hpp` in order to change the compile time configuration to your needs. There you can also enable the plugins you want to include in the build. 
+
+Once compiled and running, you can also configure the device via the webinterface or REST API as described below.
 
 
 ## Reset
@@ -206,7 +222,10 @@ To reset the configuration and remove all pairing data, you can use the followin
 make erase_flash
 ```
 
-## Webserver and API
+or use the REST API.
+
+
+## Webinterface and API
 
 ### Access to the Webinterface and API
 
@@ -239,7 +258,7 @@ You can disable HTTPS and use HTTP if you edit the `HAPGlobals.hpp` file:
 											// Default: 1
 ```
 
-### Certificates
+### Server Certificates
 
 HTTPS requires to create your own certificates. You can create your own certificate and keys. Please have a look [here](https://github.com/fhessel/esp32_https_server/tree/master/extras) how to do this.
 
@@ -253,7 +272,7 @@ COMPONENT_EMBED_FILES += $(PROJECT_PATH)/certs/server_publickey.der
 
 ### Template
 
-The webserver uses a template for the webpage stored here `www/index.html`
+The webserver uses a template for the webpages stored here `www/index.html`.
 
 
 ### SPIFFS
@@ -298,7 +317,7 @@ These endpoints require basic authentication with username and password.
 * [Show config](docs/api/get_config.md) : `GET /api/config`
 * [Update config](docs/api/post_config.md) : `POST /api/config`
 
-#### Reference Time for Fakegato
+#### Reference time for Elgato EVE
 
 * [Get reference time](docs/api/get_reftime.md) : `GET /api/reftime`
 * [Set reference time](docs/api/post_reftime.md) : `POST /api/reftime`
@@ -306,8 +325,15 @@ These endpoints require basic authentication with username and password.
 
 ### Endpoints that require admin access rights
 
+#### Pairing Information
+
 * [Delete pairings](docs/api/pairings.md) : `DELETE /api/pairings`
 * [Show setup code](docs/api/setup.md) : `GET /api/setup`
+
+#### Reset / Restart
+
+* [Show setup code](docs/api/reset.md) : `POST /api/reset`
+* [Show setup code](docs/api/restart.md) : `POST /api/restart`
 
 
 ## SNTP Client
@@ -315,11 +341,40 @@ These endpoints require basic authentication with username and password.
 To get the current time, this implementation uses SNTP.
 You can change the SNTP host and time zone and DST in the `HAPGlobals.hpp` file.
 
-This example uses Berlin as time zone.
+This example uses Berlin as time zone and Apple's SNTP server.
 ```
 #define HAP_NTP_SERVER_URL			"time.euro.apple.com"				
 #define HAP_NTP_TZ_INFO     		"WET-1WEST,M3.5.0/01:00,M10.5.0/01:00"		
 ```
+
+## Update
+
+### Arduino OTA
+
+Arduino OTA is enabled by default, but can be disabled via the file `src/HAP/HAPGlobals.hpp`. Have a look at the value of 
+
+```
+#define HAP_UPDATE_ENABLE_OTA 1
+```
+
+The default password is `secret` and can be changed or disabled in the `src/HAP/HAPGlobals.hpp`. 
+
+Have a look at the value of 
+```
+#define HAP_UPDATE_OTA_PASSWORD "secret"
+```
+
+To disable a password, set the value to `""`. You can also change the default port `3232`.
+
+
+### Update from the web
+
+under construction
+
+
+### Update via Webinterface
+
+under construction
 
 
 ## Hostname

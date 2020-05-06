@@ -332,32 +332,10 @@ bool HAPServer::begin(bool resume) {
   	listenerRebootNow.mf = &HAPServer::handleEventRebootNow;
 	_eventManager.addListener( EventManager::kEventRebootNow, &listenerRebootNow );  	  	
 
-
 	LogV(F("OK"), true);
 
 
-#if HAP_UPDATE_ENABLE_FROM_WEB || HAP_UPDATE_ENABLE_OTA
-	if (_config.config()["update"]["ota"]["enabled"]){
-		//
-		// Starting Arduino OTA
-		//
-		LogV( F("Starting arduino ota ..."), false);
-		_updater.begin(hostname);
-		LogV( F("OK"), true);
-	}
 
-#if HAP_UPDATE_ENABLE_FROM_WEB
-	if (_config.config()["update"]["ota"]["enabled"]){
-#if HAP_UPDATE_ENABLE_SSL	
-		_updater.setHostAndPort(HAP_UPDATE_SERVER_HOST, HAP_UPDATE_SERVER_PORT);
-#else
-		_updater.setHostAndPort(HAP_UPDATE_SERVER_HOST, HAP_UPDATE_SERVER_PORT);
-#endif
-	}
-
-#endif
-
-#endif
 
 
 
@@ -534,27 +512,53 @@ bool HAPServer::begin(bool resume) {
 	//   the fully-qualified domain name is "esp8266.local"
 	// - second argument is the IP address to advertise
 	//   we send our IP address on the WiFi network
-	LogV( F("Advertising bonjour service ..."), false);
-	if (!MDNS.begin(_accessorySet->modelName())) {
-		LogE( F("Error setting up MDNS responder!"), true);
+	LogD( "Advertising bonjour service ...", false);
+	if (!mDNSExt.begin(_accessorySet->modelName())) {
+		LogE( "ERROR; Starting mDNS responder failed!", true);
 		return false;
 	}
 
 	// Add service to MDNS-SD
-	MDNS.addService("_hap", "_tcp", _port);
+	mDNSExt.addService("_hap", "_tcp", _port);
 
 #if HAP_ENABLE_WEBSERVER	
 	if (_config.config()["webserver"]["enabled"]){	
-		MDNS.addService("http", "_tcp", 443);
+		mDNSExt.addService("http", "_tcp", 443);
 	}
+#endif
+	LogD( " OK", true);
+
+
+#if HAP_UPDATE_ENABLE_FROM_WEB || HAP_UPDATE_ENABLE_OTA
+	if (_config.config()["update"]["ota"]["enabled"]){
+		//
+		// Starting Arduino OTA
+		//
+		LogD( "Starting Arduino OTA ...", false);
+		_updater.begin(&_config);
+		LogD( " OK", true);
+	}
+
+#if HAP_UPDATE_ENABLE_FROM_WEB
+	if (_config.config()["update"]["web"]["enabled"]){
+#if HAP_UPDATE_ENABLE_SSL	
+		// ToDo: Implement proper update routine with root cert container download etc
+		_updater.setHostAndPort(HAP_UPDATE_SERVER_HOST, HAP_UPDATE_SERVER_PORT);
+#else
+		_updater.setHostAndPort(HAP_UPDATE_SERVER_HOST, HAP_UPDATE_SERVER_PORT);
+#endif
+	}
+
+#endif
+
 #endif
 
 	if ( !updateServiceTxt() ){
-		LogE( F("Error advertising HAP service!"), true);
+		LogE( "ERROR: Advertising HAP service failed!", true);
 		return false;
 	}
 
-	LogV(F("OK"), true);
+
 
 
 #if HAP_DEBUG_HOMEKIT
@@ -630,7 +634,7 @@ bool HAPServer::updateServiceTxt() {
         {(char*)"ci"    ,(char*)"2"}                    // ci - Accessory category indicator
     }; 
 
-    return MDNS.addServiceTxtSet((char*)"_hap", "_tcp", 8, hapTxtData);
+    return mDNSExt.addServiceTxtSet((char*)"_hap", "_tcp", 8, hapTxtData);
 
 
     */
@@ -699,9 +703,9 @@ bool HAPServer::updateServiceTxt() {
 
 	sprintf(hapTxtData[8].value, "%s", _accessorySet->setupHash() );
 
-    return MDNS.addServiceTxtSet((char*)"_hap", "_tcp", 9, hapTxtData);
+    return mDNSExt.addServiceTxtSet((char*)"_hap", "_tcp", 9, hapTxtData);
 #else
-    return MDNS.addServiceTxtSet((char*)"_hap", "_tcp", 8, hapTxtData);
+    return mDNSExt.addServiceTxtSet((char*)"_hap", "_tcp", 8, hapTxtData);
 #endif  
  
 }
