@@ -37,3 +37,6 @@
 [submodule "utils/homekit_python"]
 	path = utils/homekit_python
 	url = https://github.com/jlusiardi/homekit_python.git
+[submodule "components/esp8266-oled-ssd1306"]
+	path = components/esp8266-oled-ssd1306
+	url = https://github.com/ThingPulse/esp8266-oled-ssd1306.git

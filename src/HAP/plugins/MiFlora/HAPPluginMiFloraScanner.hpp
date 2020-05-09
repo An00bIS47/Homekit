@@ -66,12 +66,14 @@ private:
         Serial.print("Flora device found at address ");
         Serial.println(deviceAddress.c_str());
         
-        if (_deviceCount < MAX_DEVICES)
+        if (_deviceCount < MAX_DEVICES) {
             _devices[_deviceCount++] = deviceAddress;
-        else
+        } else {
             Serial.println("can't register device, no remaining slot");
             _scan->stop();
             _isScanning = false;
+        }
+
     }
 
 };

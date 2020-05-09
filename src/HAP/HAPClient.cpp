@@ -207,7 +207,7 @@ size_t HAPClient::write(const uint8_t* buffer, size_t size) {
 
 			// chunk size for payload
 			if (_chunkedMode) {
-				char chunkSize[8];
+				char chunkSize[12];
 				sprintf(chunkSize, "%x\r\n", toWrite);
 
 				memcpy(writeBuffer + writeBufferUsed, chunkSize, strlen(chunkSize));

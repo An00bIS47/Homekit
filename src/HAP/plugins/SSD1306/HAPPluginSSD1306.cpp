@@ -60,7 +60,16 @@ HAPPluginSSD1306::~HAPPluginSSD1306(){
 
 bool HAPPluginSSD1306::begin(){
 
-    _tft = new SSD1306Wire(0x3c, SDA_OLED, SCL_OLED, RST_OLED, GEOMETRY_128_64);
+    // Heltec Lib
+    // _tft = new SSD1306Wire(0x3c, SDA_OLED, SCL_OLED, RST_OLED, GEOMETRY_128_64);
+
+    // Thingpulse
+    _tft = new SSD1306Wire(0x3c, SDA_OLED, SCL_OLED, GEOMETRY_128_64);
+
+    // OLED reset signal 
+    pinMode(RST_OLED,OUTPUT); digitalWrite(RST_OLED, LOW); delay(50); digitalWrite(RST_OLED, HIGH);
+
+    
 
     _tft->init();
     _tft->flipScreenVertically();

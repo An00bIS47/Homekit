@@ -654,23 +654,22 @@ bool HAPServer::updateServiceTxt() {
 	// This value must persist across reboots, power cycles, etc.
 	hapTxtData[0].key 		= (char*) "c#";
 	hapTxtData[0].value 	= (char*) malloc(sizeof(char) * HAPHelper::numDigits(_accessorySet->configurationNumber) );
-	sprintf(hapTxtData[0].value, "%lu", (unsigned long)_accessorySet->configurationNumber );		
+	sprintf((char*)hapTxtData[0].value, "%lu", (unsigned long)_accessorySet->configurationNumber );		
 
 	// id - unique identifier
 	hapTxtData[1].key 		= (char*) "id";
 	hapTxtData[1].value 	= (char*) malloc(sizeof(char) * 18);
-	sprintf(hapTxtData[1].value, "%02X:%02X:%02X:%02X:%02X:%02X", baseMac[0], baseMac[1], baseMac[2], baseMac[3], baseMac[4], baseMac[5]);
+	sprintf((char*)hapTxtData[1].value, "%02X:%02X:%02X:%02X:%02X:%02X", baseMac[0], baseMac[1], baseMac[2], baseMac[3], baseMac[4], baseMac[5]);
 	
 	// ff - feature flags
 	// Supports HAP Pairing. This flag is required for all HomeKit accessories.
-	hapTxtData[2].key 		= (char*) "ff";
-	hapTxtData[2].value 	= (char*) malloc(sizeof(char));
-	sprintf(hapTxtData[2].value, "%d", _accessorySet->isPaired() );
-	
+	hapTxtData[2].key 		= (char*) "ff";	
+	hapTxtData[2].value 	= (char*)_accessorySet->isPaired(); 
+
 	// md - model name	
 	hapTxtData[3].key 		= (char*) "md";
 	hapTxtData[3].value 	= (char*) malloc(sizeof(char) * strlen(_accessorySet->modelName()));
-	sprintf(hapTxtData[3].value, "%s", _accessorySet->modelName());
+	sprintf((char*)hapTxtData[3].value, "%s", _accessorySet->modelName());
 
 	// pv - protocol version
 	hapTxtData[4].key 		= (char*) "pv";
@@ -687,13 +686,12 @@ bool HAPServer::updateServiceTxt() {
 	// 1 if not paired
 	// 0 if paired ??
 	hapTxtData[6].key 		= (char*) "sf";
-	hapTxtData[6].value 	= (char*) malloc(sizeof(char));
-	sprintf(hapTxtData[6].value, "%d", !_accessorySet->isPaired() );
+	hapTxtData[6].value		= (char*) !_accessorySet->isPaired();
 
 	 // ci - Accessory category indicator
 	hapTxtData[7].key 		= (char*) "ci";
 	hapTxtData[7].value 	= (char*) malloc(sizeof(char) * HAPHelper::numDigits(_accessorySet->accessoryType()) );
-	sprintf(hapTxtData[7].value, "%d", _accessorySet->accessoryType() );
+	sprintf((char*)hapTxtData[7].value, "%d", _accessorySet->accessoryType() );
 
 #if HAP_GENERATE_XHM
 	// sh - Required for QR Code 
@@ -701,7 +699,7 @@ bool HAPServer::updateServiceTxt() {
 	hapTxtData[8].value 	= (char*) malloc(sizeof(char) * strlen(_accessorySet->setupHash()) );
 
 
-	sprintf(hapTxtData[8].value, "%s", _accessorySet->setupHash() );
+	sprintf((char*)hapTxtData[8].value, "%s", _accessorySet->setupHash() );
 
     return mDNSExt.addServiceTxtSet((char*)"_hap", "_tcp", 9, hapTxtData);
 #else
@@ -842,7 +840,7 @@ String HAPServer::timeString(){
 		strftime(buffer, 30, timeformat, localtime(&curTime.tv_sec));
 
 		int milli = curTime.tv_usec / 1000;
-		char currentTime[35] = "";
+		char currentTime[45] = "";
 		sprintf(currentTime, "%s.%03d", buffer, milli);
 		
 		return String(currentTime);
@@ -2216,6 +2214,7 @@ bool HAPServer::handlePairSetupM3(HAPClient* hapClient) {
 
 
 
+	
 	LogD( "<<< Handle client [" + hapClient->client.remoteIP().toString() + "] -> /pair-setup Step 2/4 ...", false);
 
 	_eventManager.queueEvent(EventManager::kEventPairingStep3, HAPEvent());
@@ -2473,7 +2472,7 @@ bool HAPServer::handlePairSetupM5(HAPClient* hapClient) {
 	if (err_code < 0) {
         LogE("ERROR: Failed to get HKDF key", true);		    	        
 		sendErrorTLV(hapClient, HAP_PAIR_STATE_M6, HAP_ERROR_AUTHENTICATON);				
-		response.clear();
+		response.clear();		
         return false;
     }
     LogV( "OK", true);
@@ -2592,6 +2591,9 @@ bool HAPServer::handlePairSetupM5(HAPClient* hapClient) {
 	// delete enc_tlv;
 
 
+	Heap(_clients.size(), _eventManager.getNumEventsInQueue());
+
+
 	LogV( "<<< Handle [" + hapClient->client.remoteIP().toString() + "] -> /pair-setup Step 4/4 ...", true);
 	_eventManager.queueEvent(EventManager::kEventPairingStep4, HAPEvent());
 
@@ -2616,7 +2618,8 @@ bool HAPServer::handlePairSetupM5(HAPClient* hapClient) {
 	if (crypto_sign_detached(acc_signature, &acc_signature_length, acc_info, acc_info_len, _longTermContext->privateKey) != 0) {
 		LogE( "ERROR: Signing failed", true);
 		sendErrorTLV(hapClient, HAP_PAIR_STATE_M6, HAP_ERROR_AUTHENTICATON);
-		response.clear();		
+		response.clear();	
+		concat_free(acc_info);
 		return false;
 	}
 
@@ -2743,6 +2746,9 @@ bool HAPServer::handlePairSetupM5(HAPClient* hapClient) {
 #endif
 
 	//stopEvents(false);
+
+	Heap(_clients.size(), _eventManager.getNumEventsInQueue());
+
     return true;
 }
 

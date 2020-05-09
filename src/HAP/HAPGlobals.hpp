@@ -25,9 +25,9 @@
 /**
  * H.A.P.
  ********************************************************************/
-#define HOMEKIT_PROTOKOL_VERSION	"1.0"
-#define HOMEKIT_CONFIGURATION_NUMBER 1		// Internal - keep value at 1
-#define HAP_BATTERY_LEVEL_LOW_THRESHOLD	15	// Battery threshold for alert
+#define HOMEKIT_PROTOKOL_VERSION			"1.0"
+#define HOMEKIT_CONFIGURATION_NUMBER 		1		// Internal - keep value at 1
+#define HAP_BATTERY_LEVEL_LOW_THRESHOLD		15		// Battery threshold for alert
 
 
 /**
@@ -85,7 +85,7 @@
 /**
  * WiFi
  ********************************************************************/
-#define HAP_WIFI_DEFAULT_MODE		1		// 0 = HAPWiFiModeAccessPoint	
+#define HAP_WIFI_DEFAULT_MODE			1	// 0 = HAPWiFiModeAccessPoint	
 											// 1 = HAPWiFiModeMulti
 											// 2 = HAPWiFiModeWPS			-> push button only
 											// 3 = HAPWiFiModeSmartConfig	-> not working with ios13 ?
@@ -247,7 +247,7 @@
 #endif
 
 #ifndef HAP_NTP_TIME_FORMAT
-#define HAP_NTP_TIME_FORMAT			"%Y-%m-%d %H:%M:%S.%f"						// strftime format
+#define HAP_NTP_TIME_FORMAT			"%Y-%m-%d %H:%M:%S"							// strftime format
 #endif
 
 #ifndef HAP_NTP_TZ_INFO

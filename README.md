@@ -277,20 +277,22 @@ The webserver uses a template for the webpages stored here `www/index.html`.
 
 ### SPIFFS
 
-If you want to use `SPIFFS` instead of embedded webpages, you can enable `HAP_WEBSERVER_USE_SPIFFS` in the `HAPGlobals.hpp` file.
+SPIFFS is currently only supported for 16MB partitions or you create your own partition table.
 
-Then place your webpages into the `www` folder and comment the follwing lines out in `src/component.mk`.
+If you want to use `SPIFFS` instead of embedded webpages, you can enable `HAP_WEBSERVER_USE_SPIFFS` in the `HAPGlobals.hpp` file. Then place your webpages into the `www` folder and comment the follwing lines out in `src/component.mk`.
 
 ```
-#COMPONENT_EMBED_FILES := $(PROJECT_PATH)/certs/server_cert.der
-#COMPONENT_EMBED_FILES += $(PROJECT_PATH)/certs/server_privatekey.der
-#COMPONENT_EMBED_FILES += $(PROJECT_PATH)/certs/server_publickey.der
+#COMPONENT_EMBED_FILES := $(PROJECT_PATH)/www/index.html
 ```
-
 
 To create the required partition for `SPIFFS`, you can use the following command:
+
 ```
 mkspiffs -c www -b 4096 -p 256 -s 0x00C000 build/spiffs.bin
+```
+
+And finally upload the partition
+```
 esptool.py --chip esp32 --port  /dev/cu.SLAB_USBtoUART --baud 2000000 write_flash -z 0x3F2800 build/spiffs.bin
 ```
 
@@ -332,8 +334,8 @@ These endpoints require basic authentication with username and password.
 
 #### Reset / Restart
 
-* [Show setup code](docs/api/reset.md) : `POST /api/reset`
-* [Show setup code](docs/api/restart.md) : `POST /api/restart`
+* [Factory Reset](docs/api/reset.md) : `POST /api/reset`
+* [Restart the device](docs/api/restart.md) : `POST /api/restart`
 
 
 ## SNTP Client
@@ -348,6 +350,8 @@ This example uses Berlin as time zone and Apple's SNTP server.
 ```
 
 ## Update
+
+To update the firmware on the device, it supports multiple ways to this. 
 
 ### Arduino OTA
 
@@ -375,6 +379,7 @@ under construction
 ### Update via Webinterface
 
 under construction
+
 
 
 ## Hostname
@@ -556,3 +561,17 @@ WolfSSL is also support but commented out in the makefile. (will be removed comp
 | Adafruit_NeoPixel | 1.3.4 | https://github.com/adafruit/Adafruit_NeoPixel.git | 
 | rc-switch | 2.6.3 | https://github.com/sui77/rc-switch.git | 
 | ESP8266_Influx_DB | 2.0.0 | https://github.com/An00bIS47/ESP8266_Influx_DB.git | 
+
+
+## Tests
+
+The included tests can be run via platformio.
+
+Please change the information for your own board in the file
+`test/config.hpp`.
+
+The you can run the following command for a complete homekit test:
+
+```
+pio test -e native -f "*homekit*"
+```

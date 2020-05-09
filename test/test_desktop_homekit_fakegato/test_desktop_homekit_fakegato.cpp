@@ -1,3 +1,11 @@
+//
+// test_desktop_homekit_fakegato.cpp
+// Homekit Test
+//
+//  Created on: 06.05.2020
+//      Author: michael
+//
+
 #include <cstdio>
 #include <iostream>
 #include <memory>
@@ -14,42 +22,7 @@
 
 #include <mbedtls/base64.h>
 
-#define ITERATIONS                          10
-
-#define BOARD_HELTEC                        0
-#define BOARD_CAFEEC                        1
-
-
-#if BOARD_HELTEC == 1
-#define DEVICE_ID                           "24:6F:28:AF:5F:A4"
-#define ALIAS                               "heltec"
-#define ALIAS_ADDITIONAL_CONTROLLER         "heltec_remote"
-#elif BOARD_CAFEEC == 1
-#define DEVICE_ID                           "BC:DD:C2:CA:FE:EC"
-#define ALIAS                               "cafeec"
-#define ALIAS_ADDITIONAL_CONTROLLER         "cafeec_remote"
-#endif
-
-
-#define SETUPCODE                           "031-45-712"
-
-#define CHARACTERISTICS                     "2.10"
-
-#define CHARACTERISTICS_FAKEGATO_READ       "3.15"
-#define CHARACTERISTICS_FAKEGATO_HISTORY    "3.16"
-#define CHARACTERISTICS_FAKEGATO_REQ_ENTRY  "3.17"
-
-#define PAIRINGDATAFILE                     "./.pio/homekitStorage.json"
-
-#define TEST_SHOW_CMD                       1
-#define TEST_SHOW_RESULT                    0
-
-
-
-#define TEST_REDIRECT_STDOUT                " > /dev/null 2>&1"
-
-//#define TEST_DEBUG                          " --log DEBUG"
-
+#include "../config.hpp"
 
 int entryCounter    = 0;
 int expectedEntries = 0;

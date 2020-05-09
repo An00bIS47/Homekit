@@ -12,6 +12,7 @@
 #include <Arduino.h>
 #include <WiFiClient.h>
 #include <StreamString.h>
+#include <vector>
 #include <set>
 
 #include "HAPGlobals.hpp"

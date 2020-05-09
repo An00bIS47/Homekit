@@ -61,7 +61,7 @@ void HAPWiFiHelper::begin(HAPConfig* config, std::function<bool(bool)> callbackB
 	WiFi.persistent(false);
 	WiFi.setHostname(hostname);
 	
-	_wpsConfig.crypto_funcs = &g_wifi_default_wps_crypto_funcs;
+	//_wpsConfig.crypto_funcs = &g_wifi_default_wps_crypto_funcs;
 	_wpsConfig.wps_type = WPS_TYPE_PBC;
 	strcpy(_wpsConfig.factory_info.manufacturer, HAP_MANUFACTURER);
 	// strcpy(_wpsConfig.factory_info.model_number, "1");

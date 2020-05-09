@@ -294,8 +294,16 @@ void HAPFakeGato::setS2R2Characteristics( String oldValue, String newValue){
 void HAPFakeGato::setS2W1Characteristics(String oldValue, String newValue){
     LogD(HAPServer::timeString() + " " + "HAPFakeGato" + "->" + String(__FUNCTION__) + " [   ] " + "Setting S2W1 iid " + String(_s2w1Characteristics->iid) +  " oldValue: " + oldValue + " -> newValue: " + newValue, true);    
     
-    size_t outputLength;
-    uint8_t* decoded = base64_decode((const unsigned char *)newValue.c_str(), newValue.length(), &outputLength);
+    size_t outputLength = 0;        
+    mbedtls_base64_decode(NULL, NULL, &outputLength, (const uint8_t*)newValue.c_str(), newValue.length());
+    uint8_t decoded[outputLength];
+
+    Serial.print("Outoutlength: ");
+    Serial.println(outputLength);
+    Serial.println(sizeof(decoded));
+    mbedtls_base64_decode(decoded, sizeof(decoded), &outputLength, (const uint8_t*)newValue.c_str(), newValue.length());
+    
+    
     
 #if HAP_DEBUG_FAKEGATO    
     HAPHelper::array_print("S2W1", decoded, outputLength);
@@ -348,7 +356,7 @@ void HAPFakeGato::setS2W1Characteristics(String oldValue, String newValue){
         getS2R2Callback();   
     }
 
-    free(decoded);
+    // free(decoded);
 }
 
 /**
@@ -368,13 +376,20 @@ void HAPFakeGato::setS2W2Characteristics(String oldValue, String newValue){
     LogD(HAPServer::timeString() + " " + "HAPFakeGato" + "->" + String(__FUNCTION__) + " [   ] " + "Setting S2W2 iid " + String(_s2w2Characteristics->iid) +  " oldValue: " + oldValue + " -> newValue: " + newValue, true);    
     
     // "SPMZIw=="
-    size_t outputLength;
-    uint8_t* decoded = base64_decode((const unsigned char *)newValue.c_str(), newValue.length(), &outputLength);
+    size_t outputLength = 0;        
+    mbedtls_base64_decode(NULL, NULL, &outputLength, (const uint8_t*)newValue.c_str(), newValue.length());
+    uint8_t decoded[outputLength];
+
+    Serial.print("Outoutlength: ");
+    Serial.println(outputLength);
+    Serial.println(sizeof(decoded));
+    mbedtls_base64_decode(decoded, sizeof(decoded), &outputLength, (const uint8_t*)newValue.c_str(), newValue.length());
+    
 
     // ToDo: Set current time from this? (Only if NTP is not connected!)
     HAPHelper::array_print("S2W2", decoded, outputLength);
     
-    free(decoded);
+    // free(decoded);
 }
 
 void HAPFakeGato::getRefTime(uint8_t *data, size_t* length, const uint16_t offset){

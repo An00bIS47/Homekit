@@ -5,6 +5,8 @@
 
 #include <Arduino.h>
 #include <mbedtls/md.h>
+#include <mbedtls/hkdf.h>
+
 
 /**
  *  \name X509 Error codes
