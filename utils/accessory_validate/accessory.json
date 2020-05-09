@@ -8,7 +8,7 @@
           "type": "3E",
           "characteristics": [
             {
-              "value": "esp32-0C9D6C",
+              "value": "esp32-CAFEEC",
               "perms": [
                 "pr"
               ],
@@ -56,7 +56,7 @@
               "format": "string"
             },
             {
-              "value": "0.2.1+142",
+              "value": "0.3.0+142",
               "perms": [
                 "pr"
               ],
@@ -105,7 +105,7 @@
               "format": "string"
             },
             {
-              "value": "BME28060",
+              "value": "BME2800",
               "perms": [
                 "pr"
               ],
@@ -115,7 +115,7 @@
               "format": "string"
             },
             {
-              "value": "2379cd5acd682a84c4ec50063b6d7d8e",
+              "value": "f75770f9792f4fd6a7f83fceaf7034c0",
               "perms": [
                 "pr"
               ],
@@ -150,7 +150,7 @@
               "format": "string"
             },
             {
-              "value": 19.0,
+              "value": 30.7,
               "minValue": -50.000000,
               "maxValue": 100.000000,
               "minStep": 0.100000,
@@ -179,7 +179,7 @@
               "format": "string"
             },
             {
-              "value": 39.5,
+              "value": 23.6,
               "minValue": 0.000000,
               "maxValue": 100.000000,
               "minStep": 0.100000,
@@ -208,7 +208,7 @@
               "format": "string"
             },
             {
-              "value": 974,
+              "value": 330,
               "minValue": 0,
               "maxValue": 1100,
               "minStep": 1,
@@ -238,7 +238,7 @@
               "format": "string"
             },
             {
-              "value": null,
+              "value": "JggAAAAAAACyQWckAwECAgIDAgAGAAY8AwAAAAAAAAEB",
               "perms": [
                 "pr",
                 "ev",
@@ -321,7 +321,7 @@
               "format": "string"
             },
             {
-              "value": "DHT22",
+              "value": "DHT",
               "perms": [
                 "pr"
               ],
@@ -331,7 +331,7 @@
               "format": "string"
             },
             {
-              "value": "179b23992821d6fab62cc6ce9cfc011a",
+              "value": "21a15bcd6185ac5f9cbf6ef039b6ae6b",
               "perms": [
                 "pr"
               ],
@@ -366,7 +366,7 @@
               "format": "string"
             },
             {
-              "value": 17.7,
+              "value": 23.5,
               "minValue": -50.000000,
               "maxValue": 100.000000,
               "minStep": 0.100000,
@@ -395,7 +395,7 @@
               "format": "string"
             },
             {
-              "value": 28.6,
+              "value": 26.6,
               "minValue": 0.000000,
               "maxValue": 100.000000,
               "minStep": 0.100000,
@@ -425,7 +425,7 @@
               "format": "string"
             },
             {
-              "value": null,
+              "value": "JggAAAAAAACyQWckAwECAgIDAgAGAAY2AwAAAAAAAAEB",
               "perms": [
                 "pr",
                 "ev",
@@ -437,7 +437,7 @@
               "format": "data"
             },
             {
-              "value": null,
+              "value": "AA==",
               "perms": [
                 "pr",
                 "ev",
@@ -474,164 +474,6 @@
     },
     {
       "aid": 4,
-      "services": [
-        {
-          "iid": 1,
-          "type": "3E",
-          "characteristics": [
-            {
-              "value": "Hygrometer",
-              "perms": [
-                "pr"
-              ],
-              "type": "23",
-              "iid": 2,
-              "maxLen": 32,
-              "format": "string"
-            },
-            {
-              "perms": [
-                "pw"
-              ],
-              "type": "14",
-              "iid": 3,
-              "format": "bool"
-            },
-            {
-              "value": "ACME",
-              "perms": [
-                "pr"
-              ],
-              "type": "20",
-              "iid": 4,
-              "maxLen": 32,
-              "format": "string"
-            },
-            {
-              "value": "YL-69",
-              "perms": [
-                "pr"
-              ],
-              "type": "21",
-              "iid": 5,
-              "maxLen": 32,
-              "format": "string"
-            },
-            {
-              "value": "944d97eaa244e3de678caa57a1187a7d",
-              "perms": [
-                "pr"
-              ],
-              "type": "30",
-              "iid": 6,
-              "maxLen": 32,
-              "format": "string"
-            },
-            {
-              "value": "0.0.3+1",
-              "perms": [
-                "pr"
-              ],
-              "type": "52",
-              "iid": 7,
-              "maxLen": 32,
-              "format": "string"
-            }
-          ]
-        },
-        {
-          "iid": 8,
-          "type": "82",
-          "characteristics": [
-            {
-              "value": "Soil Moisture Sensor",
-              "perms": [
-                "pr"
-              ],
-              "type": "23",
-              "iid": 9,
-              "format": "string"
-            },
-            {
-              "value": 0.0,
-              "minValue": 0.000000,
-              "maxValue": 100.000000,
-              "minStep": 0.100000,
-              "perms": [
-                "pr",
-                "ev"
-              ],
-              "type": "10",
-              "iid": 10,
-              "unit": "percentage",
-              "format": "float"
-            }
-          ]
-        },
-        {
-          "iid": 16,
-          "type": "E863F007-079E-48FF-8F27-9C2605A29F52",
-          "characteristics": [
-            {
-              "value": "EVE Hygrometer History",
-              "perms": [
-                "pr"
-              ],
-              "type": "23",
-              "iid": 11,
-              "maxLen": 32,
-              "format": "string"
-            },
-            {
-              "value": null,
-              "perms": [
-                "pr",
-                "ev",
-                "hd"
-              ],
-              "type": "E863F116-079E-48FF-8F27-9C2605A29F52",
-              "iid": 12,
-              "maxLen": 128,
-              "format": "data"
-            },
-            {
-              "value": null,
-              "perms": [
-                "pr",
-                "ev",
-                "hd"
-              ],
-              "type": "E863F117-079E-48FF-8F27-9C2605A29F52",
-              "iid": 13,
-              "maxLen": 512,
-              "format": "data"
-            },
-            {
-              "perms": [
-                "pw",
-                "hd"
-              ],
-              "type": "E863F11C-079E-48FF-8F27-9C2605A29F52",
-              "iid": 14,
-              "maxLen": 128,
-              "format": "data"
-            },
-            {
-              "perms": [
-                "pw",
-                "hd"
-              ],
-              "type": "E863F121-079E-48FF-8F27-9C2605A29F52",
-              "iid": 15,
-              "maxLen": 128,
-              "format": "data"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "aid": 5,
       "services": [
         {
           "iid": 1,
