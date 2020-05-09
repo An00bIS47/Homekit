@@ -1576,14 +1576,14 @@ bool HAPServer::encode(HAPClient* hapClient){
 
 		if ( TLV8::isValidTLVType( hapClient->client.peek()) ) {
 
-			byte type = hapClient->client.read();
-			byte length = hapClient->client.read();
+			uint8_t type = hapClient->client.read();
+			uint8_t length = hapClient->client.read();
 
 			uint8_t data[length];
 			hapClient->client.readBytes(data, length);
 
 #if HAP_DEBUG_TLV8
-			LogD( F("------------------------------------------"), true );
+			LogD( "------------------------------------------", true );
 			LogD("type:    " + String(type, HEX), true);
 			LogD("length:  " + String(length), true);
 			HAPHelper::array_print("value", data, length);
@@ -1592,7 +1592,7 @@ bool HAPServer::encode(HAPClient* hapClient){
 
 			if (type == HAP_TLV_STATE) {
 
-				if (hapClient->request.path == F("/pair-verify")) {
+				if (hapClient->request.path == "/pair-verify") {
 					hapClient->verifyState = static_cast<HAP_VERIFY_STATE>(data[0]);
 				} else 
 					hapClient->pairState = static_cast<HAP_PAIR_STATE>(data[0]);
@@ -1603,7 +1603,7 @@ bool HAPServer::encode(HAPClient* hapClient){
 
 
 			if (!hapClient->request.tlv.encode(type, length, data)) {
-				LogE( F("ERROR: Encoding TLV data failed!"), true );
+				LogE( "ERROR: Encoding TLV data failed!", true );
 				success = false;
 				break;
 			}
@@ -1619,7 +1619,12 @@ bool HAPServer::encode(HAPClient* hapClient){
 			}
 
 		} else {
-			hapClient->client.read();
+			uint8_t read = hapClient->client.read();
+#if HAP_DEBUG_TLV8
+			LogW( "WARNING: Invalid TLV8 type: ", false );
+			LogW((char*)read, true);			
+#endif			
+			
 		}
 
 	}
@@ -1630,7 +1635,7 @@ bool HAPServer::encode(HAPClient* hapClient){
 
 
 void HAPServer::handleIdentify(HAPClient* hapClient){
-	LogI( F("<<< Handle /identify: "), true );
+	LogI( "<<< Handle /identify: ", true );
 
 	characteristics* c = _accessorySet->getCharacteristicsOfType(_accessorySet->aid(), HAP_CHARACTERISTIC_IDENTIFY);
 
@@ -1648,12 +1653,13 @@ void HAPServer::handleIdentify(HAPClient* hapClient){
 		hapClient->client.write( HTTP_400 );
 
 		hapClient->client.write( HTTP_CONTENT_TYPE_HAPJSON );
+		hapClient->client.write( HTTP_CRLF );
 
-		hapClient->client.print( F("Content-Length: 21") );
+		hapClient->client.print( "Content-Length: 21" );
 		hapClient->client.write( HTTP_CRLF );
 		hapClient->client.write( HTTP_CRLF );
 
-		hapClient->client.print( F("{ \"status\" : -70401 }") );
+		hapClient->client.print( "{ \"status\" : -70401 }" );
 		hapClient->client.write( HTTP_CRLF );
 	}
 
@@ -2569,6 +2575,10 @@ bool HAPServer::handlePairSetupM5(HAPClient* hapClient) {
 	if (decodedLen == 0) {
 		LogE( "ERROR: TLV decoding signature failed", true);		    	
 		sendErrorTLV(hapClient, HAP_PAIR_STATE_M6, HAP_ERROR_AUTHENTICATON);
+		HAPHelper::array_print("signature:", ios_device_signature, ios_device_signature_len);
+
+		encTLV.print();
+
 		encTLV.clear();
 		response.clear();		
 		return false;
