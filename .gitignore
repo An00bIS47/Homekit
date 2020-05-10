@@ -107,6 +107,9 @@ utils/update_server/Homekit.bin
 ### heapGraph.py
 heapGraph.py
 
+### Apple fonts
+utils/QRCode/Scancardium_2.0.ttf
+
 #
 #
 ### sdkconfig
