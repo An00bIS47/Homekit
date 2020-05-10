@@ -70,7 +70,7 @@ void HAPAccessorySet::generateSetupID(){
 	char setupID[5];
 
 #if HAP_DEBUG	
-	strcpy(setupID, "UPFT");
+	strcpy(setupID, HAP_SETUP_ID);
 #else	  	
 	const char* letters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 

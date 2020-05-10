@@ -15,7 +15,10 @@
  * General
  ********************************************************************/
 #define HAP_LOGLEVEL				LogLevel::DEBUG
+
 #define HAP_PIN_CODE 				"031-45-712"
+#define HAP_SETUP_ID 				"UPFT"
+
 #define HAP_HOSTNAME_PREFIX			"esp32"
 #define HAP_MANUFACTURER			"An00bIS47"
 #define HAP_MODELL_NAME				"Huzzah32"
@@ -29,6 +32,7 @@
 #define HOMEKIT_CONFIGURATION_NUMBER 		1		// Internal - keep value at 1
 #define HAP_BATTERY_LEVEL_LOW_THRESHOLD		15		// Battery threshold for alert
 
+ 
 
 /**
  * Version
