@@ -116,3 +116,8 @@ heapGraph.py
 sdkconfig
 sdkconfig.16MB
 sdkconfig.heltec
+
+
+### AUDI
+src/HAP/plugins/AUDI
+src/HAP/plugins/AUDI/*

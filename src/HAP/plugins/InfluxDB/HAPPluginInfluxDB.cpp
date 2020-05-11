@@ -14,7 +14,7 @@
 
 #include "HAPGlobals.hpp"
 
-#define HAP_PLUGIN_INFLUXDB_BUFFER_SIZE HAP_BUFFER_SEND_SIZE
+#define HAP_PLUGIN_INFLUXDB_BUFFER_SIZE 3192
 
 #define VERSION_MAJOR       0
 #define VERSION_MINOR       0
@@ -27,14 +27,16 @@ extern const uint8_t localCA_pem_end[]   asm("_binary_localCA_pem_end");
 #endif
 
 
+// ToDo: Use HAPGlobals for this ?
+const char*     INFLUXDB_HOST = "homebridge";
+const uint16_t  INFLUXDB_PORT = 8086;
 
-const char *INFLUXDB_HOST = "homebridge";
-const uint16_t INFLUXDB_PORT = 8086;
+const char*     INFLUXDB_DATABASE = "homekit";
+const char*     INFLUXDB_USER = "admin";
+const char*     INFLUXDB_PASS = "password";
 
-const char *INFLUXDB_DATABASE = "homekit";
-const char *INFLUXDB_USER = "admin";
-const char *INFLUXDB_PASS = "password";
 
+// ToDo: ?
 // const uint8_t INFLUXDB_IGNORED_SERVICE_TYPES[] = {
 // 	serviceType_accessoryInfo
 // };
@@ -88,9 +90,7 @@ bool HAPPluginInfluxDB::begin(){
 void HAPPluginInfluxDB::handleImpl(bool forced){	
 
     LogD(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Handle plguin [" + String(_interval) + "]", true);
-
-    bool shouldSend = false;
-
+    
     // first accessory is bridge -> don't write
     for (int i=1; i < _accessorySet->numberOfAccessory(); i++){
         HAPAccessory* curAcc = _accessorySet->accessoryAtIndex(i);
@@ -166,8 +166,7 @@ void HAPPluginInfluxDB::handleImpl(bool forced){
                             name = "";
 
                             _influxdb->prepare(row);
-                            _usedSize += row.serializedSize();
-                            shouldSend = true;
+                            _usedSize += row.serializedSize();                            
                             // LogD("usesdSize: " + String(_usedSize), true);
                         }
                         
@@ -179,15 +178,6 @@ void HAPPluginInfluxDB::handleImpl(bool forced){
             
         }
     }
-
-    // if (shouldSend) {
-    //     LogD(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Sending data to InfluxDB server [" + String(_usedSize) + " bytes]", false);
-    //     _influxdb->write();
-    //     _usedSize = 0;
-    //     LogD("OK", true);
-    // }
-
-    // }   
 }
 
 void HAPPluginInfluxDB::handleEvents(int eventCode, struct HAPEvent eventParam){
