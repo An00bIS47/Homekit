@@ -46,7 +46,10 @@ public:
 	static void handle();
 
 private:
-	static void eventHandler(WiFiEvent_t event);
+	// static void eventHandler(WiFiEvent_t event);
+
+	void eventHandler(system_event_t *sys_event, wifi_prov_event_t *prov_event);
+
 	static void startWPS();
 	static void startCaptivePortal();
 	static void stopCaptivePortal();

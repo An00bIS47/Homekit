@@ -658,6 +658,10 @@ void HAPConfig::addNetwork(String ssid, String password){
     }  
 }
 
+void HAPConfig::addNetwork(const char* ssid, const char* password){
+    return addNetwork(String(ssid), String(password));
+}
+
 size_t HAPConfig::measureLength(){
     return measureJson(_config);
 }

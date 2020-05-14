@@ -84,7 +84,7 @@ public:
 
 
     void addNetwork(String ssid, String password);
-
+    void addNetwork(const char* ssid, const char* password);
 
     void mergeConfig(JsonObject object);
 

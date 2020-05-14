@@ -43,7 +43,7 @@ bool HAPWiFiHelper::_captiveInitialized;
 HAPWiFiHelper::HAPWiFiHelper(){
 	_errorCount = 0;		
 	_captiveInitialized = false;
-	WiFi.onEvent(eventHandler);
+	
 	_webserver = nullptr;
 	_dnsServer = nullptr;
 }
@@ -61,15 +61,27 @@ void HAPWiFiHelper::begin(HAPConfig* config, std::function<bool(bool)> callbackB
 	WiFi.persistent(false);
 	WiFi.setHostname(hostname);
 	
-	//_wpsConfig.crypto_funcs = &g_wifi_default_wps_crypto_funcs;
-	_wpsConfig.wps_type = WPS_TYPE_PBC;
-	strcpy(_wpsConfig.factory_info.manufacturer, HAP_MANUFACTURER);
-	// strcpy(_wpsConfig.factory_info.model_number, "1");
-	strcpy(_wpsConfig.factory_info.model_name,   HAP_MODELL_NAME);
-	strcpy(_wpsConfig.factory_info.device_name,  hostname);
+	enum HAP_WIFI_MODE selectedMode = (enum HAP_WIFI_MODE)_config->config()["wifi"]["mode"].as<uint8_t>();
 
+	if (selectedMode == HAP_WIFI_MODE_WPS)
+		//_wpsConfig.crypto_funcs = &g_wifi_default_wps_crypto_funcs;
+		_wpsConfig.wps_type = WPS_TYPE_PBC;
+		strcpy(_wpsConfig.factory_info.manufacturer, HAP_MANUFACTURER);
+		// strcpy(_wpsConfig.factory_info.model_number, "1");
+		strcpy(_wpsConfig.factory_info.model_name,   HAP_MODELL_NAME);
+		strcpy(_wpsConfig.factory_info.device_name,  hostname);
+	else if (selectedMode == HAP_WIFI_MODE_BLE_PROV) {
+		//Sample uuid that user can pass during provisioning using BLE
+		/* uint8_t uuid[16] = {0xb4, 0xdf, 0x5a, 0x1c, 0x3f, 0x6b, 0xf4, 0xbf,
+					0xea, 0x4a, 0x82, 0x03, 0x04, 0x90, 0x1a, 0x02 };*/
+		
+		WiFi.beginProvision(WIFI_PROV_SCHEME_BLE, WIFI_PROV_SCHEME_BLE_EVENT_HANDLER_FREE_BTDM, WIFI_PROV_SECURITY_1, "abcd1234", "BLE_XXX", NULL, NULL);		
+	}
 
-	connect((enum HAP_WIFI_MODE)_config->config()["wifi"]["mode"].as<uint8_t>());
+	WiFi.onEvent(eventHandler);
+	// WiFi.onEvent(SysProvEvent);
+
+	connect(selectedMode);
 }
 
 
@@ -387,77 +399,192 @@ void HAPWiFiHelper::handle(){
 	delay(1);
 }
 
-void HAPWiFiHelper::eventHandler(WiFiEvent_t event) {
-	switch(event) {
-		case SYSTEM_EVENT_STA_START:
+// void HAPWiFiHelper::eventHandler(WiFiEvent_t event) {
+// 	switch(event) {
+// 		case SYSTEM_EVENT_STA_START:
 
-			break;
+// 			break;
 
-		case SYSTEM_EVENT_STA_DISCONNECTED:
-			LogW("WiFi lost connection.  Attempting to reconnect...", true);
-			WiFi.reconnect();
-			break;
+// 		case SYSTEM_EVENT_STA_DISCONNECTED:
+// 			LogW("WiFi lost connection.  Attempting to reconnect...", true);
+// 			WiFi.reconnect();
+// 			break;
 
-		case SYSTEM_EVENT_STA_CONNECTED:
-			//enable sta ipv6 here
-            WiFi.enableIpV6();
-			// LogV( F("OK"), true);
-			break;
+// 		case SYSTEM_EVENT_STA_CONNECTED:
+// 			//enable sta ipv6 here
+//             WiFi.enableIpV6();
+// 			// LogV( F("OK"), true);
+// 			break;
 
-		case SYSTEM_EVENT_STA_GOT_IP:
-			LogD( F("Got IP address "), false);
-			LogD(WiFi.localIP().toString().c_str(), true);
-			break;
+// 		case SYSTEM_EVENT_STA_GOT_IP:
+// 			LogD( F("Got IP address "), false);
+// 			LogD(WiFi.localIP().toString().c_str(), true);
+// 			break;
 
-		case SYSTEM_EVENT_AP_STA_GOT_IP6:
-			// LogD( F("\nGot IPv6 address "), false);
-			// LogD(WiFi.localIPv6().toString().c_str(), true);			
-			break;	
+// 		case SYSTEM_EVENT_AP_STA_GOT_IP6:
+// 			// LogD( F("\nGot IPv6 address "), false);
+// 			// LogD(WiFi.localIPv6().toString().c_str(), true);			
+// 			break;	
 			
-		case SYSTEM_EVENT_STA_WPS_ER_SUCCESS:
-			/*point: the function esp_wifi_wps_start() only get ssid & password
-			 * so call the function esp_wifi_connect() here
-			 * */
-			LogI( F("WPS succeeded! Stopping WPS and connecting to "), false);
-			LogI(WiFi.SSID(), true);
-			LogD(" with password ", false);
-			LogD(WiFi.psk().c_str(), false);
-			LogI("", true);
+// 		case SYSTEM_EVENT_STA_WPS_ER_SUCCESS:
+// 			/*point: the function esp_wifi_wps_start() only get ssid & password
+// 			 * so call the function esp_wifi_connect() here
+// 			 * */
+// 			LogI( F("WPS succeeded! Stopping WPS and connecting to "), false);
+// 			LogI(WiFi.SSID(), true);
+// 			LogD(" with password ", false);
+// 			LogD(WiFi.psk().c_str(), false);
+// 			LogI("", true);
 
-			_config->addNetwork(WiFi.SSID(), WiFi.psk());
-			_config->config()["wifi"]["mode"] = (uint8_t)HAP_WIFI_MODE_MULTI;			
-			_config->save();
+// 			_config->addNetwork(WiFi.SSID(), WiFi.psk());
+// 			_config->config()["wifi"]["mode"] = (uint8_t)HAP_WIFI_MODE_MULTI;			
+// 			_config->save();
 			
-			ESP_ERROR_CHECK(esp_wifi_wps_disable());
-			delay(500);			
-			WiFi.begin();
+// 			ESP_ERROR_CHECK(esp_wifi_wps_disable());
+// 			delay(500);			
+// 			WiFi.begin();
 
-			break;
+// 			break;
 
-		case SYSTEM_EVENT_STA_WPS_ER_FAILED:
-			LogE( F("WPS failed! - Retrying"), true);			
-            ESP_ERROR_CHECK(esp_wifi_wps_disable());
-			ESP_ERROR_CHECK(esp_wifi_wps_enable(&_wpsConfig));
-			ESP_ERROR_CHECK(esp_wifi_wps_start(0));  
-			break;
+// 		case SYSTEM_EVENT_STA_WPS_ER_FAILED:
+// 			LogE( F("WPS failed! - Retrying"), true);			
+//             ESP_ERROR_CHECK(esp_wifi_wps_disable());
+// 			ESP_ERROR_CHECK(esp_wifi_wps_enable(&_wpsConfig));
+// 			ESP_ERROR_CHECK(esp_wifi_wps_start(0));  
+// 			break;
 
-		case SYSTEM_EVENT_STA_WPS_ER_TIMEOUT:
-			LogE( F("WPS timedout! - Please enable WPS on your router! Retrying"), true);			
-            ESP_ERROR_CHECK(esp_wifi_wps_disable());
-			ESP_ERROR_CHECK(esp_wifi_wps_enable(&_wpsConfig));
-			ESP_ERROR_CHECK(esp_wifi_wps_start(0));            
-			break;
-//		case SYSTEM_EVENT_STA_WPS_ER_PIN:
-//			Log(COLOR_GREEN, "WPS PIN Code", true);
-////			ESP_LOGI(TAG, "SYSTEM_EVENT_STA_WPS_ER_PIN");
-//			/*show the PIN code here*/
-////			ESP_LOGI(TAG, "WPS_PIN = "PINSTR, PIN2STR(event->event_info.sta_er_pin.pin_code));
-//			Log(COLOR_GREEN, "WPS_PIN", false);
-//			char str[12];
-//			sprintf(str, PINSTR, PIN2STR(event.event_info.sta_er_pin.pin_code));
-//			Log(COLOR_GREEN, str, true);
-//			break;
-		default:
-			break;
-	}
+// 		case SYSTEM_EVENT_STA_WPS_ER_TIMEOUT:
+// 			LogE( F("WPS timedout! - Please enable WPS on your router! Retrying"), true);			
+//             ESP_ERROR_CHECK(esp_wifi_wps_disable());
+// 			ESP_ERROR_CHECK(esp_wifi_wps_enable(&_wpsConfig));
+// 			ESP_ERROR_CHECK(esp_wifi_wps_start(0));            
+// 			break;
+// //		case SYSTEM_EVENT_STA_WPS_ER_PIN:
+// //			Log(COLOR_GREEN, "WPS PIN Code", true);
+// ////			ESP_LOGI(TAG, "SYSTEM_EVENT_STA_WPS_ER_PIN");
+// //			/*show the PIN code here*/
+// ////			ESP_LOGI(TAG, "WPS_PIN = "PINSTR, PIN2STR(event->event_info.sta_er_pin.pin_code));
+// //			Log(COLOR_GREEN, "WPS_PIN", false);
+// //			char str[12];
+// //			sprintf(str, PINSTR, PIN2STR(event.event_info.sta_er_pin.pin_code));
+// //			Log(COLOR_GREEN, str, true);
+// //			break;
+// 		default:
+// 			break;
+// 	}
+// }
+
+
+void HAPWiFiHelper::eventHandler(system_event_t *sys_event, wifi_prov_event_t *prov_event)
+{
+    if (sys_event) {
+		switch (sys_event->event_id) {
+			case SYSTEM_EVENT_STA_GOT_IP:
+				LogD( F("Got IP address "), false);
+				LogD(ip4addr_ntoa(&sys_event->event_info.got_ip.ip_info.ip), true);		
+				break;
+				
+			case SYSTEM_EVENT_STA_DISCONNECTED:
+				LogW("WiFi lost connection.  Attempting to reconnect...", true);
+				WiFi.reconnect();			
+				break;
+			case SYSTEM_EVENT_STA_CONNECTED:
+				//enable sta ipv6 here
+    	        WiFi.enableIpV6();
+				// LogV( F("OK"), true);
+				break;
+
+			case SYSTEM_EVENT_AP_STA_GOT_IP6:
+				LogD( F("\nGot IPv6 address "), false);
+				LogD(WiFi.localIPv6().toString().c_str(), true);			
+				break;	
+			
+			case SYSTEM_EVENT_STA_WPS_ER_SUCCESS:
+				/*point: the function esp_wifi_wps_start() only get ssid & password
+				* so call the function esp_wifi_connect() here
+				* */
+				LogI( F("WPS succeeded! Stopping WPS and connecting to "), false);
+				LogI(WiFi.SSID(), true);
+				LogD(" with password ", false);
+				LogD(WiFi.psk().c_str(), false);
+				LogI("", true);
+
+				_config->addNetwork(WiFi.SSID(), WiFi.psk());
+				_config->config()["wifi"]["mode"] = (uint8_t)HAP_WIFI_MODE_MULTI;			
+				_config->save();
+				
+				ESP_ERROR_CHECK(esp_wifi_wps_disable());
+				delay(500);			
+				WiFi.begin();
+
+				break;
+
+			case SYSTEM_EVENT_STA_WPS_ER_FAILED:
+				LogE( F("WPS failed! - Retrying"), true);			
+				ESP_ERROR_CHECK(esp_wifi_wps_disable());
+				ESP_ERROR_CHECK(esp_wifi_wps_enable(&_wpsConfig));
+				ESP_ERROR_CHECK(esp_wifi_wps_start(0));  
+				break;
+
+			case SYSTEM_EVENT_STA_WPS_ER_TIMEOUT:
+				LogE( F("WPS timedout! - Please enable WPS on your router! Retrying"), true);			
+				ESP_ERROR_CHECK(esp_wifi_wps_disable());
+				ESP_ERROR_CHECK(esp_wifi_wps_enable(&_wpsConfig));
+				ESP_ERROR_CHECK(esp_wifi_wps_start(0));            
+				break;
+	// 		case SYSTEM_EVENT_STA_WPS_ER_PIN:
+	// 			Log(COLOR_GREEN, "WPS PIN Code", true);
+	// //			ESP_LOGI(TAG, "SYSTEM_EVENT_STA_WPS_ER_PIN");
+	// 			/*show the PIN code here*/
+	// //			ESP_LOGI(TAG, "WPS_PIN = "PINSTR, PIN2STR(event->event_info.sta_er_pin.pin_code));
+	// 			Log(COLOR_GREEN, "WPS_PIN", false);
+	// 			char str[12];
+	// 			sprintf(str, PINSTR, PIN2STR(event.event_info.sta_er_pin.pin_code));
+	// 			Log(COLOR_GREEN, str, true);
+	// 			break;
+
+			default:
+				break;
+		}      
+    } else if (prov_event) {
+        switch (prov_event->event) {
+			case WIFI_PROV_START:				
+				LogI("Provisioning started! Please enter the credentials of your access point using the iPhone app", true);
+				break;
+
+			case WIFI_PROV_CRED_RECV: 
+				LogD("Received Wi-Fi credentials: ", true);
+				wifi_sta_config_t *wifi_sta_cfg = (wifi_sta_config_t *)prov_event->event_data;
+				LogD("   - SSID : ", false);
+				LogD((const char *) wifi_sta_cfg->ssid, true);
+				LogD("   - Password : ", false);
+				LogD((const char *) wifi_sta_cfg->password, true);
+
+				_config->addNetwork((const char *) wifi_sta_cfg->ssid, (const char *)wifi_sta_cfg->password);
+				_config->config()["wifi"]["mode"] = (uint8_t)HAP_WIFI_MODE_MULTI;			
+				_config->save();
+
+				break;
+			
+			case WIFI_PROV_CRED_FAIL: 
+				wifi_prov_sta_fail_reason_t *reason = (wifi_prov_sta_fail_reason_t *)prov_event->event_data;
+				Serial.println("\nProvisioning failed!\nPlease reset to factory and retry provisioning\n");
+				if(*reason == WIFI_PROV_STA_AUTH_ERROR) 
+					Serial.println("\nWi-Fi AP password incorrect");
+				else
+					Serial.println("\nWi-Fi AP not found....Add API \" nvs_flash_erase() \" before beginProvision()");        
+				break;
+			
+			case WIFI_PROV_CRED_SUCCESS:
+				LogI("Provisioning was successful!", true);
+				break;
+
+			case WIFI_PROV_END:
+				LogI("Provisioning ends!", true);
+				break;
+
+			default:
+				break;
+		}      
+    }
 }
