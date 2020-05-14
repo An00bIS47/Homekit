@@ -26,8 +26,8 @@
 #endif
 
 #define VERSION_MAJOR       0
-#define VERSION_MINOR       0
-#define VERSION_REVISION    3	// 2 = FakeGato support
+#define VERSION_MINOR       3	// 2 = FakeGato support
+#define VERSION_REVISION    1
 #define VERSION_BUILD       1
 
 #ifndef HAP_LED_ENABLE_BRIGHTNESS

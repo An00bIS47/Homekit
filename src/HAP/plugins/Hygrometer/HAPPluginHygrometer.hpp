@@ -43,9 +43,8 @@
 #define HAP_PLUGIN_HYGROMETER_USE_DUMMY 	0
 #endif
 
-
-#define HAP_PLUGIN_HYGROMETER_PIN_VCC       14
-#define HAP_PLUGIN_HYGROMETER_PIN_ADC       32
+#define HAP_PLUGIN_HYGROMETER_PIN_VCC       A6	// 14
+#define HAP_PLUGIN_HYGROMETER_PIN_ADC       A7	// 32
 
 #define HAP_PLUGIN_HYGROMTER_REFERENCE      2500    // value if put in a glass of water
 

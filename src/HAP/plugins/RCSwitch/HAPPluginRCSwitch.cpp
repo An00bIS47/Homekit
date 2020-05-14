@@ -16,11 +16,11 @@
 #endif
 
 #define VERSION_MAJOR       0
-#define VERSION_MINOR       0
-#define VERSION_REVISION    3
+#define VERSION_MINOR       3
+#define VERSION_REVISION    1
 #define VERSION_BUILD       0
 
-#define RCSWITCH_PIN    33
+#define RCSWITCH_PIN    A9  // 33  
 #define HAP_PLUGIN_RCSWITCH_INTERVAL 1000
 
 HAPPluginRCSwitch::HAPPluginRCSwitch(){

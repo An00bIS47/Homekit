@@ -41,9 +41,9 @@ void HAPConfig::begin(){
 
     // wifi
     JsonObject wifi = _config.createNestedObject("wifi");
-    wifi["mode"]                = HAP_WIFI_DEFAULT_MODE;
+    wifi["mode"]                = HAP_WIFI_MODE_DEFAULT;
 
-    if (HAP_WIFI_DEFAULT_MODE == HAPWiFiModeMulti) {
+    if (HAP_WIFI_MODE_DEFAULT == HAP_WIFI_MODE_MULTI) {
         JsonArray wifi_networks     = wifi.createNestedArray("networks");
         JsonObject wifi_networks_0  = wifi_networks.createNestedObject();
         

@@ -225,7 +225,7 @@ bool HAPServer::begin(bool resume) {
 	// WiFi
 	_wifi.begin(&_config, std::bind(&HAPServer::begin, this, std::placeholders::_1), hostname);	
 	// if captive portal, return here	
-	if (_config.config()["wifi"]["mode"].as<uint8_t>() == (uint8_t)HAPWiFiModeAccessPoint){
+	if (_config.config()["wifi"]["mode"].as<uint8_t>() == (uint8_t)HAP_WIFI_MODE_AP){
 		free(hostname);
 		return true;
 	}	
@@ -748,7 +748,7 @@ void HAPServer::handle() {
 	}
 #endif
 
-	if ( (_wifi.captiveInitialized()) && (_config.config()["wifi"]["mode"].as<uint8_t>() == (uint8_t)HAPWiFiModeAccessPoint) ){
+	if ( (_wifi.captiveInitialized()) && (_config.config()["wifi"]["mode"].as<uint8_t>() == (uint8_t)HAP_WIFI_MODE_AP) ){
 		_wifi.handle();
 		return;
 	}

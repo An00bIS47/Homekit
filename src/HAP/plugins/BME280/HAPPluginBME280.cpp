@@ -9,23 +9,25 @@
 #include "HAPPluginBME280.hpp"
 #include "HAPServer.hpp"
 
-#define HAP_PLUGIN_BME280_INTERVAL 5000
-#define BME280_BASE_ADDRESS        0x76
 
-#define SDA_PIN				23
-#define SCL_PIN				22
+#define BME280_BASE_ADDRESS        	0x76
+#define HAP_PLUGIN_BME280_INTERVAL	5000
+
+#define SDA_PIN				SDA	
+#define SCL_PIN				SCL
 
 #define VERSION_MAJOR       0
-#define VERSION_MINOR       0
-#define VERSION_REVISION    3	// 2 = FakeGato support
+#define VERSION_MINOR       3	// 2 = FakeGato support
+#define VERSION_REVISION    1
 #define VERSION_BUILD       2
 
 HAPPluginBME280::HAPPluginBME280(){
 	_type = HAP_PLUGIN_TYPE_ACCESSORY;
 	_name = "BME280";
 	_isEnabled = HAP_PLUGIN_USE_BME280;
-	_interval = HAP_PLUGIN_BME280_INTERVAL;
+	_interval = 0;	// will be set according to selected mode
 	_previousMillis = 0;
+	_mode = HAP_PLUGIN_BME280_WEATHER;
 
     _version.major      = VERSION_MAJOR;
     _version.minor      = VERSION_MINOR;
@@ -63,7 +65,11 @@ void HAPPluginBME280::handleImpl(bool forced){
 		float pressure 				= random(30, 110) * 10;
 		setValue(_temperatureValue->iid, _temperatureValue->value(), String(temperature) );
 #else
-        setValue(_temperatureValue->iid, _temperatureValue->value(), String(_bme->readTemperature()) );
+
+		// Only needed in forced mode! In normal mode, you can remove the next line.
+    	_bme->takeForcedMeasurement(); // has no effect in normal mode
+        
+		setValue(_temperatureValue->iid, _temperatureValue->value(), String(_bme->readTemperature()) );
 #endif		
 		// sensors_event_t sensorEvent;		
 		// _dht->temperature().getEvent(&sensorEvent);
@@ -207,16 +213,49 @@ HAPAccessory* HAPPluginBME280::initAccessory(){
 }
 
 HAPConfigValidationResult HAPPluginBME280::validateConfig(JsonObject object){
-    return HAPPlugin::validateConfig(object);
+    HAPConfigValidationResult result;
+    
+    result = HAPPlugin::validateConfig(object);
+    if (result.valid == false) {
+        return result;
+    }
+
+	/*
+        "HAPPluginBME280": {
+            "enabled": true,	
+            "interval": 1000,
+            "mode": 1,
+        }
+     */
+
+	result.valid = false;
+
+	// plugin._name.mode
+    if (object.containsKey("mode") && !object["mode"].is<uint8_t>()) {
+        result.reason = "plugins." + _name + ".mode is not a integer";
+        return result;
+    }
+
+	if (object["mode"].as<uint8_t>() > 3) {
+        result.reason = "plugins." + _name + ".mode is not a valid value";
+        return result;
+    }
+
+	result.valid = true;
+    return result;
 }
 
 JsonObject HAPPluginBME280::getConfigImpl(){    
     DynamicJsonDocument doc(1);
+	doc["mode"] = (uint8_t) _mode;
 	return doc.as<JsonObject>();
 }
 
 void HAPPluginBME280::setConfigImpl(JsonObject root){
-
+	if (root.containsKey("mode")){
+        // LogD(" -- database: " + String(root["database"]), true);
+        _mode = (enum HAP_PLUGIN_BME280_MODE) root["mode"].as<uint8_t>();
+    }
 }
 
 bool HAPPluginBME280::begin(){
@@ -226,6 +265,8 @@ bool HAPPluginBME280::begin(){
 #if HAP_PLUGIN_BME280_USE_DUMMY
 
 	LogI("Using BME280 dummy!", true);
+	_interval = HAP_PLUGIN_BME280_INTERVAL;
+
 #else
 	
 	Wire.begin(SDA_PIN, SCL_PIN);
@@ -246,12 +287,81 @@ bool HAPPluginBME280::begin(){
 		return false;
     }
 
-	_bme->setSampling(Adafruit_BME280::MODE_NORMAL,
+
+	if (_mode == HAP_PLUGIN_BME280_WEATHER) {
+		// Table 7: Settings and performance for weather monitoring
+		// Suggested settings for weather monitoring
+		// 		Sensor mode: forced mode, 1 sample / minute
+		// 		Oversampling settings: pressure *1, temperature *1, humidity *1
+		// 		IIR filter settings: filter off
+		// 	Performance for suggested settings
+		// 		Current consumption 0.16 µA
+		// 		RMS Noise 3.3 Pa / 30 cm, 0.07 %RH
+		// 		Data output rate: 1/60 Hz
+		_bme->setSampling(Adafruit_BME280::MODE_FORCED,
+						Adafruit_BME280::SAMPLING_X1,  // temperature
+						Adafruit_BME280::SAMPLING_X1, // pressure
+						Adafruit_BME280::SAMPLING_X1,  // humidity
+						Adafruit_BME280::FILTER_OFF );
+		// suggested rate is 1/60Hz (1m)
+		_interval = 60000; // in milliseconds
+
+	} else if (_mode == HAP_PLUGIN_BME280_HUMIDITY) {
+		// Serial.println("-- Humidity Sensing Scenario --");
+		// Serial.println("forced mode, 1x temperature / 1x humidity / 0x pressure oversampling");
+		// Serial.println("= pressure off, filter off");
+    	_bme->setSampling(Adafruit_BME280::MODE_FORCED,
+                    Adafruit_BME280::SAMPLING_X1,   // temperature
+                    Adafruit_BME280::SAMPLING_NONE, // pressure
+                    Adafruit_BME280::SAMPLING_X1,   // humidity
+                    Adafruit_BME280::FILTER_OFF );
+                      
+    	// suggested rate is 1Hz (1s)
+    	_interval = 1000;  // in milliseconds
+	
+	} else if (_mode == HAP_PLUGIN_BME280_INDOOR) {
+		// Serial.println("-- Indoor Navigation Scenario --");
+		// Serial.println("normal mode, 16x pressure / 2x temperature / 1x humidity oversampling,");
+		// Serial.println("0.5ms standby period, filter 16x");
+	    _bme->setSampling(Adafruit_BME280::MODE_NORMAL,
                     Adafruit_BME280::SAMPLING_X2,  // temperature
                     Adafruit_BME280::SAMPLING_X16, // pressure
                     Adafruit_BME280::SAMPLING_X1,  // humidity
                     Adafruit_BME280::FILTER_X16,
                     Adafruit_BME280::STANDBY_MS_0_5 );
+    
+		// suggested rate is 25Hz
+		// 1 + (2 * T_ovs) + (2 * P_ovs + 0.5) + (2 * H_ovs + 0.5)
+		// T_ovs = 2
+		// P_ovs = 16
+		// H_ovs = 1
+		// = 40ms (25Hz)
+		// with standby time that should really be 24.16913... Hz
+		_interval = 41;
+
+	} else if (_mode == HAP_PLUGIN_BME280_GAMING) {
+		// gaming
+		// Serial.println("-- Gaming Scenario --");
+		// Serial.println("normal mode, 4x pressure / 1x temperature / 0x humidity oversampling,");
+		// Serial.println("= humidity off, 0.5ms standby period, filter 16x");
+		_bme->setSampling(Adafruit_BME280::MODE_NORMAL,
+						Adafruit_BME280::SAMPLING_X1,   // temperature
+						Adafruit_BME280::SAMPLING_X4,   // pressure
+						Adafruit_BME280::SAMPLING_NONE, // humidity
+						Adafruit_BME280::FILTER_X16,
+						Adafruit_BME280::STANDBY_MS_0_5 );
+						
+		// Suggested rate is 83Hz
+		// 1 + (2 * T_ovs) + (2 * P_ovs + 0.5)
+		// T_ovs = 1
+		// P_ovs = 4
+		// = 11.5ms + 0.5ms standby
+		_interval = 12;
+	} else {
+		_interval = HAP_PLUGIN_BME280_INTERVAL;
+	}
+  
+
 #endif
 
 	return true;

@@ -89,7 +89,7 @@
 /**
  * WiFi
  ********************************************************************/
-#define HAP_WIFI_DEFAULT_MODE			1	// 0 = HAPWiFiModeAccessPoint	
+#define HAP_WIFI_MODE_DEFAULT			1	// 0 = HAPWiFiModeAccessPoint	
 											// 1 = HAPWiFiModeMulti
 											// 2 = HAPWiFiModeWPS			-> push button only
 											// 3 = HAPWiFiModeSmartConfig	-> not working with ios13 ?

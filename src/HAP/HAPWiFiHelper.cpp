@@ -25,7 +25,7 @@
 #include "HAPWebServerTemplateProcessor.hpp"
 #include "HAPWebServerBodyParserURLEncoded.hpp"
 
-enum HAPWiFiMode HAPWiFiHelper::_mode;
+enum HAP_WIFI_MODE HAPWiFiHelper::_mode;
 
 WiFiMulti HAPWiFiHelper::_wifiMulti;
 HAPConfig* HAPWiFiHelper::_config;
@@ -69,7 +69,7 @@ void HAPWiFiHelper::begin(HAPConfig* config, std::function<bool(bool)> callbackB
 	strcpy(_wpsConfig.factory_info.device_name,  hostname);
 
 
-	connect((enum HAPWiFiMode)_config->config()["wifi"]["mode"].as<uint8_t>());
+	connect((enum HAP_WIFI_MODE)_config->config()["wifi"]["mode"].as<uint8_t>());
 }
 
 
@@ -165,7 +165,7 @@ void HAPWiFiHelper::handleRootPost(HTTPRequest *req, HTTPResponse *res)
 	
 	if (ssid != "") {
 		_config->addNetwork(ssid, password);
-		_config->config()["wifi"]["mode"] = (uint8_t)HAPWiFiModeMulti;
+		_config->config()["wifi"]["mode"] = (uint8_t)HAP_WIFI_MODE_MULTI;
 		_config->save();
 
 		res->setStatusCode(200);
@@ -174,7 +174,7 @@ void HAPWiFiHelper::handleRootPost(HTTPRequest *req, HTTPResponse *res)
 		delay(1000);
 		stopCaptivePortal();
 		
-		connect(HAPWiFiModeMulti);
+		connect(HAP_WIFI_MODE_MULTI);
 	} else {
 		// template processing	
 #if HAP_WEBSERVER_USE_SPIFFS        	
@@ -304,10 +304,10 @@ void HAPWiFiHelper::connectMulti(){
 		_errorCount = _errorCount + 1;
 		if (_errorCount > HAP_WIFI_CONNECTION_MAX_RETRIES) {
 			LogW("WiFi connection failed! Setting WiFi mode back to default mode", true);
-			_config->config()["wifi"]["mode"] = (uint8_t)HAP_WIFI_DEFAULT_MODE;
+			_config->config()["wifi"]["mode"] = (uint8_t)HAP_WIFI_MODE_DEFAULT;
 			_config->save();
 			_errorCount = 0;
-			connect((enum HAPWiFiMode)HAP_WIFI_DEFAULT_MODE);
+			connect((enum HAP_WIFI_MODE)HAP_WIFI_MODE_DEFAULT);
 		} else {
 			LogW("WiFi connection failed! Retrying", true);
 			delay(HAP_WIFI_CONNECTION_RETRY_DELAY);
@@ -317,15 +317,15 @@ void HAPWiFiHelper::connectMulti(){
 	}
 }
 
-void HAPWiFiHelper::connect(enum HAPWiFiMode mode){
+void HAPWiFiHelper::connect(enum HAP_WIFI_MODE mode){
 	
 	switch (mode){
 
-		case HAPWiFiModeAccessPoint:
+		case HAP_WIFI_MODE_AP:
 			startCaptivePortal();
 			break;
 
-		case HAPWiFiModeMulti:	
+		case HAP_WIFI_MODE_MULTI:	
 			
 			// Add networks
 			for( const auto& value : _config->config()["wifi"]["networks"].as<JsonArray>() ) { 					
@@ -334,11 +334,11 @@ void HAPWiFiHelper::connect(enum HAPWiFiMode mode){
 			connectMulti();
 
 			break;
-		case HAPWiFiModeWPS:	
+		case HAP_WIFI_MODE_WPS:	
 			startWPS();
 			break;
 
-		case HAPWiFiModeSmartConfig:
+		case HAP_WIFI_MODE_SMARTCONFIG:
 			//Init WiFi as Station, start SmartConfig
 			WiFi.mode(WIFI_AP_STA);			
 			WiFi.beginSmartConfig();
@@ -366,7 +366,7 @@ void HAPWiFiHelper::connect(enum HAPWiFiMode mode){
 			break;
 	}
 
-	if (mode != HAPWiFiModeAccessPoint) {
+	if (mode != HAP_WIFI_MODE_AP) {
 		LogI("WiFi connected to ", false);
 		LogI(WiFi.SSID(), true);
 	}
@@ -425,7 +425,7 @@ void HAPWiFiHelper::eventHandler(WiFiEvent_t event) {
 			LogI("", true);
 
 			_config->addNetwork(WiFi.SSID(), WiFi.psk());
-			_config->config()["wifi"]["mode"] = (uint8_t)HAPWiFiModeMulti;			
+			_config->config()["wifi"]["mode"] = (uint8_t)HAP_WIFI_MODE_MULTI;			
 			_config->save();
 			
 			ESP_ERROR_CHECK(esp_wifi_wps_disable());

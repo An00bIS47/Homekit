@@ -48,7 +48,7 @@
 #include <DHT_U.h>
 
 #ifndef DHTPIN
-#define DHTPIN 		15 	// 15
+#define DHTPIN 		A8 	// 15
 #endif
 
 #ifndef DHTTYPE

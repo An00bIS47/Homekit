@@ -46,6 +46,13 @@
 #define SEALEVELPRESSURE_HPA 			(1013.25)
 
 
+enum HAP_PLUGIN_BME280_MODE {
+	HAP_PLUGIN_BME280_WEATHER 	= 0x00,
+	HAP_PLUGIN_BME280_HUMIDITY 	= 0x01,
+	HAP_PLUGIN_BME280_INDOOR 	= 0x02,
+	HAP_PLUGIN_BME280_GAMING 	= 0x03,
+};
+
 class HAPPluginBME280: public HAPPlugin {
 public:
 
@@ -84,6 +91,7 @@ private:
 	bool fakeGatoCallback();
 	HAPFakeGatoWeather _fakegato;
 
+	enum HAP_PLUGIN_BME280_MODE _mode;
 };
 
 REGISTER_PLUGIN(HAPPluginBME280)

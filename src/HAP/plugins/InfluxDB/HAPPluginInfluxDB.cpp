@@ -301,7 +301,7 @@ JsonObject HAPPluginInfluxDB::getConfigImpl(){
     doc["username"] = _username;
     doc["password"] = _password;
     doc["database"] = _database;
-    doc["port"] = _port;
+    doc["port"]     = _port;
     doc["hostname"] = _hostname;
 
     return doc.as<JsonObject>();

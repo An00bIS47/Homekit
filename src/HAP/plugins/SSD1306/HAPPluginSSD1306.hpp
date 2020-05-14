@@ -20,11 +20,11 @@
 
 #include <map>
 
-#define __CS 		2
-#define __DC		16
-#define __RST		17
-#define __MOSI 		23
-#define __SCLK 		18
+#define __CS 		A12			//  2
+#define __DC		RST_OLED	// 16
+#define __RST		A17			// 17
+#define __MOSI 		MOSI		// 23
+#define __SCLK 		SCK			// 18
 
 #define HAP_PLUGIN_SSD_INTERVAL 2500
 

@@ -86,11 +86,11 @@
 //  Sparkfun ESP32 Thing Plus / Huzzah32 
 // 		  A1  A5  18  19  5			=> 		A5 == GPIO 4
 // 									=>		A1 == GPIO 25
-#define PCA301_PIN_SPI_CLK          5		// SPI CLOCK PIN				(18)			(18)			(5)
-#define PCA301_PIN_SPI_MISO         19		// SPI MISO PIN					(19)			(19)			(19)
-#define PCA301_PIN_SPI_MOSI         18		// SPI MOSI PIN					(23)			(23)			(18)
-#define PCA301_PIN_SPI_SS           4		// sPI Slave seclect PIN		(5)				(2)				(4)
-#define PCA301_PIN_INT              25		// Interrupt PIN 				(2)				(17)			(25)
+#define PCA301_PIN_SPI_CLK          SCK 	// 5		// SPI CLOCK PIN				(18)			(18)			(5)
+#define PCA301_PIN_SPI_MISO         MISO 	// 19		// SPI MISO PIN					(19)			(19)			(19)
+#define PCA301_PIN_SPI_MOSI         MOSI	// 18 		// SPI MOSI PIN					(23)			(23)			(18)
+#define PCA301_PIN_SPI_SS           A5		// 4		// sPI Slave seclect PIN		(5)				(2)				(4)
+#define PCA301_PIN_INT              A1		// 25		// Interrupt PIN 				(2)				(17)			(25)
 
 
 #define PCA301_PACKET_LENGTH 		10

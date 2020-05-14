@@ -23,11 +23,14 @@
 
 using namespace httpsserver;
 
-enum HAPWiFiMode {
-	HAPWiFiModeAccessPoint,		// 0
-	HAPWiFiModeMulti,			// 1
-	HAPWiFiModeWPS,				// 2
-	HAPWiFiModeSmartConfig		// 3
+enum HAP_WIFI_MODE {
+	HAP_WIFI_MODE_AP 			= 0x00,		// 0
+	HAP_WIFI_MODE_MULTI			= 0x01,		// 1
+	HAP_WIFI_MODE_WPS			= 0x02,		// 2
+	HAP_WIFI_MODE_SMARTCONFIG	= 0x03,		// 3
+
+	HAP_WIFI_MODE_BLE_PROV		= 0x04,		// 4
+	HAP_WIFI_MODE_AP_PROV		= 0x05,		// 5
 };
 
 class HAPWiFiHelper {
@@ -37,7 +40,7 @@ public:
 	~HAPWiFiHelper();
 
 	static void begin(HAPConfig* config, std::function<bool(bool)> callbackBegin, const char* hostname);	
-	static void connect(enum HAPWiFiMode mode);	
+	static void connect(enum HAP_WIFI_MODE mode);	
 
 	static bool captiveInitialized();
 	static void handle();
@@ -56,7 +59,7 @@ private:
 	static esp_wps_config_t _wpsConfig;
 
 	static WiFiMulti _wifiMulti;
-	static enum HAPWiFiMode _mode;
+	static enum HAP_WIFI_MODE _mode;
 	static HAPConfig* _config;
 
 	static uint8_t _errorCount;
