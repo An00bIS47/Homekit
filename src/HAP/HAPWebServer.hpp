@@ -34,6 +34,10 @@
 #include "HAPWebServerJWT.hpp"
 #endif
 
+#if HAP_KEYSTORE_ENABLED
+#include "HAPKeystore.hpp"
+#endif
+
 
 // Easier access to the classes of the server
 using namespace httpsserver;
@@ -42,6 +46,10 @@ class HAPWebServer {
 public:	
 	HAPWebServer();
 	~HAPWebServer();
+
+	static void setKeystore(HAPKeystore* keystore) {
+		_keystore = keystore;
+	}
 
 	static bool begin();
 
@@ -181,6 +189,10 @@ private:
 #endif
 
 	static EventManager* _eventManager;
+
+#if HAP_KEYSTORE_ENABLED
+	static HAPKeystore* _keystore;
+#endif
 
 };
 

@@ -84,7 +84,10 @@
 #ifndef HAP_DEBUG_EVENTMANAGER		
 #define HAP_DEBUG_EVENTMANAGER		0
 #endif
-								
+
+#ifndef HAP_DEBUG_KEYSTORE
+#define HAP_DEBUG_KEYSTORE			1
+#endif
 
 /**
  * WiFi
@@ -99,6 +102,10 @@
 											// default: 5
 #define HAP_WIFI_CONNECTION_RETRY_DELAY	2000
 #define ESP_WIFI_CONNECTION_TIMEOUT		20000
+
+
+
+#define HAP_PROVISIONING_ENABLE_BLE		0
 
 
 /**
@@ -117,6 +124,15 @@
 #endif
 
 #endif
+
+
+/**
+ * Keystore 
+ ********************************************************************/
+#define HAP_KEYSTORE_ENABLED			1
+#define HAP_KEYSTORE_PARTITION_LABEL	"keystore"
+#define HAP_KEYSTORE_STORAGE_LABEL   	"keystore"
+
 
 /**
  * WebServer 

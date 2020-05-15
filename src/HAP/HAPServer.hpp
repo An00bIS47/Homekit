@@ -45,6 +45,10 @@
 #include "HAPWiFiHelper.hpp"
 #include "HAPTLV8Types.hpp"
 
+#if HAP_KEYSTORE_ENABLED
+#include "HAPKeystore.hpp"
+#endif
+
 #define Homekit_setFirmware(name, version, rev) \
 const char* __FLAGGED_FW_NAME 		= "\xbf\x84\xe4\x13\x54" name "\x93\x44\x6b\xa7\x75"; \
 const char* __FLAGGED_FW_VERSION 	= "\x6a\x3f\x3e\x0e\xe1" version "\xb0\x30\x48\xd4\x1a"; \
@@ -155,6 +159,10 @@ protected:
 	HAPConfig _config;
 
 	HAPWiFiHelper _wifi;
+
+#if HAP_KEYSTORE_ENABLED
+	HAPKeystore	  _keystore;	
+#endif
 
 	// struct HAPPairSetup* _pairSetup;
 #if HAP_ENABLE_WEBSERVER	

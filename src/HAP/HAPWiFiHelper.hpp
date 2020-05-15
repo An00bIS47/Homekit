@@ -15,10 +15,10 @@
 #include <WiFiMulti.h>
 #include <DNSServer.h>
 #include <functional>
-#include "HTTPServer.hpp"
-
-#include "HAPGlobals.hpp"
 #include <vector>
+
+#include "HTTPServer.hpp"
+#include "HAPGlobals.hpp"
 #include "HAPConfig.hpp"
 
 using namespace httpsserver;
@@ -46,9 +46,12 @@ public:
 	static void handle();
 
 private:
-	// static void eventHandler(WiFiEvent_t event);
-
-	void eventHandler(system_event_t *sys_event, wifi_prov_event_t *prov_event);
+	
+#if HAP_PROVISIONING_ENABLE_BLE == 0	
+	static void eventHandler(WiFiEvent_t event);
+#else
+	static void eventHandler(system_event_t *sys_event, wifi_prov_event_t *prov_event);
+#endif
 
 	static void startWPS();
 	static void startCaptivePortal();

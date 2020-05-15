@@ -21,6 +21,11 @@
 // Certs + Key
 #if HAP_WEBSERVER_USE_SSL
 
+
+#if HAP_USE_KEYSTORE
+
+#else
+
 #ifdef PLATFORMIO
 
 extern const unsigned char server_cert_der_start[] asm("_binary_certs_server_cert_der_start");
@@ -44,8 +49,11 @@ extern const unsigned char server_publicKey_der_start[] asm("_binary_server_publ
 extern const unsigned char server_publicKey_der_end[] asm("_binary_server_publickey_der_end");
 
 
-#endif
-#endif
+#endif // PLATFORMIO
+
+#endif // HAP_USE_KEYSTORE
+
+#endif // HAP_WEBSERVER_USE_SSL
 
 #include "HAPWebServerFiles.hpp"
 
@@ -82,6 +90,8 @@ HTTPSServer* HAPWebServer::_secureServer;
 HTTPServer* HAPWebServer::_secureServer;
 #endif
 
+
+HAPKeystore* HAPWebServer::_keystore;
 HAPAccessorySet* HAPWebServer::_accessorySet;
 HAPConfig* HAPWebServer::_config;
 EventManager* HAPWebServer::_eventManager;
@@ -100,12 +110,24 @@ bool HAPWebServer::begin()
 
     // SPIFFS.begin();
 
-
-
 #if HAP_WEBSERVER_USE_SSL
+
+
+#if HAP_KEYSTORE_ENABLED
+
+    HAPHelper::array_print("webserver cert:", _keystore->getDeviceWebserverCert(), _keystore->getDeviceWebserverCertLength());
+    
     SSLCert cert = SSLCert(
-        (unsigned char *)server_cert_der_start, server_cert_der_end - server_cert_der_start,
-        (unsigned char *)server_privateKey_der_start, server_privateKey_der_end - server_privateKey_der_start);
+                            _keystore->getDeviceWebserverCert(), _keystore->getDeviceWebserverCertLength(),
+                            _keystore->getDevicePrivateKey(), _keystore->getDevicePrivateKeyLength() 
+                        );
+#else
+    SSLCert cert = SSLCert(
+            (unsigned char *)server_cert_der_start, server_cert_der_end - server_cert_der_start,
+            (unsigned char *)server_privateKey_der_start, server_privateKey_der_end - server_privateKey_der_start
+        );
+#endif
+    
     _secureServer = new HTTPSServer(&cert);
 #else
     _secureServer = new HTTPServer();

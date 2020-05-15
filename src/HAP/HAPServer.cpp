@@ -109,6 +109,14 @@ HAPServer::HAPServer(uint16_t port, uint8_t maxClients)
 HAPServer::~HAPServer() {
 	// TODO Auto-generated destructor stub
 	delete _accessorySet;
+
+#if HAP_ENABLE_WEBSERVER
+	delete _webserver;
+#endif	
+
+#if HAP_USE_MBEDTLS_SRP
+	free(_srp);
+#endif
 }
 
 bool HAPServer::begin(bool resume) {
@@ -125,13 +133,19 @@ bool HAPServer::begin(bool resume) {
 
 	if (resume == false){		
 
+		// 
 		// Logging
+		// 
 		HAPLogger::setPrinter(&Serial);
 		HAPLogger::setLogLevel(HAP_LOGLEVEL);
 
-		/*
-		 * Configuration
-		 */
+
+
+		
+		
+		//
+		// Configuration
+		// 
 		LogV("Loading configuration ...", false);	
 		auto callback = std::bind(&HAPServer::updateConfig, this);
 		_config.registerCallback(callback);
@@ -218,6 +232,18 @@ bool HAPServer::begin(bool resume) {
 
 	}
 
+#if HAP_KEYSTORE_ENABLED
+	// 
+	// keystore 
+	// 
+	LogI("Loading Keystore ...", false);	
+	if (_keystore.begin(HAP_KEYSTORE_PARTITION_LABEL, HAP_KEYSTORE_STORAGE_LABEL) == false){
+		LogE("ERROR: Failed to start keystore!", true);
+	}
+	LogI(" OK", true);
+#endif
+
+
 	// Hostname
 	char* hostname = (char*) malloc(sizeof(char) * strlen(HAP_HOSTNAME_PREFIX) + 8);
 	sprintf(hostname, "%s-%02X%02X%02X", HAP_HOSTNAME_PREFIX, baseMac[3], baseMac[4], baseMac[5]);
@@ -232,29 +258,29 @@ bool HAPServer::begin(bool resume) {
 
 	
 #if HAP_NTP_ENABLED
-	LogV( F("Starting NTP client ..."), false);
+	LogI( "Starting NTP client ...", false);
 	configTzTime(HAP_NTP_TZ_INFO, HAP_NTP_SERVER_URL);
 
 	if (getLocalTime(&_timeinfo, 10000)) {  // wait up to 10sec to sync
 		//Serial.println(&_timeinfo, "Time set: %B %d %Y %H:%M:%S (%A)");		
-		LogV(F("OK"), true);
-		LogV("Set time to: " + timeString(), true);
+		LogI( " OK", true);
+		LogI("Set time to: " + timeString(), true);
 
 		_config.setRefTime(timestamp());
 	} else {
-		LogV(F("[ERROR] Time not set!"), true);	
+		LogI("[ERROR] Time not set!", true);	
   	}
 #endif
 
 
 	// Todo: Move pairings to accessorySet
-	LogV("Loading pairings ...", false);	
+	LogI("Loading pairings ...", false);	
 	if (_accessorySet->getPairings()->begin()) {
 
 		_accessorySet->getPairings()->load();		
 	} 
-	LogV("OK", true);
-	LogV("Loaded " + String(_accessorySet->getPairings()->size()) + " pairings from EEPROM", true);
+	LogI(" OK", true);
+	LogI("Loaded " + String(_accessorySet->getPairings()->size()) + " pairings from EEPROM", true);
 
 #if HAP_DEBUG
 	_accessorySet->getPairings()->print();
@@ -262,7 +288,7 @@ bool HAPServer::begin(bool resume) {
 
 
 	if ( isPaired() ){
-		LogV("Loading long term keys ...", false);	
+		LogD("Loading long term keys ...", false);	
 		_longTermContext = (struct HAPLongTermContext*) calloc(1, sizeof(struct HAPLongTermContext));
 		if (_longTermContext == NULL) {
 			LogE( F("[ERROR] Initializing struct _longTermContext failed!"), true);
@@ -286,31 +312,31 @@ bool HAPServer::begin(bool resume) {
 // #endif 		
 
 
-		LogV("OK", true);
+		LogD(" OK", true);
 	}
 
-	LogV("Starting encrpytion engine ...", false);
+	LogI("Starting encrpytion engine ...", false);
 	error_code = HAPEncryption::begin();
 	if (error_code != 0){
-		LogE(F("[ERROR] Failed to initialize libsodium!"), true);		
+		LogE("[ERROR] Failed to initialize libsodium!", true);		
 	} else {
-		LogV("OK", true);
+		LogI(" OK", true);
 	}
 
 
-	LogV( F("Setup accessory ..."), false);
+	LogI( "Setup accessory ...", false);
 	_accessorySet->setModelName(hostname);	
 	_accessorySet->setAccessoryType(HAP_ACCESSORY_TYPE_BRIDGE);
 	_accessorySet->setPinCode(HAP_PIN_CODE);
 	_accessorySet->begin();
-	LogV("OK", true);
+	LogI(" OK", true);
 
 	
 	
 	// 
 	// Event Manager
 	//
-	LogV( F("\nAdding listener to event manager ..."), false);
+	LogI( "Adding listener to event manager ...", false);
 	// Incoming
   	listenerNotificaton.mObj = this;
   	listenerNotificaton.mf = &HAPServer::handleEvents;
@@ -332,12 +358,7 @@ bool HAPServer::begin(bool resume) {
   	listenerRebootNow.mf = &HAPServer::handleEventRebootNow;
 	_eventManager.addListener( EventManager::kEventRebootNow, &listenerRebootNow );  	  	
 
-	LogV(F("OK"), true);
-
-
-
-
-
+	LogI( " OK", true);
 
 
 	// 
@@ -354,8 +375,8 @@ bool HAPServer::begin(bool resume) {
 	//LogD(_accessorySet->et.setupID(), true);
 
 
-	LogV("Homekit X-HM URI: " + String(_accessorySet->xhm()), true);
-	LogV("Homekit setup hash:  " + String(_accessorySet->setupHash()), true);
+	LogD("Homekit X-HM URI: " + String(_accessorySet->xhm()), true);
+	LogD("Homekit setup hash:  " + String(_accessorySet->setupHash()), true);
 
 
 
@@ -399,7 +420,7 @@ bool HAPServer::begin(bool resume) {
 #if HAP_ENABLE_WEBSERVER
 
 	if (_config.config()["webserver"]["enabled"]){
-		LogV("Starting webserver ...", false);
+		LogI("Starting webserver ...", false);
 
 		// #if HAP_API_ADMIN_MODE	
 		// 	// Get hap accessories
@@ -412,8 +433,13 @@ bool HAPServer::begin(bool resume) {
 		_webserver->setAccessorySet(_accessorySet);
 		_webserver->setConfig(&_config);
 		_webserver->setEventManager(&_eventManager);
+
+#if HAP_KEYSTORE_ENABLED		
+		_webserver->setKeystore(&_keystore);
+#endif
+
 		_webserver->begin();
-		LogV("OK", true);
+		LogI(" OK", true);
 	}
 #endif
 
@@ -423,13 +449,14 @@ bool HAPServer::begin(bool resume) {
   	// 
 
 	// Setting Reference Time to FakeGato
+	LogI( "Setting EVE reference time ...", true);
 	_fakeGatoFactory.setRefTime(_config.config()["fakegato"]["reftime"].as<uint32_t>());
-
+	LogI(" OK", true);
 
   	// 
   	// Loading plugins
   	// 
-  	LogI( F("Loading plugins ..."), true);
+  	LogI( "Loading plugins ...", true);
 
 	auto &factory = HAPPluginFactory::Instance();        
     std::vector<String> names = factory.names();    
@@ -499,10 +526,10 @@ bool HAPServer::begin(bool resume) {
 	//
 	// Starting HAP server
 	// 
-	LogV( F("Starting homekit server ..."), false);
+	LogI( "Starting homekit server ...", false);
 	_server.begin();
 	_server.setNoDelay(true);
-	LogV(F("OK"), true);
+	LogI(" OK", true);
   	
 	// 
 	// Bonjour
@@ -512,7 +539,7 @@ bool HAPServer::begin(bool resume) {
 	//   the fully-qualified domain name is "esp8266.local"
 	// - second argument is the IP address to advertise
 	//   we send our IP address on the WiFi network
-	LogD( "Advertising bonjour service ...", false);
+	LogI( "Advertising bonjour service ...", false);
 	if (!mDNSExt.begin(_accessorySet->modelName())) {
 		LogE( "ERROR; Starting mDNS responder failed!", true);
 		return false;
@@ -526,7 +553,7 @@ bool HAPServer::begin(bool resume) {
 		mDNSExt.addService("http", "_tcp", 443);
 	}
 #endif
-	LogD( " OK", true);
+	LogI( " OK", true);
 
 
 #if HAP_UPDATE_ENABLE_FROM_WEB || HAP_UPDATE_ENABLE_OTA
@@ -534,9 +561,9 @@ bool HAPServer::begin(bool resume) {
 		//
 		// Starting Arduino OTA
 		//
-		LogD( "Starting Arduino OTA ...", false);
+		LogI( "Starting Arduino OTA ...", false);
 		_updater.begin(&_config);
-		LogD( " OK", true);
+		LogI( " OK", true);
 	}
 
 #if HAP_UPDATE_ENABLE_FROM_WEB
@@ -574,12 +601,9 @@ bool HAPServer::begin(bool resume) {
 	//
 	// Show event listerners
 	//
-  	LogV( "Number of event listeners:  ", false );
-  	LogV( String(_eventManager.numListeners()), true );
+  	LogD( "Number of event listeners:  ", false );
+  	LogD( String(_eventManager.numListeners()), true );
 
-
-
-	LogD(_accessorySet->describe(), true);
 
 	// 
 	// Startup completed
