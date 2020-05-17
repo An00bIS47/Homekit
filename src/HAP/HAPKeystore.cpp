@@ -11,8 +11,18 @@
 #include "HAPHelper.hpp"
 #include "HAPServer.hpp"
 
+#include "mbedtls/error.h"
+#include "mbedtls/md.h"
+#include "mbedtls/pk.h"
+
+
+
 HAPKeystore::HAPKeystore(){
     init();
+
+    _isValid = false;
+    sprintf(_currentPartition, "%s", HAP_KEYSTORE_PARTITION_LABEL);
+    _isStarted = false;
 }
 
 void HAPKeystore::init(){
@@ -46,44 +56,94 @@ void HAPKeystore::init(){
     _pluginServerCert_1Length = 0;
     _pluginServerCert_2Length = 0;
     _pluginServerCert_3Length = 0;
+
+    _containerId = 0;
 }
 
 HAPKeystore::~HAPKeystore(){
     clear();
 }
 
+bool HAPKeystore::setCurrentPartition(const char* partitionName){
+    
+    if (strlen(partitionName) > 15) {
+        LogE("ERROR: Partition label is too long!", true);
+        return false;
+    } else {
+        sprintf(_currentPartition, "%s", partitionName);
+        return true;
+    }    
+}
+
+const char* HAPKeystore::getCurrentPartition(){
+    return _currentPartition;
+}
+
+const char* HAPKeystore::getAlternatePartition(){
+    if (strcmp(_currentPartition, HAP_KEYSTORE_PARTITION_LABEL) == 0) {
+        return HAP_KEYSTORE_PARTITION_LABEL_ALT;
+    } 
+    return HAP_KEYSTORE_PARTITION_LABEL;
+}
+
+
+bool HAPKeystore::begin(){
+    if (!_isStarted) {
+        return begin(_currentPartition, HAP_KEYSTORE_STORAGE_LABEL, true);
+    } 
+    return true;
+}
+
+
 bool HAPKeystore::begin(const char* partitionName, const char* name, bool readOnly){
     bool result = _prefs.begin(partitionName, name, readOnly);
 
-    if (result == false) LogE("ERROR: Failed to open keystore!", true);
+    if (result == false) {
+        LogE("ERROR: Failed to open partition!", true);
+    } else {
+        setCurrentPartition(partitionName);
+    }
+    
+    isValid();
+
+    _isStarted = result;
     return result;
 }
 
-
-bool HAPKeystore::readFromNVS(const char* entryName, uint8_t* buffer, uint16_t* len) {
-
-    LogD(HAPServer::timeString() + " " + "HAPKeystore" + "->" + String(__FUNCTION__) + " [   ] " + "Reading nvs entry " + String(entryName), true);
-
-    *len = _prefs.getBytesLength(entryName);
-
-    if (*len == 0){
-        LogD("Length was 0", true);
-        return false;
-    }
-
-    buffer = (uint8_t*) malloc(sizeof(uint8_t) * (*len));
-    size_t read = _prefs.getBytes(entryName, buffer, *len);        
-
-#if HAP_DEBUG_KEYSTORE
-    HAPHelper::array_print(entryName, buffer, *len);    
-#endif
-
-    if ( read != *len){
-        LogE("ERROR: Failed to read " + String(entryName) + "from keystore", true );
-        return false;
-    }
-    return true;
+bool HAPKeystore::isValid(){
+    _isValid = _prefs.getBool("isValid", false);
+    return _isValid;
 }
+
+void HAPKeystore::end(){
+    _isStarted = false;
+    _prefs.end();
+}
+
+// bool HAPKeystore::readFromNVS(const char* entryName, uint8_t* buffer, uint16_t* len) {
+
+//     LogD(HAPServer::timeString() + " " + "HAPKeystore" + "->" + String(__FUNCTION__) + " [   ] " + "Reading nvs entry " + String(entryName), true);
+
+//     *len = _prefs.getBytesLength(entryName);
+
+//     if (*len == 0){
+//         LogD("Length was 0", true);
+//         return false;
+//     }
+
+//     buffer = (uint8_t*) malloc(sizeof(uint8_t) * (*len));
+//     size_t read = _prefs.getBytes(entryName, buffer, *len);        
+
+// #if HAP_DEBUG_KEYSTORE
+//     HAPHelper::array_print(entryName, buffer, *len);    
+// #endif
+
+//     if ( read != *len){
+//         LogE("ERROR: Failed to read " + String(entryName) + "from keystore", true );
+//         return false;
+//     }
+//     return true;
+// }
 
 
 void HAPKeystore::clear(){
@@ -214,8 +274,34 @@ void HAPKeystore::clear(){
 //     return true;
 // }
 
+uint8_t HAPKeystore::getContainerId(){
+
+    if (!_isStarted) begin();
+
+    if (_isValid == false) return 0;
+
+    const char* entryName = "0xFD";
+
+    if (_containerId != 0) {
+        return _containerId;
+    }
+    
+    _containerId = _prefs.getUChar(entryName, 0);        
+
+#if HAP_DEBUG_KEYSTORE
+    LogD("containerId: " + String(_containerId), true);
+#endif    
+    return _containerId;
+}
+
 
 uint8_t* HAPKeystore::getDeviceWebserverCert(){
+
+    if (!_isStarted) begin();
+
+    if (_isValid == false) return nullptr;
+
+
 
     const char* entryName = "0x13";
 
@@ -247,7 +333,49 @@ uint8_t* HAPKeystore::getDeviceWebserverCert(){
 }
 
 
+
+
+uint8_t* HAPKeystore::getRootCaPublicKeySignature(){
+
+    if (!_isStarted) begin();
+
+    if (_isValid == false) return nullptr;
+
+    const char* entryName = "0x01";
+
+    if (_rootCaPublicKeySignatureLength > 0) {
+        return _rootCaPublicKeySignature;
+    }
+
+    _rootCaPublicKeySignatureLength = _prefs.getBytesLength(entryName);
+    
+
+    if (_rootCaPublicKeySignatureLength == 0){
+        LogD("ERROR: Failed to read " + String(entryName) + "from keystore! Size was 0", true);
+        return nullptr;
+    }
+
+    _rootCaPublicKeySignature = (uint8_t*) malloc(sizeof(uint8_t) * _rootCaPublicKeySignatureLength);
+    size_t read = _prefs.getBytes(entryName, _rootCaPublicKeySignature, _rootCaPublicKeySignatureLength);        
+
+#if HAP_DEBUG_KEYSTORE
+    HAPHelper::array_print(entryName, _rootCaPublicKeySignature, _rootCaPublicKeySignatureLength);    
+#endif
+
+    if ( read != _rootCaPublicKeySignatureLength){
+        LogE("ERROR: Failed to read " + String(entryName) + "from keystore", true );
+        return nullptr;
+    }
+    
+    return _rootCaPublicKeySignature;
+}
+
+
 uint8_t* HAPKeystore::getDevicePrivateKey(){
+
+    if (!_isStarted) begin();
+
+    if (_isValid == false) return nullptr;
 
     const char* entryName = "0x11";
 
@@ -276,4 +404,150 @@ uint8_t* HAPKeystore::getDevicePrivateKey(){
     }
     
     return _devicePrivateKey;
+}
+
+bool HAPKeystore::parseRequest(HTTPRequest * req){
+    
+    const char* currentPartition = getCurrentPartition();
+    
+
+    const uint8_t* publicKey = getRootCaPublicKeySignature();
+    size_t publicKeyLength = getRootCaPublicKeySignatureLength();
+
+
+    if (_isStarted) {
+        end();
+    }
+
+    begin(HAP_KEYSTORE_PARTITION_LABEL_ALT, getAlternatePartition(), false);
+
+    // ToDo: 
+    // - chack existing container Id! -> must be first entry!
+    //  - calculate sha256 
+    // - verify signature
+    // - add existing keys from other partition ??
+
+    uint8_t signatureBuffer[256];
+    size_t signatureOffset = 0;
+
+    uint8_t shaResult[32];
+ 
+    mbedtls_md_context_t ctx;
+    mbedtls_md_type_t md_type = MBEDTLS_MD_SHA256;
+
+    mbedtls_md_init(&ctx);
+    mbedtls_md_setup(&ctx, mbedtls_md_info_from_type(md_type), 0);
+    mbedtls_md_starts(&ctx);
+
+    while ( !req->requestComplete() ) {
+        uint8_t type[1];
+        uint8_t length[1];
+        
+        req->readBytes(type, 1);
+        req->readBytes(length, 1);
+        
+        uint8_t data[*length];
+        req->readBytes(data, *length);
+
+        char typeStr[6];
+        sprintf(typeStr, "0x%02X", *type);
+
+
+
+
+#if HAP_DEBUG_KEYSTORE        
+        HAPHelper::array_print(typeStr, data, *length);
+#endif
+
+
+        if ( (strncmp(typeStr, "0xFD", 4) == 0) || (strncmp(typeStr, "0xfd", 4) == 0) ) {
+            if (memcmp(data, &_containerId, 1) == 0) {
+                LogW("WARNING: Keystore container id is currently used! - Update aborted!", true);
+            
+                _prefs.freeEntries();
+                end();
+
+                return false;
+            }
+            // Todo: Check if hex or dec 
+            mbedtls_md_update(&ctx, (const unsigned char *) type, 1);
+            mbedtls_md_update(&ctx, (const unsigned char *) length, 1);
+            
+        } else if ( (strncmp(typeStr, "0xFE", 4) == 0) || (strncmp(typeStr, "0xfe", 4) == 0) ) {
+            memcpy(signatureBuffer + signatureOffset, data, *length);
+            signatureOffset += (*length);
+        } else {
+
+            // calculate sha256
+            mbedtls_md_update(&ctx, (const unsigned char *) data, *length);
+
+            // check for already stored bytes to append the new data
+            size_t storedLength = 0;
+            storedLength = _prefs.getBytesLength(typeStr);
+            
+            if (storedLength > 0){
+                uint8_t storedBuffer[storedLength + (*length)];
+                _prefs.getBytes(typeStr, storedBuffer, storedLength);
+                memcpy(storedBuffer + storedLength, data, *length);
+
+                _prefs.putBytes(typeStr, storedBuffer, storedLength + (*length));            
+            } else {
+                _prefs.putBytes(typeStr, data, (*length));            
+            }
+
+        }
+    }
+    
+    mbedtls_md_finish(&ctx, shaResult);
+    mbedtls_md_free(&ctx);
+    
+
+    HAPHelper::array_print("hash:", shaResult, 32);
+    HAPHelper::array_print("signature:", signatureBuffer, signatureOffset);
+
+
+    // ToDo: Verify Signature ECDSA 
+    bool result = verifySignature(publicKey, publicKeyLength, shaResult, signatureBuffer, signatureOffset);
+
+    if (!result) {
+        LogE("ERROR: Signature verification failed! - Aborting Update!", true);
+        _prefs.freeEntries();
+    }  else {
+        _prefs.putBool("isValid", result);     
+    }
+
+    end();
+
+    setCurrentPartition(currentPartition);
+
+    return result;
+}
+
+bool HAPKeystore::verifySignature(const uint8_t* publicKey, size_t publicKeyLength, const uint8_t* hash, const uint8_t* signature, size_t signatureLength){
+    
+    int errorCode = 0;
+    mbedtls_pk_context ctxPublicKey;
+
+    mbedtls_pk_init( &ctxPublicKey );
+
+    // parse public key
+    errorCode = mbedtls_pk_parse_public_key(&ctxPublicKey, publicKey, publicKeyLength);
+    if (errorCode != 0) {
+        LogE("ERROR: Failed to load public key!", true);
+
+        mbedtls_pk_free( &ctxPublicKey );
+        return false;
+    }
+
+    errorCode = mbedtls_pk_verify( &ctxPublicKey, MBEDTLS_MD_SHA256, hash, 0, signature, signatureLength );
+    if (errorCode != 0) {
+        LogE("ERROR: Failed to verify signature!", true);
+
+        mbedtls_pk_free( &ctxPublicKey );
+        return false;
+    }
+
+    mbedtls_pk_free( &ctxPublicKey );
+
+    return true;
 }

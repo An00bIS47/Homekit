@@ -13,3 +13,6 @@ buildnumber:
 
 cppcheck:
 	cppcheck --cppcheck-build-dir=build -i components -i src/ArduinoJson --enable=all --std=c++11 --force . 2>cppcheck.log
+
+keystore:
+	python '$IDF_PATH/components/nvs_flash/nvs_partition_generator/nvs_partition_gen.py generate keystore_parttiion.csv keystore.bin 0x8000 --version 2'

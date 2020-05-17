@@ -11,7 +11,17 @@
 #include <Arduino.h>
 
 #include "HAPPreferencesExt.hpp"
+#include <HTTPRequest.hpp>
 
+// Easier access to the classes of the server
+using namespace httpsserver;
+
+
+
+// enum HAP_KEYSTORE_PARTITION {
+//     HAP_KEYSTORE_PARTITION_0                        = 0x00,
+//     HAP_KEYSTORE_PARTITION_1                        = 0x01
+// };
 
 enum HAP_KEYSTORE_TYPE {
     HAP_KEYSTORE_TYPE_ROOT_CA                       = 0x00,
@@ -45,10 +55,24 @@ public:
     HAPKeystore();
     ~HAPKeystore();
 
+    static bool verifySignature(const uint8_t* publicKey, size_t publicKeyLength, const uint8_t* hash, const uint8_t* signature, size_t signatureLength);
+
+
+    bool begin();
     bool begin(const char* partitionName, const char* name, bool ReadOnly = true);
     // bool load(const char* partitionName, const char* name);
     void clear();
 
+    bool isValid();
+    void end();
+
+
+    bool setCurrentPartition(const char* partitionName);
+    const char* getCurrentPartition();
+    const char* getAlternatePartition();
+
+
+    uint8_t getContainerId();
     
     uint16_t getRootCaLength() {
     	return _rootCaLength;
@@ -99,9 +123,10 @@ public:
     uint8_t* getRootCa(){
         return _rootCa;
     }
-    uint8_t* getRootCaPublicKeySignature(){
-        return _rootCaPublicKeySignature;
-    }
+    
+    uint8_t* getRootCaPublicKeySignature();
+
+
 
     uint8_t* getDeviceClientCert(){
         return _deviceClientCert;
@@ -135,15 +160,18 @@ public:
         return _pluginServerCert_3;
     }  
     
-
+    bool parseRequest(HTTPRequest * req);
 private:
     bool readFromNVS(const char* entryName, uint8_t* buffer, uint16_t* len);
     
+
+    char _currentPartition[15];
     
     void init();
-    
 
     HAPPreferencesExt _prefs;
+
+    uint8_t _containerId;
 
     uint8_t* _rootCa;
     uint8_t* _rootCaPublicKeySignature;
@@ -182,6 +210,8 @@ private:
     uint16_t _pluginServerCert_2Length;
     uint16_t _pluginServerCert_3Length;  
 
+    bool _isValid;
+    bool _isStarted;
 };
 
 #endif /* HAPKEYSTORE_HPP_ */

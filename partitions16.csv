@@ -66,7 +66,8 @@ nvs,        data,       nvs,        ,           32K,
 ##
 ## 
 ## Name,    Type,       SubType,    Offset,     Size,   Flags
-keystore,    data,       nvs,       0xC95000,   16K,
+keystore_0, data,       nvs,        0xC95000,   32K,
+keystore_1, data,       nvs,        0xC9D000,   32K,
 
 ##
 ## SPIFFS

@@ -113,9 +113,7 @@ bool HAPWebServer::begin()
 #if HAP_WEBSERVER_USE_SSL
 
 
-#if HAP_KEYSTORE_ENABLED
-
-    HAPHelper::array_print("webserver cert:", _keystore->getDeviceWebserverCert(), _keystore->getDeviceWebserverCertLength());
+#if HAP_KEYSTORE_ENABLED    
     
     SSLCert cert = SSLCert(
                             _keystore->getDeviceWebserverCert(), _keystore->getDeviceWebserverCertLength(),
@@ -203,6 +201,16 @@ bool HAPWebServer::begin()
     ResourceNode *nodePluginPost = new ResourceNode("/plugin/*", "POST", &HAPWebServer::handlePluginNodes);    
     nodePluginPost->addPathParamValidator(0, &HAPWebServer::validatePluginNodesPost);
     _secureServer->registerNode(nodePluginPost);
+
+
+// #if HAP_KEYSTORE_ENABLED
+// 	// ====================================================================================================
+// 	// Keystore
+// 	// ====================================================================================================
+// 	// POST /keystore
+//     ResourceNode *nodeKeystorePost = new ResourceNode("/keystore", "POST", &HAPWebServer::handleKeystorePost);        
+//     _secureServer->registerNode(nodeKeystorePost);
+// #endif
 
 
     // ======================================================================================
@@ -729,7 +737,7 @@ void HAPWebServer::handleApi(HTTPRequest *req, HTTPResponse *res)
 
     // Get access to the parameters
     ResourceParameters *params = req->getParams();
-    
+
     if ( (strcmp(params->getPathParameter(0).c_str(), "heap") == 0) && (strcmp(req->getMethod().c_str(), "GET") == 0) )                
     {
         req->discardRequestBody();
@@ -795,6 +803,13 @@ void HAPWebServer::handleApi(HTTPRequest *req, HTTPResponse *res)
         handleApiRefTimePost(req, res);
         return;
     } 
+
+    else if ( (strcmp(params->getPathParameter(0).c_str(), "keystore") == 0) && (strcmp(req->getMethod().c_str(), "POST") == 0) )
+    {
+        //req->discardRequestBody();
+        handleApiKeystorePost(req, res);
+        return;
+    } 
     
     handle404(req, res);
     
@@ -802,6 +817,7 @@ void HAPWebServer::handleApi(HTTPRequest *req, HTTPResponse *res)
 
 bool HAPWebServer::validateApiGet(const std::string s)
 {
+
     if (strcmp(s.c_str(), "heap") == 0)
     {
         return true;
@@ -844,6 +860,10 @@ bool HAPWebServer::validateApiPost(const std::string s)
     {
         return true;
     }
+    else if (strcmp(s.c_str(), "keystore") == 0)
+    {
+        return true;
+    }
     
     return false;
 }
@@ -851,7 +871,6 @@ bool HAPWebServer::validateApiPost(const std::string s)
 bool HAPWebServer::validateApiDelete(const std::string s)
 {
 
-   
     if (strcmp(s.c_str(), "pairings") == 0)
     {
         return true;
@@ -1103,6 +1122,40 @@ void HAPWebServer::handleApiSetup(HTTPRequest *req, HTTPResponse *res)
     res->printf("{ \"pin\": \"%s\", \"xhm\": \"%s\" }\n", _accessorySet->pinCode(), _accessorySet->xhm());
 }
 
+
+
+// ===========================================================================================================
+// /keystore
+// ADMIN only
+// ===========================================================================================================
+void HAPWebServer::handleApiKeystorePost(HTTPRequest * req, HTTPResponse * res){
+
+    std::string contentType = req->getHeader("Content-Type");
+    
+    if (contentType != "application/tlv8") {
+        req->discardRequestBody();
+
+        res->setStatusCode(400);
+        res->setStatusText("Bad Request");
+        return;
+    }
+    
+    if (_keystore->parseRequest(req) == false){
+        req->discardRequestBody();
+
+        res->setStatusCode(400);
+        res->setStatusText("Bad Request");
+        return;
+    } else {
+        _config->config()["homekit"]["keystore"] = _keystore->getAlternatePartition();
+        _config->save();
+        
+        LogI("Keystore was successfully updated! A reboot is required for the changes to take effect!", true);
+    }
+
+    res->setStatusCode(204);
+    res->setStatusText("No Content");
+}
 
 
 

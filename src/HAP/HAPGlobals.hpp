@@ -129,9 +129,12 @@
 /**
  * Keystore 
  ********************************************************************/
-#define HAP_KEYSTORE_ENABLED			1
-#define HAP_KEYSTORE_PARTITION_LABEL	"keystore"
-#define HAP_KEYSTORE_STORAGE_LABEL   	"keystore"
+#define HAP_KEYSTORE_ENABLED				1
+
+
+#define HAP_KEYSTORE_PARTITION_LABEL	 	"keystore_0"
+#define HAP_KEYSTORE_PARTITION_LABEL_ALT 	"keystore_1"
+#define HAP_KEYSTORE_STORAGE_LABEL   		"keystore"
 
 
 /**

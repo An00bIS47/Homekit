@@ -138,10 +138,6 @@ bool HAPServer::begin(bool resume) {
 		// 
 		HAPLogger::setPrinter(&Serial);
 		HAPLogger::setLogLevel(HAP_LOGLEVEL);
-
-
-
-		
 		
 		//
 		// Configuration
@@ -237,10 +233,17 @@ bool HAPServer::begin(bool resume) {
 	// keystore 
 	// 
 	LogI("Loading Keystore ...", false);	
-	if (_keystore.begin(HAP_KEYSTORE_PARTITION_LABEL, HAP_KEYSTORE_STORAGE_LABEL) == false){
-		LogE("ERROR: Failed to start keystore!", true);
-	}
-	LogI(" OK", true);
+	if (_keystore.begin(_config.config()["homekit"]["keystore"].as<const char*>(), HAP_KEYSTORE_STORAGE_LABEL) == false){
+		LogE("ERROR: Failed to start keystore!", true);		
+	} else {
+		if (_keystore.isValid() == false) {
+			LogE("ERROR: Keystore is not valid!", true);
+		} else {
+			LogI(" OK - Using containerId " + String(_keystore.getContainerId()), true);
+		}
+	}	
+	
+
 #endif
 
 
@@ -273,7 +276,7 @@ bool HAPServer::begin(bool resume) {
 #endif
 
 
-	// Todo: Move pairings to accessorySet
+	// Todo: Move pairings to accessorySet?
 	LogI("Loading pairings ...", false);	
 	if (_accessorySet->getPairings()->begin()) {
 
@@ -580,12 +583,12 @@ bool HAPServer::begin(bool resume) {
 
 #endif
 
+
+
 	if ( !updateServiceTxt() ){
 		LogE( "ERROR: Advertising HAP service failed!", true);
 		return false;
 	}
-
-
 
 
 #if HAP_DEBUG_HOMEKIT
@@ -637,6 +640,10 @@ bool HAPServer::begin(bool resume) {
 // #endif
 
 	free(hostname);
+
+	// Close Keystore
+	_keystore.end();
+
 
 	// Handle any events that are in the queue
 	_eventManager.processEvent();	

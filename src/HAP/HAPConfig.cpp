@@ -33,7 +33,9 @@ void HAPConfig::begin(){
     // homekit
     JsonObject homekit = _config.createNestedObject("homekit");
     homekit["loglevel"]         = (uint8_t)HAP_LOGLEVEL;
+    homekit["keystore"]         = "keystore_0";
 
+    
     // accessory
     JsonObject accessory = _config.createNestedObject("accessory");
     accessory["pincode"]        = HAP_PIN_CODE;
@@ -198,6 +200,18 @@ HAPConfigValidationResult HAPConfig::validateConfigHomekit(const JsonObject obje
     // homekit.loglevel - int
     if (!object["homekit"].as<JsonObject>().containsKey("loglevel") || !object["homekit"]["loglevel"].is<uint8_t>()) {
         result.reason = "homekit.loglevel is not an integer";        
+        return result;
+    }
+
+    // homekit.keystore - string
+    if (!object["homekit"].as<JsonObject>().containsKey("keystore") || !object["homekit"]["keystore"].is<const char*>()) {
+        result.reason = "homekit.keystore is not a string";        
+        return result;
+    }
+
+    // accessory.keystore - length
+    if (strlen(object["accessory"]["hostname"]) > 15) {
+        result.reason = "homekit.keystore is too long";
         return result;
     }
 

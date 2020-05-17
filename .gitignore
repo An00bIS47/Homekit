@@ -121,3 +121,7 @@ sdkconfig.heltec
 ### AUDI
 src/HAP/plugins/AUDI
 src/HAP/plugins/AUDI/*
+
+### Keystore
+keystore.bin
+keystore_partition.csv
