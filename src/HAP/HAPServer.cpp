@@ -232,17 +232,31 @@ bool HAPServer::begin(bool resume) {
 	// 
 	// keystore 
 	// 
-	LogI("Loading Keystore ...", false);	
+	LogI("Loading Keystore from partition ", false);	
+	LogI(String(_config.config()["homekit"]["keystore"].as<const char*>()) + " ...", false);
 	if (_keystore.begin(_config.config()["homekit"]["keystore"].as<const char*>(), HAP_KEYSTORE_STORAGE_LABEL) == false){
 		LogE("ERROR: Failed to start keystore!", true);		
 	} else {
 		if (_keystore.isValid() == false) {
-			LogE("ERROR: Keystore is not valid!", true);
-		} else {
-			LogI(" OK - Using containerId " + String(_keystore.getContainerId()), true);
-		}
+			LogE("ERROR: Keystore is not valid! - Trying alternate keystore", true);
+			_keystore.end();
+			if (_keystore.begin(_keystore.getAlternatePartition(), HAP_KEYSTORE_STORAGE_LABEL) == false){
+				LogE("ERROR: Failed to start keystore!- Restarting now!", true);		
+				// ESP.restart();
+			} else {
+				if (_keystore.isValid() == false) {
+					LogE("ERROR: Alternate keystore is not valid! - Trying reboot", true);
+					_keystore.end();
+					// ESP.restart();
+				} else {
+					LogI("Setting keystore to " + String(_keystore.getCurrentPartition()), true);
+					_config.config()["homekit"]["keystore"] = _keystore.getCurrentPartition();
+					_config.save();
+				}
+			}
+		} 
 	}	
-	
+	LogI(" OK - Using containerId " + String(_keystore.getContainerId()), true);
 
 #endif
 

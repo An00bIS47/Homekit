@@ -210,6 +210,7 @@ private:
     uint16_t _pluginServerCert_2Length;
     uint16_t _pluginServerCert_3Length;  
 
+    
     bool _isValid;
     bool _isStarted;
 };

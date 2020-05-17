@@ -1146,15 +1146,22 @@ void HAPWebServer::handleApiKeystorePost(HTTPRequest * req, HTTPResponse * res){
         res->setStatusCode(400);
         res->setStatusText("Bad Request");
         return;
-    } else {
+    } else {        
+
         _config->config()["homekit"]["keystore"] = _keystore->getAlternatePartition();
         _config->save();
         
-        LogI("Keystore was successfully updated! A reboot is required for the changes to take effect!", true);
-    }
+        LogI("Keystore on partition " + String(_keystore->getAlternatePartition()) + "  was updated successfully!", true);        
+        LogI("A reboot is required for the changes to take effect!", true);
 
-    res->setStatusCode(204);
-    res->setStatusText("No Content");
+        res->setStatusCode(201);
+        res->setStatusText("Created");
+
+        struct HAPEvent event = HAPEvent(nullptr, 0, 0, "");							
+	    _eventManager->queueEvent( EventManager::kEventRebootNow, event);
+
+        return;
+    }
 }
 
 
@@ -1292,10 +1299,11 @@ void HAPWebServer::middlewareBasicAuthorization(HTTPRequest *req, HTTPResponse *
 
     // restrict access for admin api to admins: /api/config, /api/setup, /api/pairings, /api/reset, /api/restart 
     else if ( group != "ADMIN" && (req->getRequestString()  == "/api/config" 
-                            || req->getRequestString() == "/api/setup"
-                            || req->getRequestString() == "/api/pairings" 
-                            || req->getRequestString() == "/api/reset" 
-                            || req->getRequestString() == "/api/restart" ) ) {
+                                 || req->getRequestString() == "/api/setup"
+                                 || req->getRequestString() == "/api/pairings" 
+                                 || req->getRequestString() == "/api/reset"
+                                 || req->getRequestString() == "/api/keystore" 
+                                 || req->getRequestString() == "/api/restart" ) ) {
         // Same as the deny-part in middlewareAuthentication()
         res->setStatusCode(401);
         res->setStatusText("Unauthorized");
