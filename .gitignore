@@ -110,13 +110,10 @@ utils/QRCode/Scancardium_2.0.ttf
 ### heapGraph.py
 heapGraph.py
 
-#
-#
 ### sdkconfig
 sdkconfig
 sdkconfig.16MB
 sdkconfig.heltec
-
 
 ### AUDI
 src/HAP/plugins/AUDI
@@ -125,3 +122,9 @@ src/HAP/plugins/AUDI/*
 ### Keystore
 keystore.bin
 keystore_partition.csv
+*.bin
+utils/TLV8Keystore/*.bin
+utils/TLV8Keystore/*.csv
+utils/TLV8Keystore/*.tlv8
+utils/TLV8Keystore/*.sig
+utils/TLV8Keystore/*.pre

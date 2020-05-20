@@ -22,38 +22,58 @@
 #if HAP_WEBSERVER_USE_SSL
 
 
-#if HAP_USE_KEYSTORE
 
-#else
+// Server Cert if not using keystore
+#if HAP_USE_KEYSTORE == 0
 
-#ifdef PLATFORMIO
+#if HAP_BOARD_HELTEC == 1
+extern const unsigned char server_cert_der_start[] asm("_binary_esp32_AF5FA4_cer_start");
+extern const unsigned char server_cert_der_end[] asm("_binary_esp32_AF5FA4_cer_end");
+#endif
 
-extern const unsigned char server_cert_der_start[] asm("_binary_certs_server_cert_der_start");
-extern const unsigned char server_cert_der_end[] asm("_binary_certs_server_cert_der_end");
+#if HAP_BOARD_HUZZAH == 1
+extern const unsigned char server_cert_der_start[] asm("_binary_esp32_0C9D6C_cer_start");
+extern const unsigned char server_cert_der_end[] asm("_binary_esp32_0C9D6C_cer_end");
+#endif
 
-extern const unsigned char server_privateKey_der_start[] asm("_binary_certs_server_privatekey_der_start");
-extern const unsigned char server_privateKey_der_end[] asm("_binary_certs_server_privatekey_der_end");
+#if HAP_BOARD_SPARKFUN == 1
+extern const unsigned char server_cert_der_start[] asm("_binary_esp32_CAFEEC_cer_start");
+extern const unsigned char server_cert_der_end[] asm("_binary_esp32_CAFEEC_cer_end");
+#endif
 
-extern const unsigned char server_publicKey_der_start[] asm("_binary_certs_server_publickey_der_start");
-extern const unsigned char server_publicKey_der_end[] asm("_binary_certs_server_publickey_der_end");
-
-#else
-
-extern const unsigned char server_cert_der_start[] asm("_binary_server_cert_der_start");
-extern const unsigned char server_cert_der_end[] asm("_binary_server_cert_der_end");
-
-extern const unsigned char server_privateKey_der_start[] asm("_binary_server_privatekey_der_start");
-extern const unsigned char server_privateKey_der_end[] asm("_binary_server_privatekey_der_end");
-
-extern const unsigned char server_publicKey_der_start[] asm("_binary_server_publickey_der_start");
-extern const unsigned char server_publicKey_der_end[] asm("_binary_server_publickey_der_end");
+#endif 
 
 
-#endif // PLATFORMIO
+// Private Key
 
-#endif // HAP_USE_KEYSTORE
+#if HAP_BOARD_HELTEC == 1
+extern const unsigned char server_privateKey_der_start[] asm("_binary_esp32_AF5FA4_privatekey_start");
+extern const unsigned char server_privateKey_der_end[] asm("_binary_esp32_AF5FA4_privatekey_end");
+
+// extern const unsigned char server_publicKey_der_start[] asm("_binary_esp32_AF5FA4_publickey_start");
+// extern const unsigned char server_publicKey_der_end[] asm("_binary_esp32_AF5FA4_publickey_end");
+#endif
+
+
+#if HAP_BOARD_HUZZAH == 1
+extern const unsigned char server_privateKey_der_start[] asm("_binary_esp32_0C9D6C_privatekey_start");
+extern const unsigned char server_privateKey_der_end[] asm("_binary_esp32_0C9D6C_privatekey_end");
+
+// extern const unsigned char server_publicKey_der_start[] asm("_binary_esp32_0C9D6C_publickey_start");
+// extern const unsigned char server_publicKey_der_end[] asm("_binary_esp32_0C9D6C_publickey_end");
+#endif
+
+
+#if HAP_BOARD_SPARKFUN == 1
+extern const unsigned char server_privateKey_der_start[] asm("_binary_esp32_CAFEEC_privatekey_start");
+extern const unsigned char server_privateKey_der_end[] asm("_binary_esp32_CAFEEC_privatekey_end");
+
+// extern const unsigned char server_publicKey_der_start[] asm("_binary_esp32_CAFEEC_publickey_start");
+// extern const unsigned char server_publicKey_der_end[] asm("_binary_esp32_CAFEEC_publickey_end");
+#endif
 
 #endif // HAP_WEBSERVER_USE_SSL
+
 
 #include "HAPWebServerFiles.hpp"
 
@@ -75,13 +95,6 @@ extern const unsigned char server_publicKey_der_end[] asm("_binary_server_public
 // these headers, they will be ignored to prevent authentication bypass.
 #define HEADER_USERNAME "X-USERNAME"
 #define HEADER_GROUP "X-GROUP"
-
-
-
-
-// index.html
-// extern const unsigned char html_index_start[] asm("_binary_index_html_start");
-// extern const unsigned char html_index_end[] asm("_binary_index_html_end");
 
 
 #if HAP_WEBSERVER_USE_SSL
@@ -117,7 +130,7 @@ bool HAPWebServer::begin()
     
     SSLCert cert = SSLCert(
                             _keystore->getDeviceWebserverCert(), _keystore->getDeviceWebserverCertLength(),
-                            _keystore->getDevicePrivateKey(), _keystore->getDevicePrivateKeyLength() 
+                            (unsigned char *)server_privateKey_der_start, server_privateKey_der_end - server_privateKey_der_start
                         );
 #else
     SSLCert cert = SSLCert(

@@ -9,12 +9,14 @@
 
 DEBUG  		= 1
 
-# BOARD		= SPARKFUN
+BOARD		= SPARKFUN
 # BOARD		= HELTEC
-BOARD		= HUZZAH
+# BOARD		= HUZZAH
 
 ENABLE_OTA			= 0
 ENABLE_WEBSERVER 	= 1
+ENABLE_TRUSTSTORE	= 1
+
 
 WOLFSSL 	= 0
 
@@ -37,6 +39,7 @@ CXXFLAGS += -DESP32 -DARDUINO_ARCH_ESP32
 ifeq ($(BOARD),SPARKFUN)
 	#$(info ************ Feather variant ************)
 	CXXFLAGS += -DARDUINO_FEATHER_ESP32
+	CXXFLAGS += -DHAP_BOARD_SPARKFUN
 	CXXFLAGS += -I$(PROJECT_PATH)/components/arduino/variants/feather_esp32/
 	#$(info Change the Serial Flasher baud rate to 2MB)
 endif	
@@ -44,6 +47,7 @@ endif
 ifeq ($(BOARD),HELTEC)
 	#$(info ************ Heltec variant ************)
 	CXXFLAGS += -DARDUINO_HELTEC_WIFI_KIT_32
+	CXXFLAGS += -DHAP_BOARD_HELTEC
 	CXXFLAGS += -I$(PROJECT_PATH)/components/arduino/variants/heltec_wifi_kit_32/
 
 	CPPFLAGS += -DHAP_PLUGIN_USE_SSD1306=1
@@ -55,6 +59,7 @@ endif
 ifeq ($(BOARD),HUZZAH)
 	#$(info ************ Feather variant ************)
 	CXXFLAGS += -DARDUINO_FEATHER_ESP32
+	CXXFLAGS += -DHAP_BOARD_HUZZAH
 	CXXFLAGS += -I$(PROJECT_PATH)/components/arduino/variants/feather_esp32/
 	#$(info Change the Serial Flasher baud rate to 2MB)
 endif
@@ -160,9 +165,31 @@ else
 	#
 	# Certificates and keys
 	#
-	COMPONENT_EMBED_FILES := $(PROJECT_PATH)/certs/server_cert.der
-	COMPONENT_EMBED_FILES += $(PROJECT_PATH)/certs/server_privatekey.der
-	COMPONENT_EMBED_FILES += $(PROJECT_PATH)/certs/server_publickey.der
+	
+	ifeq ($(ENABLE_TRUSTSTORE),0)
+		ifeq ($(BOARD),HELTEC)
+			COMPONENT_EMBED_FILES := $(PROJECT_PATH)/certs/server_cert.der
+		endif			
+		ifeq ($(BOARD),SPARKFUN)
+			COMPONENT_EMBED_FILES := $(PROJECT_PATH)/esp32-cafeec/esp32-cafeec.cer
+		endif
+	endif
+
+	ifeq ($(BOARD),HELTEC)
+		COMPONENT_EMBED_FILES += $(PROJECT_PATH)/certs/esp32-AF5FA4/esp32-AF5FA4.privatekey
+		COMPONENT_EMBED_FILES += $(PROJECT_PATH)/certs/esp32-AF5FA4/esp32-AF5FA4.privatekey
+	endif
+
+	ifeq ($(BOARD),SPARKFUN)
+		COMPONENT_EMBED_FILES += $(PROJECT_PATH)/certs/esp32-CAFEEC/esp32-CAFEEC.privatekey
+		COMPONENT_EMBED_FILES += $(PROJECT_PATH)/certs/esp32-CAFEEC/esp32-CAFEEC.privatekey
+	endif
+
+	ifeq ($(BOARD),HUZZAH)
+		COMPONENT_EMBED_FILES += $(PROJECT_PATH)/certs/esp32-0C9D6C/esp32-0C9D6C.privatekey
+		COMPONENT_EMBED_FILES += $(PROJECT_PATH)/certs/esp32-0C9D6C/esp32-0C9D6C.privatekey
+	endif
+
 
 	#
 	# Website incl. Font, css. images and javascripts
