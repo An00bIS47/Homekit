@@ -92,7 +92,7 @@ void HAPPluginRF24::setValue(int iid, String oldValue, String newValue){
 }
 
 void HAPPluginRF24::identify(bool oldValue, bool newValue){
-
+    
 }
 
 void HAPPluginRF24::handleImpl(bool forced){

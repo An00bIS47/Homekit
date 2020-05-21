@@ -13,7 +13,8 @@
 HAPPluginRF24Device::HAPPluginRF24Device(){   
     name    = "";    
     address = 0;
-
+    type = 0;
+    
     _accessory          = nullptr;
     _eventManager       = nullptr;  
     _fakegatoFactory    = nullptr;
@@ -23,6 +24,7 @@ HAPPluginRF24Device::HAPPluginRF24Device(uint8_t address_, String name_)
 : address(address_)
 , name(name_)
 {
+    type = 0;
     _accessory          = nullptr;
     _eventManager       = nullptr;      
     _fakegatoFactory    = nullptr;

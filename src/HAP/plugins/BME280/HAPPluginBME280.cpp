@@ -284,6 +284,9 @@ bool HAPPluginBME280::begin(){
         LogE("        ID of 0x61 represents a BME 680", true);
         LogE("Disabling BME280 Sensor Plugin", true);
 		_isEnabled = false;
+
+		_eventManager->removeListener(&_listenerMemberFunctionPlugin);
+
 		return false;
     }
 
