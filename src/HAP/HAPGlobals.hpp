@@ -82,7 +82,7 @@
 #endif
 
 #ifndef HAP_DEBUG_EVENTMANAGER		
-#define HAP_DEBUG_EVENTMANAGER		0
+#define HAP_DEBUG_EVENTMANAGER		1
 #endif
 
 #ifndef HAP_DEBUG_KEYSTORE

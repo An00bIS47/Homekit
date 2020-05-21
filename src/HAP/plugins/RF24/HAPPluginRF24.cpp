@@ -26,10 +26,6 @@
 
 #define HAP_PLUGIN_RF24_INTERVAL    1000
 
-
-
-
-
 HAPPluginRF24::HAPPluginRF24(){
     _type           = HAP_PLUGIN_TYPE_ACCESSORY;
 	_name           = "RF24";
@@ -57,12 +53,22 @@ HAPPluginRF24::~HAPPluginRF24(){
 
 bool HAPPluginRF24::begin() {
     _radio = new RF24(CE_PIN, CSN_PIN);
+    
+    if (_radio->begin() ){                          // Start up the radio    
+        _radio->setAutoAck(1);                      // Ensure autoACK is enabled
+        _radio->setRetries(15,15);                  // Max delay between retries & number of retries
+        _radio->openReadingPipe(1, (const uint8_t*)RF24_ADDRESS);   // Write to device address 'SimpleNode'
+        _radio->startListening();
 
-    _radio->begin();                            // Start up the radio
-    _radio->setAutoAck(1);                      // Ensure autoACK is enabled
-    _radio->setRetries(15,15);                  // Max delay between retries & number of retries
-    _radio->openReadingPipe(1, (const uint8_t*)RF24_ADDRESS);   // Write to device address 'SimpleNode'
-    _radio->startListening();
+        // ToDo: check if required!
+        _isEnabled = true; 
+    } else {
+        LogE("ERROR: RF24 not found! Please check wiring!", true);
+        LogE("Disabling RF24 plugin!", true);
+        _isEnabled = false;
+        _eventManager->removeListener(&_listenerMemberFunctionPlugin);
+        return false;
+    }                   
 
     return true;
 }

@@ -47,7 +47,7 @@
 // Size of the event two queues.  Adjust as appropriate for your application.
 // Requires a total of 4 * sizeof(int) bytes of RAM for each unit of size
 #ifndef EVENTMANAGER_EVENT_QUEUE_SIZE
-#define EVENTMANAGER_EVENT_QUEUE_SIZE		16
+#define EVENTMANAGER_EVENT_QUEUE_SIZE		32
 #endif
 
 

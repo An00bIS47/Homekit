@@ -442,7 +442,7 @@ int EventManager::ListenerList::sendEvent( int eventCode, struct HAPEvent param 
 
     int handlerCount = 0;
     for ( int i = 0; i < mNumListeners; i++ )
-    {
+    {        
         if ( ( mListeners[ i ].callback != 0 ) && ( mListeners[ i ].eventCode == eventCode ) && mListeners[ i ].enabled )
         {
             handlerCount++;
