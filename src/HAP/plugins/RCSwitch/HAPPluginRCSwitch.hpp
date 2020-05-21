@@ -11,22 +11,25 @@
 #define HAPPLUGINRCSWITCH_HPP_
 
 #include <Arduino.h>
+#include <RCSwitch.h>
+#include <vector>
+#include <algorithm>
+
 #include "HAPPlugins.hpp"
 #include "HAPLogger.hpp"
 #include "HAPAccessory.hpp"
 
 #include "HAPFakeGato.hpp"
 
-#include <vector>
-#include <algorithm>
+
 #include "HAPPluginRCSwitchDevice.hpp"
-#include <RCSwitch.h>
+
 
 class HAPPluginRCSwitch: public HAPPlugin {
 public:
 
 	HAPPluginRCSwitch();
-    HAPPluginRCSwitch(String name_);
+    // HAPPluginRCSwitch(String name_);
 
 	bool begin();
 
@@ -66,7 +69,7 @@ private:
     uint32_t bitStringToUInt32(char* input_binary_string);
     String uint32ToBitString(uint32_t dec);
 
-	HAPConfigValidationResult validateName(const char* houseAddress);
+	HAPConfigValidationResult validateName(const char* name);
 	HAPConfigValidationResult validateDeviceAddress(const char* deviceAddress);
 	HAPConfigValidationResult validateHouseAddress(const char* houseAddress);
 

@@ -66,4 +66,9 @@
 #include "HAPPluginHygrometer.hpp"
 #endif
 
+#if HAP_PLUGIN_USE_RF24
+#include "HAPPluginRF24.hpp"
+#endif
+
+
 #endif /* PLUGINS_HPP_ */  

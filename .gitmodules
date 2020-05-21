@@ -43,3 +43,9 @@
 [submodule "components/Adafruit_Neopixel"]
 	path = components/Adafruit_Neopixel
 	url = https://github.com/adafruit/Adafruit_NeoPixel.git
+[submodule "components/ArduinoStreamUtils"]
+	path = components/ArduinoStreamUtils
+	url = https://github.com/bblanchon/ArduinoStreamUtils.git
+[submodule "components/RF24"]
+	path = components/RF24
+	url = https://github.com/nRF24/RF24.git

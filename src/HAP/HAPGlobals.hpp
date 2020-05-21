@@ -341,9 +341,12 @@
 /**
  * Plugins
  * !!! Add new plugins on top here and 
- *     add themas well on top of the defne bellow !!!
+ *     add them as well on top of the define bellow !!!
  ********************************************************************/
 
+#ifndef HAP_PLUGIN_USE_RF24
+#define HAP_PLUGIN_USE_RF24			1
+#endif
 
 #ifndef HAP_PLUGIN_USE_SSD1306
 #define HAP_PLUGIN_USE_SSD1306		0
@@ -397,8 +400,12 @@
 #define HAP_PLUGIN_USE_BME280		0	// < last digit of feature number
 #endif
 
-// Add new plugins on top!
+/**
+ * Plugins
+ * !!! Add new plugins on top here !!!     
+ ********************************************************************/
 #define HAP_PLUGIN_FEATURE_NUMBER \
+STR(HAP_PLUGIN_USE_RF24) \
 STR(HAP_PLUGIN_USE_SSD1306) \
 STR(HAP_PLUGIN_USE_LED) \
 STR(HAP_PLUGIN_USE_SWITCH) \

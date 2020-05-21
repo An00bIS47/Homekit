@@ -68,7 +68,6 @@ HAPAccessory* HAPPluginRCSwitchDevice::initAccessory(){
     // 
     _fakegato.registerFakeGatoService(_accessory, "RCSwitch " + String(houseAddress) + String(deviceAddress));
 	auto callbackAddEntry = std::bind(&HAPPluginRCSwitchDevice::fakeGatoCallback, this);
-	// _fakegato.registerCallback(callbackAddEntry);
 	_fakegatoFactory->registerFakeGato(&_fakegato,  "RCSwitch " + String(houseAddress) + String(deviceAddress), callbackAddEntry);
 
     return _accessory;
