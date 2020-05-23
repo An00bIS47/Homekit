@@ -27,18 +27,19 @@ enum HAP_RF24_REMOTE_TYPE {
 
 
 struct __attribute__((__packed__)) HAP_RF24_PAYLOAD {
-    uint8_t     id;
+    uint16_t    id;
     uint8_t     type;
 
 	uint32_t    temp;
 	uint32_t    hum;
 	uint16_t    pres;
+    uint8_t     voltage;
 };
 
 class HAPPluginRF24Device {
 public:
     HAPPluginRF24Device();
-    HAPPluginRF24Device(uint8_t address_, String name_);
+    HAPPluginRF24Device(uint16_t id_, String name_);
     ~HAPPluginRF24Device();
     
                             
@@ -50,7 +51,7 @@ public:
     
     virtual void setValuesFromPayload(struct HAP_RF24_PAYLOAD payload) = 0;
 
-    uint8_t             address;
+    uint16_t            id;
     String              name;
     uint8_t             type;
 
@@ -59,6 +60,8 @@ private:
     HAPAccessory*           _accessory;
     EventManager*			_eventManager;
     HAPFakeGatoFactory*     _fakegatoFactory;
+
+    
    
     virtual bool fakeGatoCallback() = 0;  
 };

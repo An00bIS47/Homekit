@@ -217,44 +217,48 @@ HAPAccessory* HAPPluginMiFloraDevice::initAccessory(){
 void HAPPluginMiFloraDevice::setValue(floraData data){
     LogD(HAPServer::timeString() + " " + "MiFloraDevice" + "->" + String(__FUNCTION__) + " [   ] " + "Set values ", true);
 
-    {
-        _temperatureValue->setValue(String(data.temperature));
+    _temperatureValue->setValue(String(data.temperature));
+    _humidityValue->setValue(String(data.moisture));
+    _lightValue->setValue(String(data.light));
+    _fertilityValue->setValue(String(data.conductivity));
+
+    _batteryLevel->setValue(String(data.battery));
+    _batteryStatus->setValue(data.battery < HAP_BATTERY_LEVEL_LOW_THRESHOLD ? "1" : "0" );
+
+    _lastUpdate->setValue(HAPServer::timeString());
+
+
+    {    
         struct HAPEvent event = HAPEvent(nullptr, _accessory->aid, _temperatureValue->iid, String(data.temperature));							
         _eventManager->queueEvent( EventManager::kEventNotifyController, event);
     }
 
-    {
-        _humidityValue->setValue(String(data.moisture));
+    {        
         struct HAPEvent event = HAPEvent(nullptr, _accessory->aid, _humidityValue->iid, String(data.moisture));
         _eventManager->queueEvent( EventManager::kEventNotifyController, event);
     }
 
-    {
-        _lightValue->setValue(String(data.light));
+    {        
         struct HAPEvent event = HAPEvent(nullptr, _accessory->aid, _lightValue->iid, String(data.light));
         _eventManager->queueEvent( EventManager::kEventNotifyController, event);
     }
     
-    {
-        _fertilityValue->setValue(String(data.conductivity));
+    {        
         struct HAPEvent event = HAPEvent(nullptr, _accessory->aid, _fertilityValue->iid, String(data.conductivity));
         _eventManager->queueEvent( EventManager::kEventNotifyController, event);        
     }
     
-    {
-        _batteryLevel->setValue(String(data.battery));
+    {        
         struct HAPEvent event = HAPEvent(nullptr, _accessory->aid, _batteryLevel->iid, String(data.battery));
         _eventManager->queueEvent( EventManager::kEventNotifyController, event);        
     }
     
-    {
-        _batteryStatus->setValue(data.battery < 15 ? "1" : "0" );
-        struct HAPEvent event = HAPEvent(nullptr, _accessory->aid, _batteryStatus->iid, data.battery < 15 ? "1" : "0");
+    {        
+        struct HAPEvent event = HAPEvent(nullptr, _accessory->aid, _batteryStatus->iid, data.battery < HAP_BATTERY_LEVEL_LOW_THRESHOLD ? "1" : "0");
         _eventManager->queueEvent( EventManager::kEventNotifyController, event);        
     }
 
-    {
-        _lastUpdate->setValue(HAPServer::timeString());
+    {        
         struct HAPEvent event = HAPEvent(nullptr, _accessory->aid, _lastUpdate->iid, _lastUpdate->value());
         _eventManager->queueEvent( EventManager::kEventNotifyController, event);   
     }

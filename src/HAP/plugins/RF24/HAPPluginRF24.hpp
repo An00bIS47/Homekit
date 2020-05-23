@@ -47,7 +47,7 @@ public:
 
 private:	
 
-	int indexOfDevice(uint8_t address);
+	int indexOfDevice(uint16_t id);
     void configAccessory(uint8_t devPtr);
 
 	HAPConfigValidationResult validateName(const char* name);

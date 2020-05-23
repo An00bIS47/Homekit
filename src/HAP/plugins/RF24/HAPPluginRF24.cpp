@@ -24,7 +24,7 @@
 // modified Lib: https://github.com/nhatuan84/RF24.git
 // RF24          ESP32 (Feather)
 // --------------------------
-// CE         -> GPIO 13
+// CE         -> GPIO 13    -> = LED changed to: 12
 // CSN        -> GPIO 33
 // CLK        -> GPIO 5
 // MISO       -> GPIO 19
@@ -60,7 +60,7 @@ HAPPluginRF24::~HAPPluginRF24(){
 
 bool HAPPluginRF24::begin() {
     // _radio = new RF24(13, 33);
-    _radio = new RF24(13, 33, 5, 19, 18);
+    _radio = new RF24(12, 33, 5, 19, 18);
     
     if (_radio->begin() ){                          // Start up the radio    
 
@@ -113,26 +113,17 @@ void HAPPluginRF24::handleImpl(bool forced){
         _radio->read( &payload, sizeof(struct HAP_RF24_PAYLOAD) );
 
 
-        Serial.print("Got Payload from ");
-        Serial.println(payload.id);
+#if HAP_DEBUG_RF24
+        LogD("Got Payload from id: " + String(payload.id), true);        
+        LogD("   type: " + String(payload.type), true);
+        LogD("   temp: " + String(payload.temp), true);
+        LogD("   hum:  " + String(payload.hum), true);
+        LogD("   pres: " + String(payload.pres), true);
 
-        Serial.print("type: ");
-        Serial.println(payload.type);
 
-        Serial.print("temp: ");
-        Serial.println(payload.temp);
-
-        Serial.print("hum: ");
-        Serial.println(payload.hum);
-
-        Serial.print("pres: ");
-        Serial.println(payload.pres);
-
-        Serial.print("Size of struct: ");
-        Serial.println( sizeof(struct HAP_RF24_PAYLOAD) );        
-
-        Serial.print("devices size: ");
-        Serial.println(_devices.size());
+        LogD("   Size of struct: " + String(sizeof(struct HAP_RF24_PAYLOAD)), true);        
+        LogD("Number of devices: " + String(_devices.size()), true);
+#endif        
 
 
         int index = indexOfDevice(payload.id);
@@ -145,7 +136,7 @@ void HAPPluginRF24::handleImpl(bool forced){
                     String(payload.id)                                
                 );            
             
-                LogI("RF24: Adding new remote weather device with id " + String(payload.id) + " ...", false);
+                LogI("RF24: Adding new remote weather device with id " + String(payload.id, HEX) + " ...", false);
                 
                 // Serial.printf("event: %p\n", _eventManager);
                 // Serial.printf("fakegato: %p\n", _fakeGatoFactory);
@@ -180,7 +171,7 @@ HAPConfigValidationResult HAPPluginRF24::validateConfig(JsonObject object){
             "interval": 1000,
             "devices": [
                 {
-                    "address": 17,
+                    "id": 17,
                     "type": 1,
                     "name": "test1"
                 }
@@ -208,13 +199,13 @@ HAPConfigValidationResult HAPPluginRF24::validateConfig(JsonObject object){
     uint8_t count = 0;
     for( const auto& value : object["devices"].as<JsonArray>() ) {
         
-        // plugin._name.devices.count.address
-        if (!value.containsKey("address") ) {
-            result.reason = "plugins." + _name + ".devices." + String(count) + ".address is required";
+        // plugin._name.devices.count.id
+        if (!value.containsKey("id") ) {
+            result.reason = "plugins." + _name + ".devices." + String(count) + ".id is required";
             return result;
         }
-        if (value.containsKey("address") && !value["address"].is<uint8_t>()) {
-            result.reason = "plugins." + _name + ".devices." + String(count) + ".address is not an integer";
+        if (value.containsKey("id") && !value["id"].is<uint16_t>()) {
+            result.reason = "plugins." + _name + ".devices." + String(count) + ".id is not an integer";
             return result;
         }   
 
@@ -259,7 +250,7 @@ JsonObject HAPPluginRF24::getConfigImpl(){
 
     for (auto& dev : _devices){
         JsonObject devices_ = devices.createNestedObject();
-        devices_["address"] = dev->address;        
+        devices_["id"]      = dev->id;        
         devices_["name"]    = dev->name;
         devices_["tpye"]    = dev->type;
     }
@@ -272,13 +263,13 @@ void HAPPluginRF24::setConfigImpl(JsonObject root){
     if (root.containsKey("devices")){        
         for (JsonVariant dev : root["devices"].as<JsonArray>()) {
 
-            int index = indexOfDevice( dev["address"].as<uint8_t>());
+            int index = indexOfDevice( dev["id"].as<uint16_t>());
             if ( index == -1 ){
                 HAP_RF24_REMOTE_TYPE type = (HAP_RF24_REMOTE_TYPE)dev["type"].as<uint8_t>();
                 
                 if (type == HAP_RF24_REMOTE_TYPE_WEATHER) {
                     HAPPluginRF24DeviceWeather* newDevice = new HAPPluginRF24DeviceWeather(
-                        dev["address"].as<uint8_t>(),
+                        dev["id"].as<uint16_t>(),
                         dev["name"].as<String>()
                     );
 
@@ -294,11 +285,11 @@ void HAPPluginRF24::setConfigImpl(JsonObject root){
     }
 }
 
-int HAPPluginRF24::indexOfDevice(uint8_t address){
+int HAPPluginRF24::indexOfDevice(uint16_t id){
 
     int counter = 0;
     for (auto& dev : _devices){             
-        if (dev->address == address){
+        if (dev->id == id){
             return counter;
         }
         counter++; 

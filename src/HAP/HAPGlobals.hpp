@@ -89,6 +89,14 @@
 #define HAP_DEBUG_KEYSTORE			1
 #endif
 
+#ifndef HAP_DEBUG_RF24
+#define HAP_DEBUG_RF24				1
+#endif
+
+#ifndef HAP_DEBUG_WEBSERVER
+#define HAP_DEBUG_WEBSERVER 		0
+#endif
+
 /**
  * WiFi
  ********************************************************************/
@@ -183,7 +191,15 @@
 #define DEBUG_MULTIPART_PARSER 		0		// Enable to debug multipart form parser
 
 
-
+#if HAP_DEBUG_WEBSERVER == 1
+#define HTTPS_LOGLEVEL 4					// Log Levels:
+											// 0 : NONE
+											// 1 : + ERROR
+											// 2 : + WARNING
+											// 3 : + INFO
+											// 4 : + DEBUG
+#define HTTPS_LOGTIMESTAMP					// Add Timestamp (uptime) to log
+#endif
 
 
 /**

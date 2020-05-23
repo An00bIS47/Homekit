@@ -14,23 +14,29 @@
 
 HAPPluginRF24DeviceWeather::HAPPluginRF24DeviceWeather(){   
     name    = "";    
-    address = 0;
+    id 		= 0;
     type    = HAP_RF24_REMOTE_TYPE_WEATHER;
 
     _accessory          = nullptr;
     _eventManager       = nullptr;  
     _fakegatoFactory    = nullptr;
+
+	_batteryLevel       = nullptr;
+    _batteryStatus      = nullptr;
 }
 
-HAPPluginRF24DeviceWeather::HAPPluginRF24DeviceWeather(uint8_t address_, String name_){
+HAPPluginRF24DeviceWeather::HAPPluginRF24DeviceWeather(uint16_t id_, String name_){
     
     name    = name_;    
-    address = address_;
+    id 		= id_;
     type    = HAP_RF24_REMOTE_TYPE_WEATHER;
 
     _accessory          = nullptr;
     _eventManager       = nullptr;      
     _fakegatoFactory    = nullptr;
+
+	_batteryLevel       = nullptr;
+    _batteryStatus      = nullptr;
 }
 
 
@@ -41,7 +47,40 @@ HAPAccessory* HAPPluginRF24DeviceWeather::initAccessory(){
     _accessory = new HAPAccessory();
     //HAPAccessory::addInfoServiceToAccessory(_accessory, "Builtin LED", "ACME", "LED", "123123123", &identify);
     auto callbackIdentify = std::bind(&HAPPluginRF24Device::identify, this, std::placeholders::_1, std::placeholders::_2);
-    _accessory->addInfoService(name, "ACME", "RF24", "0x01", callbackIdentify, "1.0");
+    _accessory->addInfoService(name, "ACME", "RF24", String(id, HEX), callbackIdentify, "1.0");
+
+
+    //
+    // Battery service
+    // 
+    HAPService* batteryService = new HAPService(HAP_SERVICE_BATTERY_SERVICE);
+    _accessory->addService(batteryService);
+
+    // 
+    // Battery level
+    // 
+    _batteryLevel = new intCharacteristics(HAP_CHARACTERISTIC_BATTERY_LEVEL, permission_read|permission_notify, 0, 100, 1, unit_percentage);
+    _batteryLevel->setValue("0");
+    auto callbackChangeBatLevel = std::bind(&HAPPluginRF24DeviceWeather::changeBatteryLevel, this, std::placeholders::_1, std::placeholders::_2);
+    _batteryLevel->valueChangeFunctionCall = callbackChangeBatLevel;
+    _accessory->addCharacteristics(batteryService, _batteryLevel);
+
+    // 
+    // Battery status
+    // 
+    _batteryStatus = new intCharacteristics(HAP_CHARACTERISTIC_STATUS_LOW_BATTERY, permission_read|permission_notify, 0, 1, 1, unit_none);
+    _batteryStatus->setValue("0");
+    auto callbackChangeBatStatus = std::bind(&HAPPluginRF24DeviceWeather::changeBatteryStatus, this, std::placeholders::_1, std::placeholders::_2);
+    _batteryStatus->valueChangeFunctionCall = callbackChangeBatStatus;
+    _accessory->addCharacteristics(batteryService, _batteryStatus);
+
+    // 
+    // Charging State
+    // 
+    intCharacteristics *chargingState = new intCharacteristics(HAP_CHARACTERISTIC_CHARGING_STATE, permission_read, 0, 2, 1, unit_none);
+    chargingState->setValue("2");
+    _accessory->addCharacteristics(batteryService, chargingState);
+
 
 	//
 	// Temperature
@@ -105,7 +144,7 @@ HAPAccessory* HAPPluginRF24DeviceWeather::initAccessory(){
 	// 		
 	_fakegato.registerFakeGatoService(_accessory, name);    
 	auto callbackAddEntry = std::bind(&HAPPluginRF24DeviceWeather::fakeGatoCallback, this);
-	_fakegatoFactory->registerFakeGato(&_fakegato,  "RF24 0x00", callbackAddEntry);
+	_fakegatoFactory->registerFakeGato(&_fakegato,  String("RF24 ") + String(id, HEX), callbackAddEntry);
 
     return _accessory;
 }
@@ -125,19 +164,27 @@ void HAPPluginRF24DeviceWeather::setFakeGatoFactory(HAPFakeGatoFactory* fakegato
 
 
 void HAPPluginRF24DeviceWeather::changeTemp(float oldValue, float newValue) {
-	Serial.printf("[%s] New temperature: %f\n", name.c_str(), newValue);
+	Serial.printf("[RF24:%X] New temperature: %f\n", id, newValue);
 }
 
 void HAPPluginRF24DeviceWeather::changeHum(float oldValue, float newValue) {
-	Serial.printf("[%s] New humidity: %f\n", name.c_str(), newValue);
+	Serial.printf("[RF24:%X] New humidity: %f\n", id, newValue);
 }
 
 void HAPPluginRF24DeviceWeather::changePressure(uint16_t oldValue, uint16_t newValue) {
-	Serial.printf("[%s] New pressure: %d\n", name.c_str(), newValue);
+	Serial.printf("[RF24:%X] New pressure: %d\n", id, newValue);
+}
+
+void HAPPluginRF24DeviceWeather::changeBatteryLevel(float oldValue, float newValue) {
+	Serial.printf("[RF24:%X] New battery Level: %f\n", id, newValue);
+}
+
+void HAPPluginRF24DeviceWeather::changeBatteryStatus(float oldValue, float newValue) {
+	Serial.printf("[RF24:%X] New battery status: %f\n", id, newValue);
 }
 
 // void HAPPluginRF24DeviceWeather::identify(bool oldValue, bool newValue) {
-//     printf("Start Identify rf24: %d\n", address);
+//     printf("Start Identify rf24: %d\n", id);
 // }
 
 bool HAPPluginRF24DeviceWeather::fakeGatoCallback(){	
@@ -154,7 +201,9 @@ void HAPPluginRF24DeviceWeather::setValuesFromPayload(struct HAP_RF24_PAYLOAD pa
 	_temperatureValue->setValue(String(payload.temp * 1.0));
 	_pressureValue->setValue(String(payload.pres));
 
-	
+	_batteryLevel->setValue(String(payload.voltage));	
+	_batteryStatus->setValue(payload.voltage < HAP_BATTERY_LEVEL_LOW_THRESHOLD ? "1" : "0" );
+
 
 	{
 		struct HAPEvent event = HAPEvent(nullptr, _accessory->aid, _humidityValue->iid, _humidityValue->value());		 					
@@ -169,6 +218,19 @@ void HAPPluginRF24DeviceWeather::setValuesFromPayload(struct HAP_RF24_PAYLOAD pa
 	{
 		struct HAPEvent event = HAPEvent(nullptr, _accessory->aid, _pressureValue->iid, _pressureValue->value());							
 		_eventManager->queueEvent( EventManager::kEventNotifyController, event);
-	}		
+	}	
+
+
+	{        
+        struct HAPEvent event = HAPEvent(nullptr, _accessory->aid, _batteryLevel->iid, String(payload.voltage));
+        _eventManager->queueEvent( EventManager::kEventNotifyController, event);        
+    }
+    
+    {        
+        struct HAPEvent event = HAPEvent(nullptr, _accessory->aid, _batteryStatus->iid, payload.voltage < HAP_BATTERY_LEVEL_LOW_THRESHOLD ? "1" : "0");
+        _eventManager->queueEvent( EventManager::kEventNotifyController, event);        
+    }
+
+
 	LogI(" OK", true);
 }

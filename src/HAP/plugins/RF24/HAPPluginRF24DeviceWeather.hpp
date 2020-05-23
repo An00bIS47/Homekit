@@ -24,7 +24,7 @@ class HAPPluginRF24DeviceWeather : public HAPPluginRF24Device{
 public:
 
     HAPPluginRF24DeviceWeather();
-    HAPPluginRF24DeviceWeather(uint8_t address_, String name_);
+    HAPPluginRF24DeviceWeather(uint16_t id_, String name_);
     // ~HAPPluginRF24DeviceWeather();                            
 
     HAPAccessory* initAccessory() override;    
@@ -32,7 +32,9 @@ public:
 	void changeTemp(float oldValue, float newValue);
 	void changeHum(float oldValue, float newValue);
 	void changePressure(uint16_t oldValue, uint16_t newValue);
-
+    
+    void changeBatteryLevel( float oldValue, float newValue);
+	void changeBatteryStatus(float oldValue, float newValue);
 
     // void identify(bool oldValue, bool newValue);
     void setEventManager(EventManager* eventManager);
@@ -49,6 +51,9 @@ private:
 	floatCharacteristics*	_humidityValue;
 	floatCharacteristics*	_temperatureValue;
 	uint16Characteristics*	_pressureValue;
+
+    intCharacteristics* 	_batteryLevel;
+	intCharacteristics* 	_batteryStatus;	
     
     HAPFakeGatoWeather      _fakegato;
    

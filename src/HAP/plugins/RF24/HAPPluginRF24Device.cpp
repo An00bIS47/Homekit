@@ -12,7 +12,7 @@
 
 HAPPluginRF24Device::HAPPluginRF24Device(){   
     name    = "";    
-    address = 0;
+    id = 0;
     type = 0;
     
     _accessory          = nullptr;
@@ -20,8 +20,8 @@ HAPPluginRF24Device::HAPPluginRF24Device(){
     _fakegatoFactory    = nullptr;
 }
 
-HAPPluginRF24Device::HAPPluginRF24Device(uint8_t address_, String name_)
-: address(address_)
+HAPPluginRF24Device::HAPPluginRF24Device(uint16_t id_, String name_)
+: id(id_)
 , name(name_)
 {
     type = 0;
@@ -48,5 +48,5 @@ void HAPPluginRF24Device::setFakeGatoFactory(HAPFakeGatoFactory* fakegatoFactory
 
 
 void HAPPluginRF24Device::identify(bool oldValue, bool newValue) {
-    printf("Start Identify rf24: %d\n", address);
+    printf("Start Identify rf24: %d\n", id);
 }
