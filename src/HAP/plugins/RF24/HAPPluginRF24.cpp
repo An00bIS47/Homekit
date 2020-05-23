@@ -8,13 +8,15 @@
 #include "HAPPluginRF24.hpp"
 #include "HAPServer.hpp"
 #include "HAPPluginRF24DeviceWeather.hpp"
+#include "EventManager.h"
+
 
 #define VERSION_MAJOR       0
 #define VERSION_MINOR       3
 #define VERSION_REVISION    1
 #define VERSION_BUILD       0
 
-#define HAP_PLUGIN_RF24_INTERVAL    1000
+#define HAP_PLUGIN_RF24_INTERVAL    250
 
 #ifndef RF24_ADDRESS
 #define RF24_ADDRESS        "HOMEKIT_RF24"
@@ -108,54 +110,60 @@ void HAPPluginRF24::handleImpl(bool forced){
 
     if (_radio->available()){
 
-        struct HAP_RF24_PAYLOAD payload;
+        while(_radio->available()){
+            struct HAP_RF24_PAYLOAD payload;
 
-        _radio->read( &payload, sizeof(struct HAP_RF24_PAYLOAD) );
+            _radio->read( &payload, sizeof(struct HAP_RF24_PAYLOAD) );
 
 
 #if HAP_DEBUG_RF24
-        LogD("Got Payload from id: " + String(payload.id), true);        
-        LogD("   type: " + String(payload.type), true);
-        LogD("   temp: " + String(payload.temp), true);
-        LogD("   hum:  " + String(payload.hum), true);
-        LogD("   pres: " + String(payload.pres), true);
+            LogD("Got Payload from id: " + String(payload.id), true);        
+            LogD("   type: " + String(payload.type), true);
+            LogD("   temp: " + String(payload.temp), true);
+            LogD("   hum:  " + String(payload.hum), true);
+            LogD("   pres: " + String(payload.pres), true);
 
 
-        LogD("   Size of struct: " + String(sizeof(struct HAP_RF24_PAYLOAD)), true);        
-        LogD("Number of devices: " + String(_devices.size()), true);
+            LogD("   Size of struct: " + String(sizeof(struct HAP_RF24_PAYLOAD)), true);        
+            LogD("Number of devices: " + String(_devices.size()), true);
 #endif        
 
 
-        int index = indexOfDevice(payload.id);
+            int index = indexOfDevice(payload.id);
 
-        if ( index == -1 ){
-            if (payload.type == (uint8_t)HAP_RF24_REMOTE_TYPE_WEATHER){
+            if ( index == -1 ){
+                if (payload.type == (uint8_t)HAP_RF24_REMOTE_TYPE_WEATHER){
+                    
+                    HAPPluginRF24DeviceWeather* newDevice = new HAPPluginRF24DeviceWeather(
+                        payload.id,
+                        String(payload.id)                                
+                    );            
                 
-                HAPPluginRF24DeviceWeather* newDevice = new HAPPluginRF24DeviceWeather(
-                    payload.id,
-                    String(payload.id)                                
-                );            
-            
-                LogI("RF24: Adding new remote weather device with id " + String(payload.id, HEX) + " ...", false);
-                
-                // Serial.printf("event: %p\n", _eventManager);
-                // Serial.printf("fakegato: %p\n", _fakeGatoFactory);
+                    LogI("RF24: Adding new remote weather device with id " + String(payload.id, HEX) + " ...", false);
+                    
+                    // Serial.printf("event: %p\n", _eventManager);
+                    // Serial.printf("fakegato: %p\n", _fakeGatoFactory);
 
-                newDevice->setEventManager(_eventManager);
-                newDevice->setFakeGatoFactory(_fakeGatoFactory);            
+                    newDevice->setEventManager(_eventManager);
+                    newDevice->setFakeGatoFactory(_fakeGatoFactory);            
 
-                _accessorySet->addAccessory(newDevice->initAccessory());
-                
-                _devices.push_back(newDevice);
+                    _accessorySet->addAccessory(newDevice->initAccessory());
+                    
+                    _devices.push_back(newDevice);
+                    
+                                    							
+                    _eventManager->queueEvent( EventManager::kEventUpdatedConfig, HAPEvent(), EventManager::kLowPriority);        
+                    
 
-                // index = indexOfDevice(payload.id);    
-                index = _devices.size() - 1;
-                LogI(" OK", true);          
-            }           
-        }        
+                    // index = indexOfDevice(payload.id);    
+                    index = _devices.size() - 1;
+                    LogI(" OK", true);          
+                }           
+            }        
 
-        if (index >= 0){
-            _devices[index]->setValuesFromPayload(payload);
+            if (index >= 0){
+                _devices[index]->setValuesFromPayload(payload);
+            }
         }
     }
 
