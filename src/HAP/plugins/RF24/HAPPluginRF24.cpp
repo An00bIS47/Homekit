@@ -14,6 +14,7 @@
 #define VERSION_REVISION    1
 #define VERSION_BUILD       0
 
+#define HAP_PLUGIN_RF24_INTERVAL    1000
 
 #ifndef RF24_ADDRESS
 #define RF24_ADDRESS        "HOMEKIT_RF24"
@@ -30,7 +31,7 @@
 // MOSI       -> GPIO 18
 // IRQ        -> not connected
 
-#define HAP_PLUGIN_RF24_INTERVAL    100
+
 
 HAPPluginRF24::HAPPluginRF24(){
     _type           = HAP_PLUGIN_TYPE_ACCESSORY;
@@ -90,7 +91,6 @@ HAPAccessory* HAPPluginRF24::initAccessory() {
     
     for (auto& dev : _devices){     
 
-
         dev->setFakeGatoFactory(_fakeGatoFactory);
         dev->setEventManager(_eventManager);                
 
@@ -147,6 +147,9 @@ void HAPPluginRF24::handleImpl(bool forced){
             
                 LogI("RF24: Adding new remote weather device with id " + String(payload.id) + " ...", false);
                 
+                // Serial.printf("event: %p\n", _eventManager);
+                // Serial.printf("fakegato: %p\n", _fakeGatoFactory);
+
                 newDevice->setEventManager(_eventManager);
                 newDevice->setFakeGatoFactory(_fakeGatoFactory);            
 

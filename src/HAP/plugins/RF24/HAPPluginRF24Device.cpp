@@ -34,12 +34,16 @@ HAPPluginRF24Device::~HAPPluginRF24Device(){
 }
 
 void HAPPluginRF24Device::setEventManager(EventManager* eventManager){
+      
     _eventManager = eventManager;
+    // Serial.printf("event: %p\n", _eventManager);  
 }
 
 
 void HAPPluginRF24Device::setFakeGatoFactory(HAPFakeGatoFactory* fakegatoFactory){
+    
     _fakegatoFactory = fakegatoFactory;
+    // Serial.printf("fakegato: %p\n", _fakegatoFactory);
 }   
 
 

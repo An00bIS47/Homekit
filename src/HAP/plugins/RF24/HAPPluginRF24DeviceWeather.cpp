@@ -105,12 +105,23 @@ HAPAccessory* HAPPluginRF24DeviceWeather::initAccessory(){
 	// 		
 	_fakegato.registerFakeGatoService(_accessory, name);    
 	auto callbackAddEntry = std::bind(&HAPPluginRF24DeviceWeather::fakeGatoCallback, this);
-	// _fakegatoFactory->registerFakeGato(&_fakegato,  "RF24 0x00", callbackAddEntry);
+	_fakegatoFactory->registerFakeGato(&_fakegato,  "RF24 0x00", callbackAddEntry);
 
     return _accessory;
 }
 
+void HAPPluginRF24DeviceWeather::setEventManager(EventManager* eventManager){
+      
+    _eventManager = eventManager;
+    // Serial.printf("w event: %p\n", _eventManager);  
+}
 
+
+void HAPPluginRF24DeviceWeather::setFakeGatoFactory(HAPFakeGatoFactory* fakegatoFactory){
+    
+    _fakegatoFactory = fakegatoFactory;
+    // Serial.printf("w fakegato: %p\n", _fakegatoFactory);
+}   
 
 
 void HAPPluginRF24DeviceWeather::changeTemp(float oldValue, float newValue) {
@@ -143,19 +154,21 @@ void HAPPluginRF24DeviceWeather::setValuesFromPayload(struct HAP_RF24_PAYLOAD pa
 	_temperatureValue->setValue(String(payload.temp * 1.0));
 	_pressureValue->setValue(String(payload.pres));
 
-	// {
-	// 	struct HAPEvent event = HAPEvent(nullptr, _accessory->aid, _humidityValue->iid, String(payload.hum * 1.0));							
-	// 	_eventManager->queueEvent( EventManager::kEventNotifyController, event);
-	// }
+	
 
-	// {
-	// 	struct HAPEvent event = HAPEvent(nullptr, _accessory->aid, _temperatureValue->iid, String(payload.temp * 1.0));							
-	// 	_eventManager->queueEvent( EventManager::kEventNotifyController, event);
-	// }
+	{
+		struct HAPEvent event = HAPEvent(nullptr, _accessory->aid, _humidityValue->iid, _humidityValue->value());		 					
+		_eventManager->queueEvent( EventManager::kEventNotifyController, event);
+	}
 
-	// {
-	// 	struct HAPEvent event = HAPEvent(nullptr, _accessory->aid, _pressureValue->iid, String(payload.pres));							
-	// 	_eventManager->queueEvent( EventManager::kEventNotifyController, event);
-	// }		
+	{
+		struct HAPEvent event = HAPEvent(nullptr, _accessory->aid, _temperatureValue->iid, _temperatureValue->value());							
+		_eventManager->queueEvent( EventManager::kEventNotifyController, event);
+	}
+
+	{
+		struct HAPEvent event = HAPEvent(nullptr, _accessory->aid, _pressureValue->iid, _pressureValue->value());							
+		_eventManager->queueEvent( EventManager::kEventNotifyController, event);
+	}		
 	LogI(" OK", true);
 }

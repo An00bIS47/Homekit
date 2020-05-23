@@ -35,8 +35,8 @@ public:
 
 
     // void identify(bool oldValue, bool newValue);
-    // void setEventManager(EventManager* eventManager);
-    // void setFakeGatoFactory(HAPFakeGatoFactory* fakegatoFactory);
+    void setEventManager(EventManager* eventManager);
+    void setFakeGatoFactory(HAPFakeGatoFactory* fakegatoFactory);
 
     void setValuesFromPayload(struct HAP_RF24_PAYLOAD payload) override;
 
