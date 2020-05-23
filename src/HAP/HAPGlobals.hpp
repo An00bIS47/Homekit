@@ -74,7 +74,7 @@
 #endif
 
 #ifndef HAP_DEBUG_RESPONSES
-#define HAP_DEBUG_RESPONSES			1
+#define HAP_DEBUG_RESPONSES			0
 #endif
 
 #ifndef HAP_DEBUG_ENCRYPTION
@@ -82,7 +82,7 @@
 #endif
 
 #ifndef HAP_DEBUG_EVENTMANAGER		
-#define HAP_DEBUG_EVENTMANAGER		1
+#define HAP_DEBUG_EVENTMANAGER		0
 #endif
 
 #ifndef HAP_DEBUG_KEYSTORE

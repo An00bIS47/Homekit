@@ -48,4 +48,4 @@
 	url = https://github.com/bblanchon/ArduinoStreamUtils.git
 [submodule "components/RF24"]
 	path = components/RF24
-	url = https://github.com/nRF24/RF24.git
+	url = https://github.com/nhatuan84/RF24.git

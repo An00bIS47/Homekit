@@ -20,7 +20,7 @@
 #define VERSION_REVISION    1
 #define VERSION_BUILD       0
 
-#define RCSWITCH_PIN    A9  // 33  
+#define RCSWITCH_PIN    27  // GPIO27
 #define HAP_PLUGIN_RCSWITCH_INTERVAL 1000
 
 HAPPluginRCSwitch::HAPPluginRCSwitch(){

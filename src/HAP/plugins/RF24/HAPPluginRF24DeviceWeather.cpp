@@ -34,14 +34,14 @@ HAPPluginRF24DeviceWeather::HAPPluginRF24DeviceWeather(uint8_t address_, String 
 }
 
 
-HAPAccessory* HAPPluginRF24DeviceWeather::initAccessory(){
 
+
+HAPAccessory* HAPPluginRF24DeviceWeather::initAccessory(){
     // Create accessory if not already created
     _accessory = new HAPAccessory();
     //HAPAccessory::addInfoServiceToAccessory(_accessory, "Builtin LED", "ACME", "LED", "123123123", &identify);
     auto callbackIdentify = std::bind(&HAPPluginRF24Device::identify, this, std::placeholders::_1, std::placeholders::_2);
-    _accessory->addInfoService(name, "ACME", "RF Weather", "0x01", callbackIdentify, "1.0");
-
+    _accessory->addInfoService(name, "ACME", "RF24", "0x01", callbackIdentify, "1.0");
 
 	//
 	// Temperature
@@ -105,25 +105,12 @@ HAPAccessory* HAPPluginRF24DeviceWeather::initAccessory(){
 	// 		
 	_fakegato.registerFakeGatoService(_accessory, name);    
 	auto callbackAddEntry = std::bind(&HAPPluginRF24DeviceWeather::fakeGatoCallback, this);
-	_fakegatoFactory->registerFakeGato(&_fakegato,  "RF24 " + String(address), callbackAddEntry);
-
+	// _fakegatoFactory->registerFakeGato(&_fakegato,  "RF24 0x00", callbackAddEntry);
 
     return _accessory;
 }
 
-void HAPPluginRF24DeviceWeather::setValue(int iid, String oldValue, String newValue){
-	if (iid == _temperatureValue->iid) {		
-		_temperatureValue->setValue(newValue);
-	} else if (iid == _humidityValue->iid) {
-		_humidityValue->setValue(newValue);
-	} else if (iid == _pressureValue->iid) {
-		_pressureValue->setValue(newValue);
-	}
 
-	// Add event
-	struct HAPEvent event = HAPEvent(nullptr, _accessory->aid, iid, newValue);							
-	_eventManager->queueEvent( EventManager::kEventNotifyController, event);
-}
 
 
 void HAPPluginRF24DeviceWeather::changeTemp(float oldValue, float newValue) {
@@ -138,7 +125,9 @@ void HAPPluginRF24DeviceWeather::changePressure(uint16_t oldValue, uint16_t newV
 	Serial.printf("[%s] New pressure: %d\n", name.c_str(), newValue);
 }
 
-
+// void HAPPluginRF24DeviceWeather::identify(bool oldValue, bool newValue) {
+//     printf("Start Identify rf24: %d\n", address);
+// }
 
 bool HAPPluginRF24DeviceWeather::fakeGatoCallback(){	
 	// return _fakegato.addEntry(_temperatureValue->value(), _humidityValue->value(), _pressureValue->value());
@@ -147,3 +136,26 @@ bool HAPPluginRF24DeviceWeather::fakeGatoCallback(){
 
 
 
+void HAPPluginRF24DeviceWeather::setValuesFromPayload(struct HAP_RF24_PAYLOAD payload){
+
+	LogI("Setting Values for Remote Weather Device ...", false);
+	_humidityValue->setValue(String(payload.hum * 1.0));
+	_temperatureValue->setValue(String(payload.temp * 1.0));
+	_pressureValue->setValue(String(payload.pres));
+
+	// {
+	// 	struct HAPEvent event = HAPEvent(nullptr, _accessory->aid, _humidityValue->iid, String(payload.hum * 1.0));							
+	// 	_eventManager->queueEvent( EventManager::kEventNotifyController, event);
+	// }
+
+	// {
+	// 	struct HAPEvent event = HAPEvent(nullptr, _accessory->aid, _temperatureValue->iid, String(payload.temp * 1.0));							
+	// 	_eventManager->queueEvent( EventManager::kEventNotifyController, event);
+	// }
+
+	// {
+	// 	struct HAPEvent event = HAPEvent(nullptr, _accessory->aid, _pressureValue->iid, String(payload.pres));							
+	// 	_eventManager->queueEvent( EventManager::kEventNotifyController, event);
+	// }		
+	LogI(" OK", true);
+}

@@ -9,7 +9,8 @@
 
 DEBUG  		= 1
 
-BOARD		= SPARKFUN
+# BOARD		= SPARKFUN
+BOARD		= SPARKFUN2
 # BOARD		= HELTEC
 # BOARD		= HUZZAH
 
@@ -43,6 +44,13 @@ ifeq ($(BOARD),SPARKFUN)
 	CXXFLAGS += -I$(PROJECT_PATH)/components/arduino/variants/feather_esp32/
 	#$(info Change the Serial Flasher baud rate to 2MB)
 endif	
+ifeq ($(BOARD),SPARKFUN2)
+	#$(info ************ Feather variant ************)
+	CXXFLAGS += -DARDUINO_FEATHER_ESP32
+	CXXFLAGS += -DHAP_BOARD_SPARKFUN2
+	CXXFLAGS += -I$(PROJECT_PATH)/components/arduino/variants/feather_esp32/
+	#$(info Change the Serial Flasher baud rate to 2MB)
+endif
 
 ifeq ($(BOARD),HELTEC)
 	#$(info ************ Heltec variant ************)
@@ -185,6 +193,11 @@ else
 		COMPONENT_EMBED_FILES += $(PROJECT_PATH)/certs/esp32-CAFEEC/esp32-CAFEEC.privatekey
 	endif
 
+	ifeq ($(BOARD),SPARKFUN2)
+		COMPONENT_EMBED_FILES += $(PROJECT_PATH)/certs/esp32-CB3DC4/esp32-CB3DC4.privatekey
+		COMPONENT_EMBED_FILES += $(PROJECT_PATH)/certs/esp32-CB3DC4/esp32-CB3DC4.privatekey
+	endif
+
 	ifeq ($(BOARD),HUZZAH)
 		COMPONENT_EMBED_FILES += $(PROJECT_PATH)/certs/esp32-0C9D6C/esp32-0C9D6C.privatekey
 		COMPONENT_EMBED_FILES += $(PROJECT_PATH)/certs/esp32-0C9D6C/esp32-0C9D6C.privatekey
@@ -254,6 +267,29 @@ ifeq ($(DEBUG),1)
 		CPPFLAGS += -DHAP_PLUGIN_USE_RCSWITCH=0
 
 		CPPFLAGS += -DHAP_PLUGIN_USE_LED=1
+	endif
+
+
+	ifeq ($(BOARD),SPARKFUN2)
+		CPPFLAGS += -DHAP_FAKEGATO_INTERVAL=5000
+		CPPFLAGS += -DHAP_DEBUG_REQUESTS=0
+		
+		CPPFLAGS += -DHAP_PLUGIN_USE_SSD1306=0
+
+		CPPFLAGS += -DHAP_PLUGIN_USE_DHT=0
+		CPPFLAGS += -DHAP_PLUGIN_DHT_USE_DUMMY=0
+
+		CPPFLAGS += -DHAP_PLUGIN_USE_BME280=1
+		CPPFLAGS += -DHAP_PLUGIN_BME280_USE_DUMMY=1
+
+		CPPFLAGS += -DHAP_PLUGIN_USE_HYGROMETER=0
+		CPPFLAGS += -DHAP_PLUGIN_HYGROMETER_USE_DUMMY=0
+
+		CPPFLAGS += -DHAP_PLUGIN_USE_INFLUXDB=0
+
+		CPPFLAGS += -DHAP_PLUGIN_USE_RCSWITCH=1
+
+		CPPFLAGS += -DHAP_PLUGIN_USE_LED=0
 	endif
 
 	ifeq ($(BOARD),HELTEC)

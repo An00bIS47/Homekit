@@ -72,6 +72,14 @@ extern const unsigned char server_privateKey_der_end[] asm("_binary_esp32_CAFEEC
 // extern const unsigned char server_publicKey_der_end[] asm("_binary_esp32_CAFEEC_publickey_end");
 #endif
 
+#if HAP_BOARD_SPARKFUN2 == 1
+extern const unsigned char server_privateKey_der_start[] asm("_binary_esp32_CB3DC4_privatekey_start");
+extern const unsigned char server_privateKey_der_end[] asm("_binary_esp32_CB3DC4_privatekey_end");
+
+// extern const unsigned char server_publicKey_der_start[] asm("_binary_esp32_CB3DC4_publickey_start");
+// extern const unsigned char server_publicKey_der_end[] asm("_binary_esp32_CB3DC4_publickey_end");
+#endif
+
 #endif // HAP_WEBSERVER_USE_SSL
 
 

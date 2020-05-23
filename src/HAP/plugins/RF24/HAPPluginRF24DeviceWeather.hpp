@@ -25,22 +25,20 @@ public:
 
     HAPPluginRF24DeviceWeather();
     HAPPluginRF24DeviceWeather(uint8_t address_, String name_);
-                            
+    // ~HAPPluginRF24DeviceWeather();                            
+
     HAPAccessory* initAccessory() override;    
-
-	void setValue(int iid, String oldValue, String newValue);
 	
-
 	void changeTemp(float oldValue, float newValue);
 	void changeHum(float oldValue, float newValue);
 	void changePressure(uint16_t oldValue, uint16_t newValue);
 
 
-    void identify(bool oldValue, bool newValue);
-    void setEventManager(EventManager* eventManager);
-    void setFakeGatoFactory(HAPFakeGatoFactory* fakegatoFactory);
+    // void identify(bool oldValue, bool newValue);
+    // void setEventManager(EventManager* eventManager);
+    // void setFakeGatoFactory(HAPFakeGatoFactory* fakegatoFactory);
 
-
+    void setValuesFromPayload(struct HAP_RF24_PAYLOAD payload) override;
 
 private:    
     
@@ -52,7 +50,7 @@ private:
 	floatCharacteristics*	_temperatureValue;
 	uint16Characteristics*	_pressureValue;
     
-    HAPFakeGatoWeather _fakegato;
+    HAPFakeGatoWeather      _fakegato;
    
     bool fakeGatoCallback() override;  
 };

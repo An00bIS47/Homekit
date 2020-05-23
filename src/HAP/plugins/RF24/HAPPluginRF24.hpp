@@ -10,6 +10,10 @@
 #define HAPPLUGINRF24_HPP_
 
 #include <Arduino.h>
+#include  <SPI.h>
+#include "nRF24L01.h"
+#include "RF24.h"
+
 #include <vector>
 #include <algorithm>
 
@@ -17,25 +21,9 @@
 #include "HAPLogger.hpp"
 #include "HAPAccessory.hpp"
 
-#include "RF24.h"
+
 #include "HAPPluginRF24Device.hpp"
-	
 
-enum HAP_RF24_REMOTE_TYPE {
-    HAP_RF24_REMOTE_TYPE_NONE       = 0x00,
-    HAP_RF24_REMOTE_TYPE_WEATHER    = 0x01
-};
-
-struct HAP_RF24_PAYLOAD {
-    uint8_t     id;
-    HAP_RF24_REMOTE_TYPE     type;
-
-    union {
-        uint32_t    temp;
-        uint32_t    hum;
-        uint32_t    pres;
-    };
-};
 
 class HAPPluginRF24: public HAPPlugin {
 public:
@@ -47,9 +35,9 @@ public:
 
 	HAPAccessory* initAccessory() override;
 	
-	void setValue(int iid, String oldValue, String newValue);
 	
-	void identify(bool oldValue, bool newValue);
+	
+	// void identify(bool oldValue, bool newValue);
     void handleImpl(bool forced = false);	
 
 
@@ -59,7 +47,7 @@ public:
 
 private:	
 
-	int indexOfDevice(HAPPluginRF24Device* device);
+	int indexOfDevice(uint8_t address);
     void configAccessory(uint8_t devPtr);
 
 	HAPConfigValidationResult validateName(const char* name);

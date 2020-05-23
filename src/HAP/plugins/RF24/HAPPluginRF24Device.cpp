@@ -30,6 +30,9 @@ HAPPluginRF24Device::HAPPluginRF24Device(uint8_t address_, String name_)
     _fakegatoFactory    = nullptr;
 }
 
+HAPPluginRF24Device::~HAPPluginRF24Device(){
+}
+
 void HAPPluginRF24Device::setEventManager(EventManager* eventManager){
     _eventManager = eventManager;
 }
