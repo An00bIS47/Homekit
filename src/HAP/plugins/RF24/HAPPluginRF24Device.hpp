@@ -20,21 +20,47 @@
 #include "HAPFakeGatoSwitch.hpp"
 
 
-enum HAP_RF24_REMOTE_TYPE {
-    HAP_RF24_REMOTE_TYPE_NONE       = 0x00,
-    HAP_RF24_REMOTE_TYPE_WEATHER    = 0x01
+enum RemoteDeviceType {
+    RemoteDeviceTypeWeather    = 0x01,
+    RemoteDeviceTypeDHT	       = 0x02,
 };
 
 
-struct __attribute__((__packed__)) HAP_RF24_PAYLOAD {
-    uint16_t    id;
+struct __attribute__((__packed__)) RadioPacket {
+    uint8_t     radioId;
     uint8_t     type;
-
-	uint32_t    temp;
-	uint32_t    hum;
-	uint16_t    pres;
-    uint8_t     voltage;
+    
+    uint32_t    temperature;    // temperature
+    uint32_t    humidity;       // humidity
+    uint16_t    pressure;       // pressure
+    
+    uint16_t    voltage;        // voltage
 };
+
+enum MeasureMode
+{
+	MeasureModeWeatherStation   = 0x01,
+	MeasureModeIndoor           = 0x11,
+};
+
+
+enum ChangeType
+{
+    ChangeRadioId               = 0x00,
+    ChangeSleepInterval         = 0x01,
+    ChangeMeasureType           = 0x02,
+};
+
+
+struct __attribute__((__packed__)) NewSettingsPacket
+{
+    uint8_t         changeType;     // enum ChangeType
+    uint8_t         forRadioId;
+    uint8_t         newRadioId;
+    uint32_t        newSleepIntervalSeconds;
+    uint8_t         newMeasureMode;
+};
+
 
 class HAPPluginRF24Device {
 public:
@@ -49,7 +75,7 @@ public:
     void setEventManager(EventManager* eventManager);
     void setFakeGatoFactory(HAPFakeGatoFactory* fakegatoFactory);
     
-    virtual void setValuesFromPayload(struct HAP_RF24_PAYLOAD payload) = 0;
+    virtual void setValuesFromPayload(struct RadioPacket payload) = 0;
 
     uint16_t            id;
     String              name;

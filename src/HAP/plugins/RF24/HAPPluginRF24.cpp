@@ -8,6 +8,7 @@
 #include "HAPPluginRF24.hpp"
 #include "HAPServer.hpp"
 #include "HAPPluginRF24DeviceWeather.hpp"
+#include "HAPPluginRF24DeviceDHT.hpp"
 #include "EventManager.h"
 
 
@@ -26,7 +27,16 @@
 // modified Lib: https://github.com/nhatuan84/RF24.git
 // RF24          ESP32 (Feather)
 // --------------------------
-// CE         -> GPIO 13    -> = LED changed to: 12
+//  NRF24 Pinout:
+// 
+//      +-+-+
+//  GND |_| | VCC
+//   CE | | | CSN
+//  SCK | | | MOSI
+// MISO +-+-+ IRQ
+// 
+// 
+// CE         -> GPIO 12    -> = LED changed to: 12
 // CSN        -> GPIO 33
 // CLK        -> GPIO 5
 // MISO       -> GPIO 19
@@ -73,10 +83,8 @@ bool HAPPluginRF24::begin() {
         _radio->setRetries(15,15);                  // Max delay between retries & number of retries
         _radio->openReadingPipe(1, (const uint8_t*)RF24_ADDRESS);   // Write to device address 'SimpleNode'
         _radio->startListening();
-
-        // ToDo: check if required!
         _isEnabled = true; 
-    } else {
+    } else {        
         LogE("ERROR: RF24 not found! Please check wiring!", true);
         LogE("Disabling RF24 plugin!", true);
         _isEnabled = false;
@@ -111,35 +119,36 @@ void HAPPluginRF24::handleImpl(bool forced){
     if (_radio->available()){
 
         while(_radio->available()){
-            struct HAP_RF24_PAYLOAD payload;
+            struct RadioPacket payload;
 
-            _radio->read( &payload, sizeof(struct HAP_RF24_PAYLOAD) );
+            _radio->read( &payload, sizeof(struct RadioPacket) );
 
 
 #if HAP_DEBUG_RF24
-            LogD("Got Payload from id: " + String(payload.id), true);        
-            LogD("   type: " + String(payload.type), true);
-            LogD("   temp: " + String(payload.temp), true);
-            LogD("   hum:  " + String(payload.hum), true);
-            LogD("   pres: " + String(payload.pres), true);
+            LogD("Got Payload from id: " + String(payload.radioId, HEX), true);        
+            LogD("   type:    " + String(payload.type), true);
+            LogD("   temp:    " + String(payload.temperature), true);
+            LogD("   hum:     " + String(payload.humidity), true);
+            LogD("   pres:    " + String(payload.pressure), true);
+            LogD("   voltage: " + String(payload.voltage), true);
 
 
-            LogD("   Size of struct: " + String(sizeof(struct HAP_RF24_PAYLOAD)), true);        
+            LogD("   Size of struct: " + String(sizeof(struct RadioPacket)), true);        
             LogD("Number of devices: " + String(_devices.size()), true);
 #endif        
 
 
-            int index = indexOfDevice(payload.id);
+            int index = indexOfDevice(payload.radioId);
 
             if ( index == -1 ){
-                if (payload.type == (uint8_t)HAP_RF24_REMOTE_TYPE_WEATHER){
+                if (payload.type == (uint8_t)RemoteDeviceTypeWeather){
                     
                     HAPPluginRF24DeviceWeather* newDevice = new HAPPluginRF24DeviceWeather(
-                        payload.id,
-                        String(payload.id)                                
+                        payload.radioId,
+                        String(payload.radioId)                                
                     );            
                 
-                    LogI("RF24: Adding new remote weather device with id " + String(payload.id, HEX) + " ...", false);
+                    LogI("RF24: Adding new remote weather device with id " + String(payload.radioId, HEX) + " ...", false);
                     
                     // Serial.printf("event: %p\n", _eventManager);
                     // Serial.printf("fakegato: %p\n", _fakeGatoFactory);
@@ -158,7 +167,33 @@ void HAPPluginRF24::handleImpl(bool forced){
                     // index = indexOfDevice(payload.id);    
                     index = _devices.size() - 1;
                     LogI(" OK", true);          
-                }           
+                } else if (payload.type == (uint8_t)RemoteDeviceTypeDHT){
+                    
+                    HAPPluginRF24DeviceDHT* newDevice = new HAPPluginRF24DeviceDHT(
+                        payload.radioId,
+                        String(payload.radioId)                                
+                    );            
+                
+                    LogI("RF24: Adding new remote DHT device with id " + String(payload.radioId, HEX) + " ...", false);
+                    
+                    // Serial.printf("event: %p\n", _eventManager);
+                    // Serial.printf("fakegato: %p\n", _fakeGatoFactory);
+
+                    newDevice->setEventManager(_eventManager);
+                    newDevice->setFakeGatoFactory(_fakeGatoFactory);            
+
+                    _accessorySet->addAccessory(newDevice->initAccessory());
+                    
+                    _devices.push_back(newDevice);
+                    
+                                    							
+                    _eventManager->queueEvent( EventManager::kEventUpdatedConfig, HAPEvent(), EventManager::kLowPriority);        
+                    
+
+                    // index = indexOfDevice(payload.id);    
+                    index = _devices.size() - 1;
+                    LogI(" OK", true);          
+                }     
             }        
 
             if (index >= 0){
@@ -273,9 +308,10 @@ void HAPPluginRF24::setConfigImpl(JsonObject root){
 
             int index = indexOfDevice( dev["id"].as<uint16_t>());
             if ( index == -1 ){
-                HAP_RF24_REMOTE_TYPE type = (HAP_RF24_REMOTE_TYPE)dev["type"].as<uint8_t>();
+                RemoteDeviceType type = (RemoteDeviceType)dev["type"].as<uint8_t>();
                 
-                if (type == HAP_RF24_REMOTE_TYPE_WEATHER) {
+                // ToDo: Implement DHT Remote Device without pressure
+                if (type == RemoteDeviceTypeWeather){
                     HAPPluginRF24DeviceWeather* newDevice = new HAPPluginRF24DeviceWeather(
                         dev["id"].as<uint16_t>(),
                         dev["name"].as<String>()
@@ -287,6 +323,18 @@ void HAPPluginRF24::setConfigImpl(JsonObject root){
                     _accessorySet->addAccessory(newDevice->initAccessory());
                         
                     _devices.push_back(newDevice);
+                } else if (type == RemoteDeviceTypeDHT) {                                    
+                    HAPPluginRF24DeviceDHT* newDevice = new HAPPluginRF24DeviceDHT(
+                        dev["id"].as<uint16_t>(),
+                        dev["name"].as<String>()
+                    );
+
+                    newDevice->setEventManager(_eventManager);
+                    newDevice->setFakeGatoFactory(_fakeGatoFactory);            
+
+                    _accessorySet->addAccessory(newDevice->initAccessory());
+                        
+                    _devices.push_back(newDevice);                
                 }
             }     
         }

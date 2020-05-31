@@ -497,11 +497,11 @@ STR(HAP_PLUGIN_USE_BME280)
  * !! Do not edit !!!
  ********************************************************************/
 #ifndef ARDUINO_ARCH_ESP32
-#define ARDUINO_ARCH_ESP32			0
+#define ARDUINO_ARCH_ESP32			1
 #endif
 
 #ifndef ESP32
-#define ESP32						0
+#define ESP32						1
 #endif
 
 

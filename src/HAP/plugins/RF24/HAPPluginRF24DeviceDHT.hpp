@@ -1,13 +1,13 @@
 //
-// HAPPluginRF24DeviceWeather.hpp
+// HAPPluginRF24DeviceDHT.hpp
 // Homekit
 //
-//  Created on: 20.05.2020
+//  Created on: 31.05.2020
 //      Author: michael
 //
 
-#ifndef HAPPLUGINF24DEVICEWEATHER_HPP_
-#define HAPPLUGINF24DEVICEWEATHER_HPP_
+#ifndef HAPPLUGINF24DEVICEDHT_HPP_
+#define HAPPLUGINF24DEVICEDHT_HPP_
 
 
 #include <Arduino.h>
@@ -20,18 +20,18 @@
 #include "HAPFakeGatoWeather.hpp"
 #include "HAPPluginRF24Device.hpp"
 
-class HAPPluginRF24DeviceWeather : public HAPPluginRF24Device{
+class HAPPluginRF24DeviceDHT : public HAPPluginRF24Device{
 public:
 
-    HAPPluginRF24DeviceWeather();
-    HAPPluginRF24DeviceWeather(uint16_t id_, String name_);
-    // ~HAPPluginRF24DeviceWeather();                            
+    HAPPluginRF24DeviceDHT();
+    HAPPluginRF24DeviceDHT(uint16_t id_, String name_);
+    // ~HAPPluginRF24DeviceDHT();                            
 
     HAPAccessory* initAccessory() override;    
 	
 	void changeTemp(float oldValue, float newValue);
 	void changeHum(float oldValue, float newValue);
-	void changePressure(uint16_t oldValue, uint16_t newValue);
+	
     
     void changeBatteryLevel( float oldValue, float newValue);
 	void changeBatteryStatus(float oldValue, float newValue);
@@ -50,7 +50,7 @@ private:
    
 	floatCharacteristics*	_humidityValue;
 	floatCharacteristics*	_temperatureValue;
-	uint16Characteristics*	_pressureValue;
+	
 
     intCharacteristics* 	_batteryLevel;
 	intCharacteristics* 	_batteryStatus;	
