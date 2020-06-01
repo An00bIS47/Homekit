@@ -36,18 +36,21 @@
 
 
 HAPPluginLED::HAPPluginLED(){
-    _type = HAP_PLUGIN_TYPE_ACCESSORY;
-    _name = "LED";
-    _isEnabled = HAP_PLUGIN_USE_LED;
-    _interval = HAP_BLINK_INTERVAL;
-    _previousMillis = 0;
-    _isOn = false;
-    _gpio = HAP_LED_PIN;
+    _type               = HAP_PLUGIN_TYPE_ACCESSORY;
+    _name               = "LED";
+    _isEnabled          = HAP_PLUGIN_USE_LED;
+    _interval           = HAP_BLINK_INTERVAL;
+    _previousMillis     = 0;
+    _isOn               = false;
+    _gpio               = HAP_LED_PIN;
 
     _version.major      = VERSION_MAJOR;
     _version.minor      = VERSION_MINOR;
     _version.revision   = VERSION_REVISION;
     _version.build      = VERSION_BUILD;
+
+    _powerState         = nullptr;
+	_brightnessState    = nullptr;
 }
 
 void HAPPluginLED::changePower(bool oldValue, bool newValue) {

@@ -20,6 +20,10 @@
 #include "HAPFakeGatoSwitch.hpp"
 
 
+#define REMOTE_DEVICE_VMIN 1900
+#define REMOTE_DEVICE_VMAX 3450
+
+
 enum RemoteDeviceType {
     RemoteDeviceTypeWeather    = 0x01,
     RemoteDeviceTypeDHT	       = 0x02,

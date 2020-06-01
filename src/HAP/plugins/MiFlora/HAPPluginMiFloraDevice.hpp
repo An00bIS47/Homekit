@@ -51,7 +51,7 @@ typedef struct floraHistory {
 class HAPPluginMiFloraDevice {
 
 public:
-    HAPPluginMiFloraDevice(std::string address);
+    HAPPluginMiFloraDevice(const std::string& address);
     HAPPluginMiFloraDevice(BLEAddress address);
 
 

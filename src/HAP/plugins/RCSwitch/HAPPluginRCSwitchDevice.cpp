@@ -18,6 +18,8 @@ HAPPluginRCSwitchDevice::HAPPluginRCSwitchDevice(){
     _accessory          = nullptr;
     _eventManager       = nullptr;  
     _fakegatoFactory    = nullptr;
+
+    _stateValue         = nullptr;
 }
 
 HAPPluginRCSwitchDevice::HAPPluginRCSwitchDevice(uint8_t houseAddress_, uint8_t deviceAddress_, String name_)
@@ -28,6 +30,8 @@ HAPPluginRCSwitchDevice::HAPPluginRCSwitchDevice(uint8_t houseAddress_, uint8_t 
     _accessory          = nullptr;
     _eventManager       = nullptr;      
     _fakegatoFactory    = nullptr;
+
+    _stateValue         = nullptr;
 }
 
 

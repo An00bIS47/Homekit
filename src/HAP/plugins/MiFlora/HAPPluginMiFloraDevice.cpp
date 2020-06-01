@@ -15,26 +15,50 @@
 #define VERSION_REVISION    3
 #define VERSION_BUILD       2
 
-HAPPluginMiFloraDevice::HAPPluginMiFloraDevice(std::string address){
+HAPPluginMiFloraDevice::HAPPluginMiFloraDevice(const std::string& address) : _deviceAddress(address){
     
     _version.major      = VERSION_MAJOR;
     _version.minor      = VERSION_MINOR;
     _version.revision   = VERSION_REVISION;
     _version.build      = VERSION_BUILD;
 
-    
-    _deviceAddress = address;
+    _accessory          = nullptr;
+    _eventManager       = nullptr;  
+    _fakegatoFactory    = nullptr;
+		
+	_firmwareValue      = nullptr;
+	_lastUpdate         = nullptr;
+
+	_humidityValue      = nullptr;
+	_temperatureValue   = nullptr;   
+	_lightValue         = nullptr;
+	_fertilityValue     = nullptr;
+	
+	_batteryLevel       = nullptr;
+	_batteryStatus      = nullptr;
 }
 
-HAPPluginMiFloraDevice::HAPPluginMiFloraDevice(BLEAddress address){
+HAPPluginMiFloraDevice::HAPPluginMiFloraDevice(BLEAddress address) : _deviceAddress(address.toString()){
     
     _version.major      = VERSION_MAJOR;
     _version.minor      = VERSION_MINOR;
     _version.revision   = VERSION_REVISION;
     _version.build      = VERSION_BUILD;
 
-    
-    _deviceAddress = address.toString();
+    _accessory          = nullptr;
+    _eventManager       = nullptr;  
+    _fakegatoFactory    = nullptr;    
+		
+	_firmwareValue      = nullptr;
+	_lastUpdate         = nullptr;
+
+	_humidityValue      = nullptr;
+	_temperatureValue   = nullptr;   
+	_lightValue         = nullptr;
+	_fertilityValue     = nullptr;
+	
+	_batteryLevel       = nullptr;
+	_batteryStatus      = nullptr;    
 }
 
 
@@ -129,7 +153,7 @@ HAPAccessory* HAPPluginMiFloraDevice::initAccessory(){
     // 
     _lastUpdate = new stringCharacteristics("000003EA-6B66-4FFD-88CC-16A60B5C4E03", permission_read|permission_notify, 32);
     _lastUpdate->setDescription("LastUpdate");
-    _lastUpdate->setValue("Sun Dec 29 2019 04:30:53");
+    _lastUpdate->setValue("Never");
 
     auto callbackChangeLastUpdate = std::bind(&HAPPluginMiFloraDevice::changeLastUpdate, this, std::placeholders::_1, std::placeholders::_2);
     _lastUpdate->valueChangeFunctionCall = callbackChangeLastUpdate;

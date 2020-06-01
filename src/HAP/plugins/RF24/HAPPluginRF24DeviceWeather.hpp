@@ -29,6 +29,7 @@ public:
 
     HAPAccessory* initAccessory() override;    
 	
+    void changeLastUpdate(String oldValue, String newValue);
 	void changeTemp(float oldValue, float newValue);
 	void changeHum(float oldValue, float newValue);
 	void changePressure(uint16_t oldValue, uint16_t newValue);
@@ -51,6 +52,8 @@ private:
 	floatCharacteristics*	_humidityValue;
 	floatCharacteristics*	_temperatureValue;
 	uint16Characteristics*	_pressureValue;
+
+    stringCharacteristics* 	_lastUpdate;
 
     intCharacteristics* 	_batteryLevel;
 	intCharacteristics* 	_batteryStatus;	

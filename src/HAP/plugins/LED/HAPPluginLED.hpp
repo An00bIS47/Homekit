@@ -40,16 +40,11 @@ public:
 	void setConfigImpl(JsonObject root);
 
 private:	
-	//HAPAccessory*			_accessory;
-	// HAPService*				_service;	
+
 	boolCharacteristics* 	_powerState;
 	intCharacteristics*	 	_brightnessState;
 
-	// unsigned long 		_interval;
-	// unsigned long 		_previousMillis;
 
-	// EventManager*	_eventManager;
-	// MemberFunctionCallable<HAPPlugin> listenerMemberFunctionPlugin;
 	uint8_t _gpio;
 	bool _isOn;
 };

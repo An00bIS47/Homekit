@@ -17,16 +17,23 @@
 
 
 HAPPluginDHT::HAPPluginDHT(){
-	_type = HAP_PLUGIN_TYPE_ACCESSORY;
-	_name = "DHT";
-	_isEnabled = HAP_PLUGIN_USE_DHT;
-	_interval = HAP_PLUGIN_INTERVAL;
-	_previousMillis = 0;
+	_type 				= HAP_PLUGIN_TYPE_ACCESSORY;
+	_name 				= "DHT";
+	_isEnabled 			= HAP_PLUGIN_USE_DHT;
+	_interval 			= HAP_PLUGIN_INTERVAL;
+	_previousMillis 	= 0;
 
     _version.major      = VERSION_MAJOR;
     _version.minor      = VERSION_MINOR;
     _version.revision   = VERSION_REVISION;
     _version.build      = VERSION_BUILD;
+
+	_humidityValue		= nullptr;
+	_temperatureValue	= nullptr;
+
+#if HAP_PLUGIN_DHT_USE_PRESSURE	
+	_pressureValue		= nullptr;
+#endif	
 }
 
 

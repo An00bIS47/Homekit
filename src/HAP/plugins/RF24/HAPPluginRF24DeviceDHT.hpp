@@ -32,7 +32,7 @@ public:
 	void changeTemp(float oldValue, float newValue);
 	void changeHum(float oldValue, float newValue);
 	
-    
+    void changeLastUpdate(String oldValue, String newValue);
     void changeBatteryLevel( float oldValue, float newValue);
 	void changeBatteryStatus(float oldValue, float newValue);
 
@@ -51,6 +51,7 @@ private:
 	floatCharacteristics*	_humidityValue;
 	floatCharacteristics*	_temperatureValue;
 	
+    stringCharacteristics* 	_lastUpdate;
 
     intCharacteristics* 	_batteryLevel;
 	intCharacteristics* 	_batteryStatus;	

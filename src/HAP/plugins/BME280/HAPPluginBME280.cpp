@@ -22,17 +22,21 @@
 #define VERSION_BUILD       2
 
 HAPPluginBME280::HAPPluginBME280(){
-	_type = HAP_PLUGIN_TYPE_ACCESSORY;
-	_name = "BME280";
-	_isEnabled = HAP_PLUGIN_USE_BME280;
-	_interval = 0;	// will be set according to selected mode
-	_previousMillis = 0;
-	_mode = HAP_PLUGIN_BME280_WEATHER;
+	_type 				= HAP_PLUGIN_TYPE_ACCESSORY;
+	_name 				= "BME280";
+	_isEnabled 			= HAP_PLUGIN_USE_BME280;
+	_interval 			= 0;	// will be set according to selected mode
+	_previousMillis 	= 0;
+	_mode 				= HAP_PLUGIN_BME280_INDOOR;
 
     _version.major      = VERSION_MAJOR;
     _version.minor      = VERSION_MINOR;
     _version.revision   = VERSION_REVISION;
     _version.build      = VERSION_BUILD;	
+
+	_humidityValue		= nullptr;
+	_temperatureValue	= nullptr;
+	_pressureValue		= nullptr;
 }
 
 void HAPPluginBME280::identify(bool oldValue, bool newValue) {

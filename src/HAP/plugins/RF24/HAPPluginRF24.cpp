@@ -79,6 +79,7 @@ bool HAPPluginRF24::begin() {
         _radio->setPALevel(RF24_PA_MIN);            //You can set it as minimum or maximum 
                                                     // depending on the distance between the 
                                                     // transmitter and receiver.
+        _radio->setDataRate(RF24_250KBPS);                                                    
         _radio->setAutoAck(1);                      // Ensure autoACK is enabled
         _radio->setRetries(15,15);                  // Max delay between retries & number of retries
         _radio->openReadingPipe(1, (const uint8_t*)RF24_ADDRESS);   // Write to device address 'SimpleNode'

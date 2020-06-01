@@ -30,7 +30,7 @@ HAPPluginHygrometer::HAPPluginHygrometer(){
     _version.revision   = VERSION_REVISION;
     _version.build      = VERSION_BUILD;
 
-
+	_humidityValue = nullptr;
 }
 
 
