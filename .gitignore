@@ -128,3 +128,6 @@ utils/TLV8Keystore/*.csv
 utils/TLV8Keystore/*.tlv8
 utils/TLV8Keystore/*.sig
 utils/TLV8Keystore/*.pre
+
+### platformio
+.pio/
