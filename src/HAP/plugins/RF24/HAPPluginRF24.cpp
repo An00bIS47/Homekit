@@ -113,10 +113,14 @@ HAPAccessory* HAPPluginRF24::initAccessory() {
 
 
 void HAPPluginRF24::handleImpl(bool forced){
-    // _radio->stopListening();
-    // _radio->startListening();
+
     LogD(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Handle plguin [" + String(_interval) + "]", true);
 
+
+    // _radio->stopListening();
+    // _radio->startListening();
+
+    
     if (_radio->available()){
 
         while(_radio->available()){
