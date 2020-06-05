@@ -14,7 +14,7 @@
 //            GND  4|    |5  PB0 (D 0) pwm0
 //                  +----+
 // 
-// Uses 3 Pin NRF24 connection
+// Uses 3 Pins NRF24 connection!
 // 
 
 #include <avr/eeprom.h>
@@ -34,14 +34,16 @@
 #endif 
 
 #define RF24_ADDRESS_SIZE   13
-
+#define RF24_PA_LEVEL       RF24_PA_HIGH
+#define RF24_DATA_RATE      RF24_250KBPS
 
 #ifndef RF24_ID
 #define RF24_ID 0x01
 #endif
 
 
-#define DELAY_INTERVAL 16000 // in ms (advice a power of 8)
+#define DELAY_INTERVAL 32000 // in ms (advice a power of 8)
+// #define DELAY_INTERVAL 16000 // in ms (advice a power of 8)
 
 #define CE_PIN  PB2
 #define CSN_PIN PB2 //Since we are using 3 pin configuration we will use same pin for both CE and CSN
@@ -71,7 +73,9 @@ uint8_t address[RF24_ADDRESS_SIZE] = RF24_ADDRESS;
 //    Senden via "SoftwareSerial" - TX an Pin  4 (= Pin3 am Attiny85-20PU)
 // Empfangen via "SoftwareSerial" - RX an Pin 99 (Dummy um Hardwarepin zu sparen)
 #include <SoftwareSerial.h>
-SoftwareSerial softSerial(99, 4); // RX, TX
+
+#define SOFTSERIAL_PIN  4   // TX an Pin  4 (= Pin3 am Attiny85-20PU)
+SoftwareSerial softSerial(99, SOFTSERIAL_PIN); // RX, TX
 #endif
 
 
@@ -257,11 +261,11 @@ void setupRadio()
 #ifdef DEBUG                            // Start up the radio            
         softSerial.println(F("OK - RF24 wiring OK!"));
 #endif        
-        _radio.setPALevel(RF24_PA_MIN);     //You can set it as minimum or maximum depending on the distance between the transmitter and receiver.
-        _radio.setDataRate(RF24_250KBPS);
+        _radio.setPALevel(RF24_PA_LEVEL);   // You can set it as minimum or maximum depending on the distance between the transmitter and receiver.
+        _radio.setDataRate(RF24_DATA_RATE);
         _radio.setAutoAck(1);               // Ensure autoACK is enabled
         _radio.setRetries(15,15);           // Max delay between retries & number of retries
-        _radio.openWritingPipe(address);    // Write to device address 'SimpleNode'
+        _radio.openWritingPipe(address);    // Write to device address 'HOMEKIT_RF24'
 #ifdef DEBUG                                
     } else {
         softSerial.println(F("ERROR: RF24 not found! Please check wiring!")); 

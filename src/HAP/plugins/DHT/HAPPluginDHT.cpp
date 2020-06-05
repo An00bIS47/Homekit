@@ -197,12 +197,12 @@ HAPAccessory* HAPPluginDHT::initAccessory(){
 	//
 	// Humidity
 	//
-	HAPService* humidityService = new HAPService(HAP_SERVICE_HUMIDITY_SENSOR);
-	_accessory->addService(humidityService);
+	// HAPService* humidityService = new HAPService(HAP_SERVICE_HUMIDITY_SENSOR);
+	// _accessory->addService(humidityService);
 
-	stringCharacteristics *humServiceName = new stringCharacteristics(HAP_CHARACTERISTIC_NAME, permission_read, 0);
-	humServiceName->setValue("Humidity Sensor");
-	_accessory->addCharacteristics(humidityService, humServiceName);
+	// stringCharacteristics *humServiceName = new stringCharacteristics(HAP_CHARACTERISTIC_NAME, permission_read, 0);
+	// humServiceName->setValue("Humidity Sensor");
+	// _accessory->addCharacteristics(humidityService, humServiceName);
 
 	_humidityValue = new floatCharacteristics(HAP_CHARACTERISTIC_CURRENT_RELATIVE_HUMIDITY, permission_read|permission_notify, 0, 100, 0.1, unit_percentage);
 	_humidityValue->setValue("0.0");
@@ -210,7 +210,8 @@ HAPAccessory* HAPPluginDHT::initAccessory(){
 	auto callbackChangeHum = std::bind(&HAPPluginDHT::changeHum, this, std::placeholders::_1, std::placeholders::_2);
 	//_humidityValue->valueChangeFunctionCall = std::bind(&changeHum);
 	_humidityValue->valueChangeFunctionCall = callbackChangeHum;
-	_accessory->addCharacteristics(humidityService, _humidityValue);
+	// _accessory->addCharacteristics(humidityService, _humidityValue);
+	_accessory->addCharacteristics(temperatureService, _humidityValue);
 
 #if HAP_PLUGIN_DHT_USE_PRESSURE
 	//

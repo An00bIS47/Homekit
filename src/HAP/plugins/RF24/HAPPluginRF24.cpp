@@ -23,26 +23,28 @@
 #define RF24_ADDRESS        "HOMEKIT_RF24"
 #endif 
 
+#define RF24_PA_LEVEL       RF24_PA_HIGH
+#define RF24_DATA_RATE      RF24_250KBPS
+
 // http://www.iotsharing.com/2018/03/esp-and-raspberry-connect-with-nrf24l01.html
 // modified Lib: https://github.com/nhatuan84/RF24.git
 // RF24          ESP32 (Feather)
 // --------------------------
 //  NRF24 Pinout:
+//        +-+-+
+//  GND ->|_| |<- VCC
+//   CE ->| | |<- CSN
+//  SCK ->| | |<- MOSI
+// MISO ->| | |<- IRQ
+//        +-+-+   
 // 
-//      +-+-+
-//  GND |_| | VCC
-//   CE | | | CSN
-//  SCK | | | MOSI
-// MISO +-+-+ IRQ
-// 
-// 
-// CE         -> GPIO 12    -> = LED changed to: 12
+// CE         -> GPIO 12    
 // CSN        -> GPIO 33
 // CLK        -> GPIO 5
 // MISO       -> GPIO 19
 // MOSI       -> GPIO 18
 // IRQ        -> not connected
-
+// 
 
 
 HAPPluginRF24::HAPPluginRF24(){
@@ -76,15 +78,19 @@ bool HAPPluginRF24::begin() {
     
     if (_radio->begin() ){                          // Start up the radio    
 
-        _radio->setPALevel(RF24_PA_MIN);            //You can set it as minimum or maximum 
+        _radio->setPALevel(RF24_PA_LEVEL);          // You can set it as minimum or maximum 
                                                     // depending on the distance between the 
                                                     // transmitter and receiver.
-        _radio->setDataRate(RF24_250KBPS);                                                    
+        _radio->setDataRate(RF24_DATA_RATE);                                                    
         _radio->setAutoAck(1);                      // Ensure autoACK is enabled
         _radio->setRetries(15,15);                  // Max delay between retries & number of retries
         _radio->openReadingPipe(1, (const uint8_t*)RF24_ADDRESS);   // Write to device address 'SimpleNode'
         _radio->startListening();
         _isEnabled = true; 
+
+#if HAP_DEBUG_RF24
+        _radio->printDetails();
+#endif
     } else {        
         LogE("ERROR: RF24 not found! Please check wiring!", true);
         LogE("Disabling RF24 plugin!", true);
