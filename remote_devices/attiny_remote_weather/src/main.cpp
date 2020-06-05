@@ -15,7 +15,12 @@
 //                  +----+
 // 
 // Uses 3 Pins NRF24 connection!
-// 
+//                      +-\/-+
+// DHT22 PWR  ->  PB5  1|    |8  VCC  <-
+// DHT22 Data ->  PB3  2|    |7  PB2  <- SCK - CE / CSN Pin [NRF24]
+// SoftSerial ->  PB4  3|    |6  PB1  <- MISO               [NRF24]
+//            ->  GND  4|    |5  PB0  <- MOSI               [NRF24]
+//                      +----+
 
 #include <avr/eeprom.h>
 #include <avr/power.h>      // Power management
@@ -24,7 +29,7 @@
 
 #include "RF24.h"
 
-#define DEBUG	        // comment out to disable
+// #define DEBUG	        // comment out to disable
 #define USE_DHT         // comment out to disable and use bme280 i2c
 // #define RESET_EEPROM    // comment out to disable
 
@@ -54,7 +59,8 @@ uint8_t address[RF24_ADDRESS_SIZE] = RF24_ADDRESS;
 #ifdef USE_DHT
 #include "dht.h"
 
-#define DHT22_PIN PB3
+#define DHT22_DATA_PIN    PB3
+#define DHT22_PWR_PIN     PB4 // We power the DHT11 via a MCU GPIO so we can control when it's up or not
 
 #else
 
@@ -238,6 +244,9 @@ void setup() {
     }
 
 #ifdef USE_DHT
+    // DHT22 Set Power PIN
+    digitalWrite(DHT22_PWR_PIN, LOW);
+    pinMode(DHT22_PWR_PIN, OUTPUT);
 #else
      
     setupBME280();
@@ -322,6 +331,9 @@ void loop() {
 
 #ifdef USE_DHT        
         radioData.type = RemoteDeviceTypeDHT;
+
+        // Turn the DHT22 Sensor ON
+        digitalWrite(DHT22_PWR_PIN, HIGH);
 #else
         radioData.type = RemoteDeviceTypeWeather;
 #endif
@@ -331,11 +343,13 @@ void loop() {
         int status = -7;
 
 #ifdef USE_DHT
+
+
 #ifdef DEBUG                            // Start up the radio            
         softSerial.print(F("Reading DHT22 ..."));
 #endif 
         do {
-            status = _dht.read22(DHT22_PIN);
+            status = _dht.read22(DHT22_DATA_PIN);
             radioData.temperature = (_dht.temperature * 100);
             radioData.humidity = (_dht.humidity * 100);
             radioData.pressure = 0;
@@ -350,7 +364,11 @@ void loop() {
 	    softSerial.println(F("OK"));
 #endif 
 
+        //Turn the DHT22 Sensor OFF
+        digitalWrite(DHT22_PWR_PIN, LOW);
+
 #else
+
 #ifdef DEBUG                            
 	    softSerial.print(F("Reading BME280 ..."));
 #endif 
@@ -358,9 +376,12 @@ void loop() {
         radioData.temperature   = _sensor.readFixedTempC();
         radioData.humidity      = _sensor.readFixedHumidity();
         radioData.pressure      = _sensor.readFixedPressure();
+
 #ifdef DEBUG                            
         softSerial.println(F("OK"));
 #endif 
+
+
 #endif
 
         radioData.voltage       = readVcc();
@@ -382,7 +403,8 @@ void loop() {
 #endif
     
      
-        if (!_radio.write( &radioData, sizeof(RadioPacket) ) ) { //Send data to 'Receiver' every 60 seconds        
+        if (!_radio.write( &radioData, sizeof(RadioPacket) ) ) { //Send data to 'Receiver' every x seconds        
+
 #ifdef DEBUG
         softSerial.println(F("Sending failed! :("));        
 #endif
