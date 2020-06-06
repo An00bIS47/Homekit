@@ -90,7 +90,7 @@ HAPAccessory* HAPPluginRF24DeviceDHT::initAccessory(){
 	_accessory->addService(temperatureService);
 
 	stringCharacteristics *tempServiceName = new stringCharacteristics(HAP_CHARACTERISTIC_NAME, permission_read, 0);
-	tempServiceName->setValue("Temperature Sensor");
+	tempServiceName->setValue("Remote DHT Sensor " + String(id));
 
 	_accessory->addCharacteristics(temperatureService, tempServiceName);
 

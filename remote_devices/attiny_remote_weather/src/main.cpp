@@ -60,7 +60,7 @@ uint8_t address[RF24_ADDRESS_SIZE] = RF24_ADDRESS;
 #include "dht.h"
 
 #define DHT22_DATA_PIN    PB3
-#define DHT22_PWR_PIN     PB4 // We power the DHT11 via a MCU GPIO so we can control when it's up or not
+#define DHT22_PWR_PIN     PB4 // We power the DHT22 via a MCU GPIO so we can control when it's up or not
 
 #else
 
@@ -83,6 +83,11 @@ uint8_t address[RF24_ADDRESS_SIZE] = RF24_ADDRESS;
 #define SOFTSERIAL_PIN  4   // TX an Pin  4 (= Pin3 am Attiny85-20PU)
 SoftwareSerial softSerial(99, SOFTSERIAL_PIN); // RX, TX
 #endif
+
+// BOD
+#define BODS 7                   //BOD Sleep bit in MCUCR
+#define BODSE 2                  //BOD Sleep enable bit in MCUCR
+uint8_t mcucr1, mcucr2;
 
 
 #define eepromBegin() eeprom_busy_wait(); noInterrupts() // Details on https://youtu.be/_yOcKwu7mQA
@@ -532,12 +537,20 @@ void system_sleep() {
 
     cbi(ADCSRA,ADEN);                    // switch Analog to Digitalconverter OFF
 
+
+    mcucr1 = MCUCR | _BV(BODS) | _BV(BODSE);  //turn off the brown-out detector
+    mcucr2 = mcucr1 & ~_BV(BODSE);
+    MCUCR = mcucr1;
+    MCUCR = mcucr2;
+
+    sleep_bod_disable();
     set_sleep_mode(SLEEP_MODE_PWR_DOWN); // sleep mode is set here
     sleep_enable();
 
     sleep_mode();                        // System sleeps here
 
     sleep_disable();                     // System continues execution here when watchdog timed out 
+    
   
     sbi(ADCSRA,ADEN);                    // switch Analog to Digitalconverter ON
     

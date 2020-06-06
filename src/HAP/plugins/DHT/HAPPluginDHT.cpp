@@ -176,7 +176,7 @@ HAPAccessory* HAPPluginDHT::initAccessory(){
 	_accessory->addService(temperatureService);
 
 	stringCharacteristics *tempServiceName = new stringCharacteristics(HAP_CHARACTERISTIC_NAME, permission_read, 0);
-	tempServiceName->setValue("Temperature Sensor");
+	tempServiceName->setValue("DHT Sensor");
 
 	_accessory->addCharacteristics(temperatureService, tempServiceName);
 

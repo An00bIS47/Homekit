@@ -92,7 +92,7 @@ HAPAccessory* HAPPluginRF24DeviceWeather::initAccessory(){
 	_accessory->addService(temperatureService);
 
 	stringCharacteristics *tempServiceName = new stringCharacteristics(HAP_CHARACTERISTIC_NAME, permission_read, 0);
-	tempServiceName->setValue("Temperature Sensor");
+	tempServiceName->setValue("Remote Temperature Sensor " + String(id));
 
 	_accessory->addCharacteristics(temperatureService, tempServiceName);
 
@@ -111,7 +111,7 @@ HAPAccessory* HAPPluginRF24DeviceWeather::initAccessory(){
 	_accessory->addService(humidityService);
 
 	stringCharacteristics *humServiceName = new stringCharacteristics(HAP_CHARACTERISTIC_NAME, permission_read, 0);
-	humServiceName->setValue("Humidity Sensor");
+	humServiceName->setValue("Remote Humidity Sensor " + String(id));
 	_accessory->addCharacteristics(humidityService, humServiceName);
 
 	_humidityValue = new floatCharacteristics(HAP_CHARACTERISTIC_CURRENT_RELATIVE_HUMIDITY, permission_read|permission_notify, 0, 100, 0.1, unit_percentage);
@@ -130,7 +130,7 @@ HAPAccessory* HAPPluginRF24DeviceWeather::initAccessory(){
 	_accessory->addService(pressureService);
 
 	stringCharacteristics *pressureServiceName = new stringCharacteristics(HAP_CHARACTERISTIC_NAME, permission_read, 0);
-	pressureServiceName->setValue("Pressure Sensor");
+	pressureServiceName->setValue("Remote Pressure Sensor " + String(id));
 	_accessory->addCharacteristics(pressureService, pressureServiceName);
 	
 	_pressureValue = new uint16Characteristics(HAP_CHARACTERISTIC_FAKEGATO_AIR_PRESSURE, permission_read|permission_notify, 0, 1100, 1, unit_hpa);
