@@ -6,33 +6,30 @@
 //      Author: michael
 // 
 // ATTINY25/45/85 pinout for ARDUINO
-//
-//                  +-\/-+
-// Ain0 (D 5) PB5  1|    |8  Vcc
-// Ain3 (D 3) PB3  2|    |7  PB2 (D 2) Ain1
-// Ain2 (D 4) PB4  3|    |6  PB1 (D 1) pwm1
-//            GND  4|    |5  PB0 (D 0) pwm0
-//                  +----+
+// Uses 3 Pins for NRF24 connection!
 // 
-// Uses 3 Pins NRF24 connection!
-//                      +-\/-+
-// DHT22 PWR  ->  PB5  1|    |8  VCC  <-
-// DHT22 Data ->  PB3  2|    |7  PB2  <- SCK - CE / CSN Pin [NRF24]
-// SoftSerial ->  PB4  3|    |6  PB1  <- MISO               [NRF24]
-//            ->  GND  4|    |5  PB0  <- MOSI               [NRF24]
-//                      +----+
+//                                   +-\/-+
+//                         ->  PB5  1|.   |8  VCC  <-
+// DHT22 Data              ->  PB3  2|    |7  PB2  <- SCK - CE / CSN Pin [NRF24]
+// SoftSerial / DHT22 PWR  ->  PB4  3|    |6  PB1  <- MISO               [NRF24]
+//                         ->  GND  4|    |5  PB0  <- MOSI               [NRF24]
+//                                   +----+
+// 
 
 #include <avr/eeprom.h>
 #include <avr/power.h>      // Power management
 #include <avr/sleep.h>      // Sleep Modes
 #include <avr/wdt.h>        // Watchdog timer
 
+
+
 #include "RF24.h"
 
-// #define DEBUG	        // comment out to disable
+#define DEBUG	        // comment out to disable
 #define USE_DHT         // comment out to disable and use bme280 i2c
-// #define RESET_EEPROM    // comment out to disable
 
+// #define RESET_EEPROM    // comment out to disable
+// #define USE_DHT_POWER_SAVE
 
 #ifndef RF24_ADDRESS
 #define RF24_ADDRESS        "HOMEKIT_RF24"
@@ -46,21 +43,28 @@
 #define RF24_ID 0x01
 #endif
 
+// BOD
+// #define BODS 7                  // BOD Sleep bit in MCUCR
+// #define BODSE 2                 // BOD Sleep enable bit in MCUCR
 
-#define DELAY_INTERVAL 32000 // in ms (advice a power of 8)
-// #define DELAY_INTERVAL 16000 // in ms (advice a power of 8)
+// #define DELAY_INTERVAL 32000     // in ms (advice a power of 8)
+#define DELAY_INTERVAL 48000        // in ms (advice a power of 8)
+// #define DELAY_INTERVAL 16000        // in ms (advice a power of 8)
 
 #define CE_PIN  PB2
-#define CSN_PIN PB2 //Since we are using 3 pin configuration we will use same pin for both CE and CSN
+#define CSN_PIN PB2             // Since we are using 3 pin configuration we will use same pin for both CE and CSN
 
-uint8_t address[RF24_ADDRESS_SIZE] = RF24_ADDRESS;
+#define SOFTSERIAL_PIN  4       // TX an Pin  4 (= Pin3 am Attiny85-20PU)
 
 
 #ifdef USE_DHT
 #include "dht.h"
 
+#ifdef USE_DHT_POWER_SAVE
+#define DHT22_PWR_PIN     PB4   // We power the DHT22 via a MCU GPIO so we can control when it's up or not
+#endif
 #define DHT22_DATA_PIN    PB3
-#define DHT22_PWR_PIN     PB4 // We power the DHT22 via a MCU GPIO so we can control when it's up or not
+
 
 #else
 
@@ -72,29 +76,39 @@ uint8_t address[RF24_ADDRESS_SIZE] = RF24_ADDRESS;
 
 #include <TinyBME280.h>
 #include <Wire.h>
+
 #endif
 
-
-#ifdef DEBUG
-//    Senden via "SoftwareSerial" - TX an Pin  4 (= Pin3 am Attiny85-20PU)
-// Empfangen via "SoftwareSerial" - RX an Pin 99 (Dummy um Hardwarepin zu sparen)
-#include <SoftwareSerial.h>
-
-#define SOFTSERIAL_PIN  4   // TX an Pin  4 (= Pin3 am Attiny85-20PU)
-SoftwareSerial softSerial(99, SOFTSERIAL_PIN); // RX, TX
+// Sleep macros
+#ifndef cbi
+    #define cbi(sfr, bit) (_SFR_BYTE(sfr) &= ~_BV(bit))
+#endif
+#ifndef sbi
+    #define sbi(sfr, bit) (_SFR_BYTE(sfr) |= _BV(bit))
 #endif
 
-// BOD
-#define BODS 7                   //BOD Sleep bit in MCUCR
-#define BODSE 2                  //BOD Sleep enable bit in MCUCR
-uint8_t mcucr1, mcucr2;
-
-
+// EEPRom Macros
 #define eepromBegin() eeprom_busy_wait(); noInterrupts() // Details on https://youtu.be/_yOcKwu7mQA
 #define eepromEnd()   interrupts()
 
+#ifdef DEBUG
+    //    Senden via "SoftwareSerial" - TX an Pin  4 (= Pin3 am Attiny85-20PU)
+    // Empfangen via "SoftwareSerial" - RX an Pin 99 (Dummy um Hardwarepin zu sparen)
+    #include <SoftwareSerial.h>
+    SoftwareSerial softSerial(99, PB4); // RX, TX
+#endif
 
+// BOD
+// uint8_t mcucr1, mcucr2;
+
+// RF24 Address
+uint8_t address[RF24_ADDRESS_SIZE] = RF24_ADDRESS;
+
+
+// EEPROM Settings version
 const uint8_t EEPROM_SETTINGS_VERSION = 1;
+
+
 
 struct EepromSettings
 {
@@ -114,7 +128,7 @@ struct RadioPacket
     uint32_t    humidity;       // humidity
     uint16_t    pressure;       // pressure
     
-    uint16_t    voltage;       // percentage
+    uint16_t    voltage;       // voltage * 100 , e.g. 330 for 3.3 V
 };
 
 
@@ -148,16 +162,6 @@ struct NewSettingsPacket
     uint32_t        newSleepIntervalSeconds;
     uint8_t         newMeasureMode;
 };
-
-
-#ifndef cbi
-#define cbi(sfr, bit) (_SFR_BYTE(sfr) &= ~_BV(bit))
-#endif
-#ifndef sbi
-#define sbi(sfr, bit) (_SFR_BYTE(sfr) |= _BV(bit))
-#endif
-
-
 
 
 #ifdef USE_DHT
@@ -249,9 +253,13 @@ void setup() {
     }
 
 #ifdef USE_DHT
+
+#ifdef USE_DHT_POWER_SAVE
     // DHT22 Set Power PIN
     digitalWrite(DHT22_PWR_PIN, LOW);
     pinMode(DHT22_PWR_PIN, OUTPUT);
+#endif
+
 #else
      
     setupBME280();
@@ -337,8 +345,11 @@ void loop() {
 #ifdef USE_DHT        
         radioData.type = RemoteDeviceTypeDHT;
 
+#ifdef USE_DHT_POWER_SAVE
         // Turn the DHT22 Sensor ON
         digitalWrite(DHT22_PWR_PIN, HIGH);
+#endif        
+
 #else
         radioData.type = RemoteDeviceTypeWeather;
 #endif
@@ -360,7 +371,10 @@ void loop() {
             radioData.pressure = 0;
 
             if (status != DHTLIB_OK) {
-                delay(1000);
+#ifdef DEBUG                            
+	            softSerial.println(F("Hanging DHT..."));
+#endif                 
+                delay(100);
             }
 
         } while(status != DHTLIB_OK);
@@ -369,8 +383,10 @@ void loop() {
 	    softSerial.println(F("OK"));
 #endif 
 
+#ifdef USE_DHT_POWER_SAVE
         //Turn the DHT22 Sensor OFF
         digitalWrite(DHT22_PWR_PIN, LOW);
+#endif
 
 #else
 
@@ -406,15 +422,17 @@ void loop() {
         softSerial.print(F("Size of struct: "));
         softSerial.println( sizeof(struct RadioPacket) );
 #endif
-    
-     
-        if (!_radio.write( &radioData, sizeof(RadioPacket) ) ) { //Send data to 'Receiver' every x seconds        
 
+
+
+        if (!_radio.write( &radioData, sizeof(RadioPacket) ) ) { //Send data to 'Receiver' every x seconds                        
 #ifdef DEBUG
-        softSerial.println(F("Sending failed! :("));        
+            softSerial.println(F("Sending failed! :("));        
 #endif
         } 
         
+        // ToDo: Check if neccessary!
+        delay(200);
 
         if (_radio.available()) {        	
             NewSettingsPacket newSettingsData;
@@ -442,8 +460,9 @@ void loop() {
         _radio.powerDown();                  // Put the radio into a low power state.        
     }
 
+    // delay(5000);
     system_sleep();
-    // sleep(_settings.sleepIntervalSeconds);
+    
 }
 
 
@@ -538,12 +557,12 @@ void system_sleep() {
     cbi(ADCSRA,ADEN);                    // switch Analog to Digitalconverter OFF
 
 
-    mcucr1 = MCUCR | _BV(BODS) | _BV(BODSE);  //turn off the brown-out detector
-    mcucr2 = mcucr1 & ~_BV(BODSE);
-    MCUCR = mcucr1;
-    MCUCR = mcucr2;
+    // mcucr1 = MCUCR | _BV(BODS) | _BV(BODSE);  //turn off the brown-out detector
+    // mcucr2 = mcucr1 & ~_BV(BODSE);
+    // MCUCR = mcucr1;
+    // MCUCR = mcucr2;
 
-    sleep_bod_disable();
+    // sleep_bod_disable();
     set_sleep_mode(SLEEP_MODE_PWR_DOWN); // sleep mode is set here
     sleep_enable();
 
@@ -551,7 +570,7 @@ void system_sleep() {
 
     sleep_disable();                     // System continues execution here when watchdog timed out 
     
-  
+
     sbi(ADCSRA,ADEN);                    // switch Analog to Digitalconverter ON
     
 }

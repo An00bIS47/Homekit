@@ -9,7 +9,9 @@
 #include "HAPHelper.hpp"
 
 
-//Wrap to JSON
+// 
+// bool char describe
+// 
 inline String attribute(unsigned short type, unsigned short acclaim, int p, bool value, String desc) {
     String result;
     if (p & permission_read) {
@@ -32,15 +34,8 @@ inline String attribute(unsigned short type, unsigned short acclaim, int p, bool
     result += ",";
     
     
-
-// #if HAP_LONG_UUID    
-//     char uuidStr[HAP_UUID_LENGTH];
-//     snprintf(uuidStr, HAP_UUID_LENGTH, HAP_UUID, type);
-// #else    
     char uuidStr[8];
     snprintf(uuidStr, 8, "%X", type);    
-// #endif
-
     result += HAPHelper::wrap("type") + ":" + HAPHelper::wrap(uuidStr);
     result += ",";
     
@@ -54,6 +49,10 @@ inline String attribute(unsigned short type, unsigned short acclaim, int p, bool
     return "{"+result+"}";
 }
 
+
+// 
+// bool char describe
+// 
 inline String attribute(String typeString, unsigned short acclaim, int p, bool value, String desc) {
     String result;
     if (p & permission_read) {
@@ -96,7 +95,9 @@ inline String attribute(String typeString, unsigned short acclaim, int p, bool v
 }
 
 
-
+// 
+// int char describe
+// 
 inline String attribute(unsigned short type, unsigned short acclaim, int p, int value, int minVal, int maxVal, int step, unit valueUnit, String desc) {
     String result;
     char tempStr[4];
@@ -130,13 +131,10 @@ inline String attribute(unsigned short type, unsigned short acclaim, int p, int 
     result += "]";
     result += ",";
 
-// #if HAP_LONG_UUID    
-//     char uuidStr[HAP_UUID_LENGTH];
-//     snprintf(uuidStr, HAP_UUID_LENGTH, HAP_UUID, type);
-// #else    
+  
     char uuidStr[8];
     snprintf(uuidStr, 8, "%X", type);    
-// #endif
+
 
     result += HAPHelper::wrap("type") + ":" + HAPHelper::wrap(uuidStr);
     result += ",";
@@ -145,22 +143,7 @@ inline String attribute(unsigned short type, unsigned short acclaim, int p, int 
     result += HAPHelper::wrap("iid")+":"+tempStr;
     result += ",";
     result += HAPHelper::wrap("unit")+":"+HAPHelper::wrap(characteristics::unitJson(valueUnit))+",";
-    // switch (valueUnit) {
-    //     case unit_arcDegree:
-    //         result += HAPHelper::wrap("unit")+":"+HAPHelper::wrap("arcdegrees")+",";
-    //         break;
-    //     case unit_celsius:
-    //         result += HAPHelper::wrap("unit")+":"+HAPHelper::wrap("celsius")+",";
-    //         break;
-    //     case unit_percentage:
-    //         result += HAPHelper::wrap("unit")+":"+HAPHelper::wrap("percentage")+",";
-    //         break;
-    //     case unit_lux:
-    //         result += HAPHelper::wrap("unit")+":"+HAPHelper::wrap("lux")+",";
-    //         break;    
-    //     case unit_none:
-    //     	break;    
-    // }
+
     
 
     if (desc != "") {
@@ -173,7 +156,9 @@ inline String attribute(unsigned short type, unsigned short acclaim, int p, int 
     return "{"+result+"}";
 }
 
-
+// 
+// int char describe
+// 
 inline String attribute(String typeString, unsigned short acclaim, int p, int value, int minVal, int maxVal, int step, unit valueUnit, String desc) {
     String result;
     char tempStr[4];
@@ -216,22 +201,7 @@ inline String attribute(String typeString, unsigned short acclaim, int p, int va
     result += ",";
     
     result += HAPHelper::wrap("unit")+":"+HAPHelper::wrap(characteristics::unitJson(valueUnit))+",";
-    // switch (valueUnit) {
-    //     case unit_arcDegree:
-    //         result += HAPHelper::wrap("unit")+":"+HAPHelper::wrap("arcdegrees")+",";
-    //         break;
-    //     case unit_celsius:
-    //         result += HAPHelper::wrap("unit")+":"+HAPHelper::wrap("celsius")+",";
-    //         break;
-    //     case unit_percentage:
-    //         result += HAPHelper::wrap("unit")+":"+HAPHelper::wrap("percentage")+",";
-    //         break;
-    //     case unit_lux:
-    //         result += HAPHelper::wrap("unit")+":"+HAPHelper::wrap("lux")+",";
-    //         break;    
-    //     case unit_none:
-    //     	break;    
-    // }
+
     
 
     if (desc != "") {
@@ -245,7 +215,9 @@ inline String attribute(String typeString, unsigned short acclaim, int p, int va
 }
 
 
-
+// 
+// uint16 char describe
+// 
 inline String attribute(unsigned short type, unsigned short acclaim, int p, uint16_t value, uint16_t minVal, uint16_t maxVal, uint16_t step, unit valueUnit, String desc) {
     String result;
     char tempStr[16];
@@ -294,22 +266,7 @@ inline String attribute(unsigned short type, unsigned short acclaim, int p, uint
     result += HAPHelper::wrap("iid")+":"+tempStr;
     result += ",";
     result += HAPHelper::wrap("unit")+":"+HAPHelper::wrap(characteristics::unitJson(valueUnit))+",";
-    // switch (valueUnit) {
-    //     case unit_arcDegree:
-    //         result += HAPHelper::wrap("unit")+":"+HAPHelper::wrap("arcdegrees")+",";
-    //         break;
-    //     case unit_celsius:
-    //         result += HAPHelper::wrap("unit")+":"+HAPHelper::wrap("celsius")+",";
-    //         break;
-    //     case unit_percentage:
-    //         result += HAPHelper::wrap("unit")+":"+HAPHelper::wrap("percentage")+",";
-    //         break;
-    //     case unit_lux:
-    //         result += HAPHelper::wrap("unit")+":"+HAPHelper::wrap("lux")+",";
-    //         break;    
-    //     case unit_none:
-    //     	break;    
-    // }
+
     
 
     if (desc != "") {
@@ -323,7 +280,9 @@ inline String attribute(unsigned short type, unsigned short acclaim, int p, uint
 }
 
 
-
+// 
+// uint16 char describe
+// 
 inline String attribute(String typeString, unsigned short acclaim, int p, uint16_t value, uint16_t minVal, uint16_t maxVal, uint16_t step, unit valueUnit, String desc) {
     String result;
     char tempStr[16];
@@ -366,22 +325,6 @@ inline String attribute(String typeString, unsigned short acclaim, int p, uint16
     result += ",";
     
     result += HAPHelper::wrap("unit")+":"+HAPHelper::wrap(characteristics::unitJson(valueUnit))+",";
-    // switch (valueUnit) {
-    //     case unit_arcDegree:
-    //         result += HAPHelper::wrap("unit")+":"+HAPHelper::wrap("arcdegrees")+",";
-    //         break;
-    //     case unit_celsius:
-    //         result += HAPHelper::wrap("unit")+":"+HAPHelper::wrap("celsius")+",";
-    //         break;
-    //     case unit_percentage:
-    //         result += HAPHelper::wrap("unit")+":"+HAPHelper::wrap("percentage")+",";
-    //         break;
-    //     case unit_lux:
-    //         result += HAPHelper::wrap("unit")+":"+HAPHelper::wrap("lux")+",";
-    //         break;    
-    //     case unit_none:
-    //     	break;    
-    // }
     
 
     if (desc != "") {
@@ -394,6 +337,11 @@ inline String attribute(String typeString, unsigned short acclaim, int p, uint16
     return "{"+result+"}";
 }
 
+
+
+// 
+// float char describe
+// 
 inline String attribute(unsigned short type, unsigned short acclaim, int p, float value, float minVal, float maxVal, float step, unit valueUnit, String desc) {
     String result;
     
@@ -444,23 +392,6 @@ inline String attribute(unsigned short type, unsigned short acclaim, int p, floa
     result += ",";
     
     result += HAPHelper::wrap("unit")+":"+HAPHelper::wrap(characteristics::unitJson(valueUnit))+",";
-
-    // switch (valueUnit) {
-    //     case unit_arcDegree:
-    //         result += HAPHelper::wrap("unit")+":"+HAPHelper::wrap("arcdegrees")+",";
-    //         break;
-    //     case unit_celsius:
-    //         result += HAPHelper::wrap("unit")+":"+HAPHelper::wrap("celsius")+",";
-    //         break;
-    //     case unit_percentage:
-    //         result += HAPHelper::wrap("unit")+":"+HAPHelper::wrap("percentage")+",";
-    //         break;
-    //     case unit_lux:
-    //         result += HAPHelper::wrap("unit")+":"+HAPHelper::wrap("lux")+",";
-    //         break;   
-    //     case unit_none:
-    //     	break;
-    // }
     
 
     if (desc != "") {
@@ -473,6 +404,11 @@ inline String attribute(unsigned short type, unsigned short acclaim, int p, floa
     return "{"+result+"}";
 }
 
+
+
+// 
+// float char describe
+// 
 inline String attribute(String typeString, unsigned short acclaim, int p, float value, float minVal, float maxVal, float step, unit valueUnit, String desc) {
     String result;
     
@@ -516,22 +452,6 @@ inline String attribute(String typeString, unsigned short acclaim, int p, float 
     result += ",";
     
     result += HAPHelper::wrap("unit")+":"+HAPHelper::wrap(characteristics::unitJson(valueUnit))+",";
-    // switch (valueUnit) {
-    //     case unit_arcDegree:
-    //         result += HAPHelper::wrap("unit")+":"+HAPHelper::wrap("arcdegrees")+",";
-    //         break;
-    //     case unit_celsius:
-    //         result += HAPHelper::wrap("unit")+":"+HAPHelper::wrap("celsius")+",";
-    //         break;
-    //     case unit_percentage:
-    //         result += HAPHelper::wrap("unit")+":"+HAPHelper::wrap("percentage")+",";
-    //         break;
-    //     case unit_lux:
-    //         result += HAPHelper::wrap("unit")+":"+HAPHelper::wrap("lux")+",";
-    //         break;   
-    //     case unit_none:
-    //     	break;
-    // }
     
     if (desc != "") {
         result += "\"description\":" + HAPHelper::wrap(desc.c_str());
@@ -543,6 +463,11 @@ inline String attribute(String typeString, unsigned short acclaim, int p, float 
     return "{"+result+"}";
 }
 
+
+
+// 
+// string / data char describe
+// 
 inline String attribute(unsigned short type, unsigned short acclaim, int p, String value, unsigned short len, String desc, bool isData) {
     String result;
     char tempStr[4];
@@ -602,7 +527,9 @@ inline String attribute(unsigned short type, unsigned short acclaim, int p, Stri
     return "{"+result+"}";
 }
 
-
+// 
+// string / data char describe
+// 
 inline String attribute(String typeString, unsigned short acclaim, int p, String value, unsigned short len, String desc, bool isData) {
     String result;
     char tempStr[4];
@@ -655,6 +582,141 @@ inline String attribute(String typeString, unsigned short acclaim, int p, String
 }
 
 
+// 
+// uint8_t char describe
+// 
+inline String attribute(unsigned short type, unsigned short acclaim, int p, uint8_t value, uint8_t minVal, uint8_t maxVal, uint8_t step, unit valueUnit, String desc, uint8_t validValuesSize, uint8_t validValues[]) {
+    String result;
+    char tempStr[16];
+    
+    snprintf(tempStr, 16, "%d", value);
+    
+    if (p & permission_read) {
+        result += HAPHelper::wrap("value")+":"+tempStr;
+        result += ",";
+    }
+    
+    snprintf(tempStr, 16, "%d", minVal);    
+    result += HAPHelper::wrap("minValue")+":"+tempStr+",";
+    
+    snprintf(tempStr, 16, "%d", maxVal);    
+    result += HAPHelper::wrap("maxValue")+":"+tempStr+",";
+    
+    snprintf(tempStr, 16, "%d", step);
+    if (step > 0)
+        result += HAPHelper::wrap("minStep")+":"+tempStr+",";
+    
+    result += HAPHelper::wrap("perms")+":";
+    result += "[";
+    if (p & permission_read) result += HAPHelper::wrap("pr")+",";
+    if (p & permission_write) result += HAPHelper::wrap("pw")+",";
+    if (p & permission_notify) result += HAPHelper::wrap("ev")+",";
+    if (p & permission_hidden) result += HAPHelper::wrap("hd")+",";
+    result = result.substring(0, result.length()-1);
+    result += "]";
+    result += ",";
+
+    char uuidStr[8];
+    snprintf(uuidStr, 8, "%X", type);    
+    result += HAPHelper::wrap("type") + ":" + HAPHelper::wrap(uuidStr);
+    result += ",";
+    
+    snprintf(tempStr, 4, "%hd", acclaim);
+    result += HAPHelper::wrap("iid")+":"+tempStr;
+    result += ",";
+    
+    result += HAPHelper::wrap("unit")+":"+HAPHelper::wrap(characteristics::unitJson(valueUnit))+",";
+    
+    if (desc != "") {
+        result += "\"description\":" + HAPHelper::wrap(desc.c_str());
+        result += ",";        
+    }
+
+    if (validValuesSize > 0) {
+        result += "\"valid-values\": [";
+        for (uint8_t i = 0; i < validValuesSize; i++){
+            result += String(validValues[i]);
+
+            if ( i < validValuesSize - 1) {
+                result += ",";
+            }
+        }
+        result += "],";  
+    }
+
+    result += "\"format\":\"uint8\"";
+    
+    return "{"+result+"}";
+}
+
+
+// 
+// uint8_t char describe
+// 
+inline String attribute(String typeString, unsigned short acclaim, int p, uint8_t value, uint8_t minVal, uint8_t maxVal, uint8_t step, unit valueUnit, String desc, uint8_t validValuesSize, uint8_t validValues[]) {
+    String result;
+    char tempStr[16];
+    
+    snprintf(tempStr, 16, "%d", value);
+    
+    if (p & permission_read) {
+        result += HAPHelper::wrap("value")+":"+tempStr;
+        result += ",";
+    }
+    
+    snprintf(tempStr, 16, "%d", minVal);    
+    result += HAPHelper::wrap("minValue")+":"+tempStr+",";
+    
+    snprintf(tempStr, 16, "%d", maxVal);    
+    result += HAPHelper::wrap("maxValue")+":"+tempStr+",";
+    
+    snprintf(tempStr, 16, "%d", step);
+    if (step > 0)
+        result += HAPHelper::wrap("minStep")+":"+tempStr+",";
+    
+    result += HAPHelper::wrap("perms")+":";
+    result += "[";
+    if (p & permission_read) result += HAPHelper::wrap("pr")+",";
+    if (p & permission_write) result += HAPHelper::wrap("pw")+",";
+    if (p & permission_notify) result += HAPHelper::wrap("ev")+",";
+    if (p & permission_hidden) result += HAPHelper::wrap("hd")+",";
+    result = result.substring(0, result.length()-1);
+    result += "]";
+    result += ",";
+
+
+    result += HAPHelper::wrap("type") + ":" + HAPHelper::wrap(typeString);
+    result += ",";
+    
+    snprintf(tempStr, 4, "%hd", acclaim);
+    result += HAPHelper::wrap("iid")+":"+tempStr;
+    result += ",";
+    
+    result += HAPHelper::wrap("unit")+":"+HAPHelper::wrap(characteristics::unitJson(valueUnit))+",";
+    
+    if (desc != "") {
+        result += "\"description\":" + HAPHelper::wrap(desc.c_str());
+        result += ",";        
+    }
+
+    if (validValuesSize > 0) {
+        result += "\"valid-values\": [";
+        for (uint8_t i = 0; i < validValuesSize; i++){
+            result += String(validValues[i]);
+            
+            if ( i < validValuesSize - 1) {
+                result += ",";
+            }
+        }
+
+        result += "],";  
+    }
+
+    result += "\"format\":\"uint8\"";
+    
+    return "{"+result+"}";
+}
+
 
 String boolCharacteristics::describe() {
 
@@ -703,6 +765,14 @@ String uint16Characteristics::describe() {
         return attribute(typeString, iid, permission, _value, _minVal, _maxVal, _step, _unit, desc);
     } else {
         return attribute(type, iid, permission, _value, _minVal, _maxVal, _step, _unit, desc);        
+    }
+}
+
+String uint8Characteristics::describe() {
+    if (type == CHAR_TYPE_NULL) {  
+        return attribute(typeString, iid, permission, _value, _minVal, _maxVal, _step, _unit, desc, _validValuesSize, _validValues);
+    } else {
+        return attribute(type, iid, permission, _value, _minVal, _maxVal, _step, _unit, desc, _validValuesSize, _validValues);        
     }
 }
 

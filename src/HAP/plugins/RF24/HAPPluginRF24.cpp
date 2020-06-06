@@ -63,6 +63,9 @@ HAPPluginRF24::HAPPluginRF24(){
     
     _radio = nullptr;
 
+    _hasSentSettings = true;
+    _newSettings     = nullptr;
+
 }
 
 HAPPluginRF24::~HAPPluginRF24(){
@@ -128,24 +131,25 @@ void HAPPluginRF24::handleImpl(bool forced){
 
     
     if (_radio->available()){
+        struct RadioPacket payload;
 
         while(_radio->available()){
-            struct RadioPacket payload;
+            
 
             _radio->read( &payload, sizeof(struct RadioPacket) );
 
 
 #if HAP_DEBUG_RF24
-            LogD("Got Payload from id: " + String(payload.radioId, HEX), true);        
-            LogD("   type:    " + String(payload.type), true);
-            LogD("   temp:    " + String(payload.temperature), true);
-            LogD("   hum:     " + String(payload.humidity), true);
-            LogD("   pres:    " + String(payload.pressure), true);
-            LogD("   voltage: " + String(payload.voltage), true);
+            LogD(HAPServer::timeString() + " Got Payload from id: " + String(payload.radioId, HEX), true);        
+            LogD(HAPServer::timeString() + "   type:    " + String(payload.type), true);
+            LogD(HAPServer::timeString() + "   temp:    " + String(payload.temperature), true);
+            LogD(HAPServer::timeString() + "   hum:     " + String(payload.humidity), true);
+            LogD(HAPServer::timeString() + "   pres:    " + String(payload.pressure), true);
+            LogD(HAPServer::timeString() + "   voltage: " + String(payload.voltage), true);
 
 
-            LogD("   Size of struct: " + String(sizeof(struct RadioPacket)), true);        
-            LogD("Number of devices: " + String(_devices.size()), true);
+            LogD(HAPServer::timeString() + "   Size of struct: " + String(sizeof(struct RadioPacket)), true);        
+            LogD(HAPServer::timeString() + " Number of devices: " + String(_devices.size()), true);
 #endif        
 
 
@@ -159,7 +163,7 @@ void HAPPluginRF24::handleImpl(bool forced){
                         String(payload.radioId)                                
                     );            
                 
-                    LogI("RF24: Adding new remote weather device with id " + String(payload.radioId, HEX) + " ...", false);
+                    LogI(HAPServer::timeString() + " RF24: Adding new remote weather device with id " + String(payload.radioId, HEX) + " ...", false);
                     
                     // Serial.printf("event: %p\n", _eventManager);
                     // Serial.printf("fakegato: %p\n", _fakeGatoFactory);
@@ -185,7 +189,7 @@ void HAPPluginRF24::handleImpl(bool forced){
                         String(payload.radioId)                                
                     );            
                 
-                    LogI("RF24: Adding new remote DHT device with id " + String(payload.radioId, HEX) + " ...", false);
+                    LogI(HAPServer::timeString() + " RF24: Adding new remote DHT device with id " + String(payload.radioId, HEX) + " ...", false);
                     
                     // Serial.printf("event: %p\n", _eventManager);
                     // Serial.printf("fakegato: %p\n", _fakeGatoFactory);
@@ -193,10 +197,15 @@ void HAPPluginRF24::handleImpl(bool forced){
                     newDevice->setEventManager(_eventManager);
                     newDevice->setFakeGatoFactory(_fakeGatoFactory);            
 
+
+                    // Set callback for sending updated settings
+                    auto callbackSendSettings = std::bind(&HAPPluginRF24::updateSettings, this, std::placeholders::_1);        
+                    newDevice->setSendSettingsCallback(callbackSendSettings);
+
+
                     _accessorySet->addAccessory(newDevice->initAccessory());
                     
                     _devices.push_back(newDevice);
-                    
                                     							
                     _eventManager->queueEvent( EventManager::kEventUpdatedConfig, HAPEvent(), EventManager::kLowPriority);        
                     
@@ -211,6 +220,22 @@ void HAPPluginRF24::handleImpl(bool forced){
                 _devices[index]->setValuesFromPayload(payload);
             }
         }
+
+        if (_hasSentSettings == false){
+
+            // ToDo: Check on remote side
+            if (payload.radioId == _newSettings->forRadioId){
+                LogD(HAPServer::timeString() + String(" Sending new settings to ") + String(_newSettings->forRadioId, HEX) + String(" ..."), true);
+                if (!_radio->write(_newSettings, sizeof(NewSettingsPacket))){
+                    LogE("ERROR: Failed to send setting!", true);
+                } else {
+                    LogD(" OK", true);
+                    _hasSentSettings = true;
+                    delete _newSettings;
+                }
+            }
+        }
+
     }
 
 }	
@@ -341,7 +366,10 @@ void HAPPluginRF24::setConfigImpl(JsonObject root){
                     );
 
                     newDevice->setEventManager(_eventManager);
-                    newDevice->setFakeGatoFactory(_fakeGatoFactory);            
+                    newDevice->setFakeGatoFactory(_fakeGatoFactory); 
+
+                    auto callbackSendSettings = std::bind(&HAPPluginRF24::updateSettings, this, std::placeholders::_1);        
+                    newDevice->setSendSettingsCallback(callbackSendSettings);           
 
                     _accessorySet->addAccessory(newDevice->initAccessory());
                         
@@ -362,4 +390,17 @@ int HAPPluginRF24::indexOfDevice(uint16_t id){
         counter++; 
     }
     return -1;
+}
+
+
+void HAPPluginRF24::updateSettings(NewSettingsPacket newSettings){
+
+    _newSettings = new NewSettingsPacket();
+    _newSettings->changeType = newSettings.changeType;
+    _newSettings->forRadioId = newSettings.forRadioId;
+    _newSettings->newRadioId = newSettings.newRadioId;
+    _newSettings->newSleepIntervalSeconds = newSettings.newSleepIntervalSeconds;
+    _newSettings->newMeasureMode = newSettings.newMeasureMode;
+
+    _hasSentSettings = false;
 }

@@ -32,6 +32,9 @@ public:
 	void changeTemp(float oldValue, float newValue);
 	void changeHum(float oldValue, float newValue);
 	
+    
+    void changeMeasureMode(uint8_t oldValue, uint8_t newValue);
+    
     void changeLastUpdate(String oldValue, String newValue);
     void changeBatteryLevel( float oldValue, float newValue);
 	void changeBatteryStatus(float oldValue, float newValue);
@@ -42,6 +45,11 @@ public:
 
     void setValuesFromPayload(struct RadioPacket payload) override;
 
+    void setSendSettingsCallback(std::function<void(NewSettingsPacket)> callback) override {
+        _callbackSendSettings = callback;
+    }
+
+    
 private:    
     
     HAPAccessory*           _accessory;
@@ -55,10 +63,15 @@ private:
 
     intCharacteristics* 	_batteryLevel;
 	intCharacteristics* 	_batteryStatus;	
+
+
+    uint8Characteristics*   _measureMode;
     
     HAPFakeGatoWeather      _fakegato;
    
     bool fakeGatoCallback() override;  
+
+    std::function<void(NewSettingsPacket)> _callbackSendSettings = NULL;  
 };
 
 #endif /* HAPPLUGINF24DEVICEWEATHER_HPP_ */

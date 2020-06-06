@@ -66,6 +66,7 @@ for accessory in data["accessories"]:
                     assertion["text"] = "Check maxLen of {}.{}: Length: {}/{}".format(aid, c_iid, len(value), maxLen)
                     assertion["result"] = True
                     assertions.append(assertion)
+
                 elif value is None:
                     if args.print:
                         print('  {aid}.{iid}: {value} [{maxLen}] ({description}) >{ctype}< [{perms}]'.format(aid=aid,
@@ -90,40 +91,57 @@ for accessory in data["accessories"]:
                     assertion["result"] = False
                     assertions.append(assertion)
                     success = False
-                
+            
+
             elif 'minValue' in characteristic and 'maxValue' in characteristic:
 
                 minValue = characteristic.get('minValue')
                 maxValue = characteristic.get('maxValue')
 
-                if minValue <= value and value <= maxValue:
-                    # cprint('  {minValue} < {value} < {maxValue}: '.format(minValue=minValue, value=value, maxValue=maxValue ), "green")
-                    if args.print:
-                        cprint('  {aid}.{iid}: {minValue}:> {value} <:{maxValue} ({description}) >{ctype}< [{perms}]'.format(aid=aid,
-                                                                                      iid=c_iid,
-                                                                                      value=value,
-                                                                                      ctype=c_type,
-                                                                                      perms=perms,
-                                                                                      description=desc,
-                                                                                      minValue=minValue,
-                                                                                      maxValue=maxValue), "green")
-                    
-                    assertion["text"] = "Check value of {}.{}: {} < {} < {}".format(aid, c_iid, minValue, value, maxValue)
-                    assertion["result"] = True
-                    assertions.append(assertion)
+
+                if isinstance(value, int):
+
+                
+
+
+                    if minValue <= value and value <= maxValue:
+                        # cprint('  {minValue} < {value} < {maxValue}: '.format(minValue=minValue, value=value, maxValue=maxValue ), "green")
+                        if args.print:
+                            cprint('  {aid}.{iid}: {minValue}:> {value} <:{maxValue} ({description}) >{ctype}< [{perms}]'.format(aid=aid,
+                                                                                          iid=c_iid,
+                                                                                          value=value,
+                                                                                          ctype=c_type,
+                                                                                          perms=perms,
+                                                                                          description=desc,
+                                                                                          minValue=minValue,
+                                                                                          maxValue=maxValue), "green")
+                        
+                        assertion["text"] = "Check value of {}.{}: {} < {} < {}".format(aid, c_iid, minValue, value, maxValue)
+                        assertion["result"] = True
+                        assertions.append(assertion)
+                    else:
+                        cprint('  {aid}.{iid}: {minValue}>: {value} <:{maxValue} ({description}) >{ctype}< [{perms}]'.format(aid=aid,
+                                                                                          iid=c_iid,
+                                                                                          value=value,
+                                                                                          ctype=c_type,
+                                                                                          perms=perms,
+                                                                                          description=desc,
+                                                                                          minValue=minValue,
+                                                                                          maxValue=maxValue), "red")
+                        assertion["text"] = "Check value of {}.{}: {} < {} < {}".format(aid, c_iid, minValue, value, maxValue)
+                        assertion["result"] = False
+                        assertions.append(assertion)
+                        success = False
+
                 else:
-                    cprint('  {aid}.{iid}: {minValue}>: {value} <:{maxValue} ({description}) >{ctype}< [{perms}]'.format(aid=aid,
+                    if args.print:
+                        print('  {aid}.{iid}: {value} ({description}) >{ctype}< [{perms}]'.format(aid=aid,
                                                                                       iid=c_iid,
                                                                                       value=value,
                                                                                       ctype=c_type,
                                                                                       perms=perms,
-                                                                                      description=desc,
-                                                                                      minValue=minValue,
-                                                                                      maxValue=maxValue), "red")
-                    assertion["text"] = "Check value of {}.{}: {} < {} < {}".format(aid, c_iid, minValue, value, maxValue)
-                    assertion["result"] = False
-                    assertions.append(assertion)
-                    success = False
+                                                                                      description=desc))
+
             else:
                 if args.print:
                     print('  {aid}.{iid}: {value} ({description}) >{ctype}< [{perms}]'.format(aid=aid,

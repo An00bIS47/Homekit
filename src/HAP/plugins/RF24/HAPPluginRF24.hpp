@@ -45,6 +45,7 @@ public:
 	JsonObject getConfigImpl();
 	void setConfigImpl(JsonObject root);
 
+	void updateSettings(NewSettingsPacket newSettings);
 private:	
 
 	int indexOfDevice(uint16_t id);
@@ -57,6 +58,9 @@ private:
 
 	std::vector<HAPPluginRF24Device*>	_devices;
     RF24* _radio;
+
+	NewSettingsPacket*      _newSettings;
+    bool                    _hasSentSettings;
 
 	// HAPPluginRF24Device* _newDevice;
 

@@ -591,4 +591,113 @@ public:
 };
 
 
+
+class uint8Characteristics: public characteristics {
+public:
+    uint8_t _value;
+    const uint16_t _minVal, _maxVal, _step;
+    const unit _unit;
+    uint8_t* _validValues;
+    uint8_t _validValuesSize;
+    
+    // void (*valueChangeFunctionCall)(int oldValue, int newValue) = NULL;
+    std::function<void(uint16_t, uint16_t)> valueChangeFunctionCall = NULL;
+
+    uint8Characteristics(int _type, int _permission, uint16_t minVal, uint16_t maxVal, uint16_t step, unit charUnit, uint8_t validValuesSize, uint8_t validValues[]): characteristics(_type, _permission), _minVal(minVal), _maxVal(maxVal), _step(step), _unit(charUnit) {
+        _value = minVal;
+
+        if (validValuesSize > 0){
+            _validValues = (uint8_t*) malloc (validValuesSize * sizeof(uint8_t));
+            memcpy(_validValues, validValues, validValuesSize);
+            _validValuesSize = validValuesSize;
+        } else {
+            _validValues = NULL;
+            _validValuesSize = 0;
+        }           
+    }
+
+    uint8Characteristics(String _type, int _permission, uint16_t minVal, uint16_t maxVal, uint16_t step, unit charUnit, uint8_t validValuesSize, uint8_t validValues[]): characteristics(_type, _permission), _minVal(minVal), _maxVal(maxVal), _step(step), _unit(charUnit) {
+        _value = minVal;
+
+        if (validValuesSize > 0){
+            _validValues = (uint8_t*) malloc (validValuesSize * sizeof(uint8_t));
+            memcpy(_validValues, validValues, validValuesSize);
+            _validValuesSize = validValuesSize;
+        } else {
+            _validValues = NULL;
+            _validValuesSize = 0;
+        } 
+    }
+
+
+    virtual String value() {
+        char temp[16];
+        snprintf(temp, 16, "%d", _value);
+        return String(temp);
+    }
+
+    virtual void setValue(String str) {
+        uint8_t temp = atoi(str.c_str());
+        
+        if (valueChangeFunctionCall)
+            valueChangeFunctionCall(_value, temp);
+        // if (genericValueChangeFunctionCall)
+        //     genericValueChangeFunctionCall(iid, (void*)&_value, (void*)&temp);
+            // //dereferencing void pointer with int typecasting
+            // printf("fData = %f\n\n",*((int *)pvData));
+        _value = temp;
+        
+    }
+
+    virtual void toJson(JsonObject root, bool type_ = false, bool perms = false, bool event = false, bool meta = false){
+        
+        root["value"] = _value;
+        root["iid"] = iid;
+
+        if (perms){
+            JsonArray perms = root.createNestedArray("perms");
+            if (writable())
+                perms.add("pw");
+            if (readable())
+                perms.add("pr");
+            if (notifiable())
+                perms.add("ev");   
+            if (hidden())
+                perms.add("hd");      
+        }
+        if (event)
+            root["ev"] = notifiable();
+
+        if (type_){
+            if (type == CHAR_TYPE_NULL) {                
+                root["type"] = typeString;
+            } else {
+                root["type"] = type;
+            }            
+        }
+        
+        if (meta){
+            root["minValue"] = _minVal;
+            root["maxValue"] = _maxVal;
+            root["step"] = _step;
+            root["unit"] = unitJson(_unit);  
+            root["format"] = "uint8"; 
+
+            if (_validValues != NULL){
+                JsonArray validValuesJson = root.createNestedArray("valid-values");
+                for (int i = 0; i < _validValuesSize; i++){
+                    validValuesJson.add(_validValues[i]);
+                }
+            }
+        }
+
+        if (desc != ""){
+            root["description"] = desc;
+        }
+    }
+
+
+    virtual String describe();
+};
+
 #endif /* HAPCHARACTERISTIC_HPP_ */

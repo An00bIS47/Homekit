@@ -58,7 +58,7 @@
 #endif
 
 #ifndef HAP_DEBUG_HOMEKIT
-#define HAP_DEBUG_HOMEKIT			0
+#define HAP_DEBUG_HOMEKIT			1
 #endif
 
 #ifndef HAP_DEBUG_FAKEGATO

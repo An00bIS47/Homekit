@@ -3363,6 +3363,12 @@ void HAPServer::handleAccessories(HAPClient* hapClient) {
 	// // hapClient->write( (uint8_t*)_accessorySet->describe().c_str(), _accessorySet->describe().length());
 	
 	// serializeJson(doc, *hapClient);	
+
+#if HAP_DEBUG_HOMEKIT	
+	LogD("", true);
+	LogD(_accessorySet->describe(), true);
+#endif
+
 	sendEncrypt(hapClient, HTTP_200, _accessorySet->describe(), true);	
 
 	LogV("OK", true);

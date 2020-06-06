@@ -85,13 +85,18 @@ public:
     String              name;
     uint8_t             type;
 
+    virtual void setSendSettingsCallback(std::function<void(NewSettingsPacket)> callback){
+        _callbackSendSettings = callback;
+    }
+
 private:    
     
+    std::function<void(NewSettingsPacket)> _callbackSendSettings = NULL;  
+
+
     HAPAccessory*           _accessory;
     EventManager*			_eventManager;
     HAPFakeGatoFactory*     _fakegatoFactory;
-
-    
    
     virtual bool fakeGatoCallback() = 0;  
 };

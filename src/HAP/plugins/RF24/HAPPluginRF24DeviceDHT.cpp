@@ -24,6 +24,8 @@ HAPPluginRF24DeviceDHT::HAPPluginRF24DeviceDHT(){
 	_batteryLevel       = nullptr;
     _batteryStatus      = nullptr;
 
+    _measureMode        = nullptr;
+
 	_lastUpdate			= nullptr;
 }
 
@@ -39,6 +41,8 @@ HAPPluginRF24DeviceDHT::HAPPluginRF24DeviceDHT(uint16_t id_, String name_){
 
 	_batteryLevel       = nullptr;
     _batteryStatus      = nullptr;
+
+    _measureMode        = nullptr;
 
 	_lastUpdate			= nullptr;
 }
@@ -135,6 +139,18 @@ HAPAccessory* HAPPluginRF24DeviceDHT::initAccessory(){
     _accessory->addCharacteristics(temperatureService, _lastUpdate);
 
 
+    // 
+    // Measure Mode
+    // 
+    uint8_t validValues[2] = {0,1};
+    _measureMode = new uint8Characteristics("000004EA-6B66-4FFD-88CC-16A60B5C4E03", permission_read|permission_write, 0, 1, 1, unit_none, 2, validValues);
+    _measureMode->setDescription("Measure Mode");
+    _measureMode->setValue("0");    // 0 indoor, 1 outtdoor
+
+    auto callbackChangeMeasureMode = std::bind(&HAPPluginRF24DeviceDHT::changeMeasureMode, this, std::placeholders::_1, std::placeholders::_2);
+    _measureMode->valueChangeFunctionCall = callbackChangeMeasureMode;
+    _accessory->addCharacteristics(temperatureService, _measureMode);
+
 
 	//
 	// FakeGato
@@ -183,6 +199,23 @@ void HAPPluginRF24DeviceDHT::changeLastUpdate(String oldValue, String newValue){
     Serial.printf("[RF24:%d] New LastUpdate: %s\n", id, newValue.c_str());
 }
 
+
+
+void HAPPluginRF24DeviceDHT::changeMeasureMode(uint8_t oldValue, uint8_t newValue){
+    Serial.printf("[RF24:%d] New Measure Mode: %d\n", id, newValue);
+
+    NewSettingsPacket newSettings;
+    
+    newSettings.forRadioId = id;
+    newSettings.changeType = ChangeMeasureType;
+    newSettings.newRadioId = 0;
+    newSettings.newSleepIntervalSeconds = 0;
+    newSettings.newMeasureMode = newValue;    
+
+    _callbackSendSettings(newSettings);
+}
+
+
 // void HAPPluginRF24DeviceWeather::identify(bool oldValue, bool newValue) {
 //     printf("Start Identify rf24: %d\n", id);
 // }
@@ -196,7 +229,7 @@ bool HAPPluginRF24DeviceDHT::fakeGatoCallback(){
 
 void HAPPluginRF24DeviceDHT::setValuesFromPayload(struct RadioPacket payload){
 
-	LogD("Setting values for remote DHT device ...", false);
+	LogD(HAPServer::timeString() + " Setting values for remote DHT device ...", false);
 	_humidityValue->setValue(String(payload.humidity / 100.0));
 	_temperatureValue->setValue(String(payload.temperature / 100.0));	
 
