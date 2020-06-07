@@ -16,6 +16,7 @@ HAPPluginRF24DeviceDHT::HAPPluginRF24DeviceDHT(){
     name    = "";    
     id 		= 0;
     type    = RemoteDeviceTypeDHT;
+    measureMode 		= (enum MeasureMode) 0;
 
     _accessory          = nullptr;
     _eventManager       = nullptr;  
@@ -29,11 +30,12 @@ HAPPluginRF24DeviceDHT::HAPPluginRF24DeviceDHT(){
 	_lastUpdate			= nullptr;
 }
 
-HAPPluginRF24DeviceDHT::HAPPluginRF24DeviceDHT(uint16_t id_, String name_){
+HAPPluginRF24DeviceDHT::HAPPluginRF24DeviceDHT(uint16_t id_, String name_, uint8_t measureMode_){
     
     name    			= name_;    
     id 					= id_;
     type    			= RemoteDeviceTypeDHT;
+    measureMode 		= (enum MeasureMode) measureMode_;
 
     _accessory          = nullptr;
     _eventManager       = nullptr;      
@@ -145,7 +147,7 @@ HAPAccessory* HAPPluginRF24DeviceDHT::initAccessory(){
     uint8_t validValues[2] = {0,1};
     _measureMode = new uint8Characteristics("000004EA-6B66-4FFD-88CC-16A60B5C4E03", permission_read|permission_write, 0, 1, 1, unit_none, 2, validValues);
     _measureMode->setDescription("Measure Mode");
-    _measureMode->setValue("0");    // 0 indoor, 1 outtdoor
+    _measureMode->setValue(String((uint8_t) measureMode));    // 0 indoor, 1 outdoor
 
     auto callbackChangeMeasureMode = std::bind(&HAPPluginRF24DeviceDHT::changeMeasureMode, this, std::placeholders::_1, std::placeholders::_2);
     _measureMode->valueChangeFunctionCall = callbackChangeMeasureMode;
@@ -204,19 +206,32 @@ void HAPPluginRF24DeviceDHT::changeLastUpdate(String oldValue, String newValue){
 void HAPPluginRF24DeviceDHT::changeMeasureMode(uint8_t oldValue, uint8_t newValue){
     Serial.printf("[RF24:%d] New Measure Mode: %d\n", id, newValue);
 
-    NewSettingsPacket newSettings;
-    
-    newSettings.forRadioId = id;
-    newSettings.changeType = ChangeMeasureType;
-    newSettings.newRadioId = 0;
-    newSettings.newSleepIntervalSeconds = 0;
-    newSettings.newMeasureMode = newValue;    
+    if (oldValue != newValue){
+        NewSettingsPacket newSettings;
+        
+        newSettings.forRadioId = id;
+        newSettings.changeType = ChangeMeasureType;
+        newSettings.newRadioId = 0;
+        newSettings.newSleepInterval = 0;
+        newSettings.newMeasureMode = newValue;    
 
-    _callbackSendSettings(newSettings);
+#if HAP_DEBUG_RF24
+        LogD(HAPServer::timeString() + " New Settings for " + String(newSettings.forRadioId, HEX), true);
+        LogD(HAPServer::timeString() + "   changeType: " + String(newSettings.changeType, HEX), true);
+        LogD(HAPServer::timeString() + "   newRadioId: " + String(newSettings.newRadioId, HEX), true);
+        LogD(HAPServer::timeString() + "   newMeasureMode: " + String(newSettings.newMeasureMode, HEX), true);
+        LogD(HAPServer::timeString() + "   sleepInterval: " + String(newSettings.newSleepInterval), true);        
+
+        LogD(HAPServer::timeString() + "   Size of struct: " + String(sizeof(NewSettingsPacket)), true);        
+#endif
+
+        _callbackSendSettings(newSettings);
+    }
+
 }
 
 
-// void HAPPluginRF24DeviceWeather::identify(bool oldValue, bool newValue) {
+// void HAPPluginRF24DeviceDHT::identify(bool oldValue, bool newValue) {
 //     printf("Start Identify rf24: %d\n", id);
 // }
 
@@ -267,4 +282,12 @@ void HAPPluginRF24DeviceDHT::setValuesFromPayload(struct RadioPacket payload){
 
 
 	LogD(" OK", true);
+}
+
+void HAPPluginRF24DeviceDHT::setSettingsFromPayload(struct RemoteDeviceSettings settings){
+    measureMode = (enum MeasureMode) settings.measureMode;
+    sleepInterval = settings.sleepInterval;
+
+    _measureMode->setValue(String((uint8_t) measureMode ));
+
 }

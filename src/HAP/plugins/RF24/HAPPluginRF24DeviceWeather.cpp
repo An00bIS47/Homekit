@@ -27,10 +27,11 @@ HAPPluginRF24DeviceWeather::HAPPluginRF24DeviceWeather(){
 	_lastUpdate			= nullptr;
 }
 
-HAPPluginRF24DeviceWeather::HAPPluginRF24DeviceWeather(uint16_t id_, String name_){    
+HAPPluginRF24DeviceWeather::HAPPluginRF24DeviceWeather(uint16_t id_, String name_, uint8_t measureMode_){    
     name    			= name_;    
     id 					= id_;
     type    			= RemoteDeviceTypeWeather;
+	measureMode 		= (enum MeasureMode) measureMode_;
 
     _accessory          = nullptr;
     _eventManager       = nullptr;      
@@ -263,4 +264,9 @@ void HAPPluginRF24DeviceWeather::setValuesFromPayload(struct RadioPacket payload
     }
 
 	LogD(" OK", true);
+}
+
+void HAPPluginRF24DeviceWeather::setSettingsFromPayload(struct RemoteDeviceSettings settings){
+    measureMode 	= (enum MeasureMode) settings.measureMode;
+    sleepInterval 	= settings.sleepInterval;
 }

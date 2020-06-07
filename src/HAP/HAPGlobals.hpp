@@ -58,7 +58,7 @@
 #endif
 
 #ifndef HAP_DEBUG_HOMEKIT
-#define HAP_DEBUG_HOMEKIT			1
+#define HAP_DEBUG_HOMEKIT			0
 #endif
 
 #ifndef HAP_DEBUG_FAKEGATO
@@ -86,7 +86,7 @@
 #endif
 
 #ifndef HAP_DEBUG_KEYSTORE
-#define HAP_DEBUG_KEYSTORE			1
+#define HAP_DEBUG_KEYSTORE			0
 #endif
 
 #ifndef HAP_DEBUG_RF24

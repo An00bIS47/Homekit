@@ -18,9 +18,13 @@ HAPPluginRF24Device::HAPPluginRF24Device(){
     _accessory          = nullptr;
     _eventManager       = nullptr;  
     _fakegatoFactory    = nullptr;
+
+    sleepInterval       = 0;
+    measureMode         = (enum MeasureMode)0;
+
 }
 
-HAPPluginRF24Device::HAPPluginRF24Device(uint16_t id_, String name_)
+HAPPluginRF24Device::HAPPluginRF24Device(uint16_t id_, String name_, uint8_t measureMode_)
 : id(id_)
 , name(name_)
 {
@@ -28,6 +32,9 @@ HAPPluginRF24Device::HAPPluginRF24Device(uint16_t id_, String name_)
     _accessory          = nullptr;
     _eventManager       = nullptr;      
     _fakegatoFactory    = nullptr;
+
+    sleepInterval       = 0;
+    measureMode         = (enum MeasureMode)measureMode_;
 }
 
 HAPPluginRF24Device::~HAPPluginRF24Device(){
@@ -50,3 +57,4 @@ void HAPPluginRF24Device::setFakeGatoFactory(HAPFakeGatoFactory* fakegatoFactory
 void HAPPluginRF24Device::identify(bool oldValue, bool newValue) {
     printf("Start Identify rf24: %d\n", id);
 }
+

@@ -51,16 +51,13 @@ private:
 	int indexOfDevice(uint16_t id);
     void configAccessory(uint8_t devPtr);
 
-	HAPConfigValidationResult validateName(const char* name);
-	HAPConfigValidationResult validateAddress(const char* address);
-	HAPConfigValidationResult validateType(const char* type);
-
+	bool readSettingsFromRadio();
 
 	std::vector<HAPPluginRF24Device*>	_devices;
     RF24* _radio;
 
-	NewSettingsPacket*      _newSettings;
-    bool                    _hasSentSettings;
+	bool _awaitSettingsConfirmation;
+	
 
 	// HAPPluginRF24Device* _newDevice;
 

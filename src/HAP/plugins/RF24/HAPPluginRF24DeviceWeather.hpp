@@ -24,7 +24,7 @@ class HAPPluginRF24DeviceWeather : public HAPPluginRF24Device{
 public:
 
     HAPPluginRF24DeviceWeather();
-    HAPPluginRF24DeviceWeather(uint16_t id_, String name_);
+    HAPPluginRF24DeviceWeather(uint16_t id_, String name_, uint8_t measureMode_);
     // ~HAPPluginRF24DeviceWeather();                            
 
     HAPAccessory* initAccessory() override;    
@@ -42,6 +42,12 @@ public:
     void setFakeGatoFactory(HAPFakeGatoFactory* fakegatoFactory);
 
     void setValuesFromPayload(struct RadioPacket payload) override;
+    void setSettingsFromPayload(struct RemoteDeviceSettings settings) override;
+
+    void setSendSettingsCallback(std::function<void(NewSettingsPacket)> callback) override {
+        _callbackSendSettings = callback;
+    }
+
 
 private:    
     
@@ -58,9 +64,13 @@ private:
     intCharacteristics* 	_batteryLevel;
 	intCharacteristics* 	_batteryStatus;	
     
+    uint8Characteristics*   _measureMode;
+
     HAPFakeGatoWeather      _fakegato;
    
     bool fakeGatoCallback() override;  
+
+    std::function<void(NewSettingsPacket)> _callbackSendSettings = NULL;  
 };
 
 #endif /* HAPPLUGINF24DEVICEWEATHER_HPP_ */

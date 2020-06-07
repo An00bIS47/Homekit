@@ -70,8 +70,10 @@ bool HAPKeystore::setCurrentPartition(const char* partitionName){
         LogE("ERROR: Partition label is too long!", true);
         return false;
     } else {
+#if HAP_DEBUG_KEYSTORE        
         LogD("Set current keystore partition to " + String(partitionName), true);
         sprintf(_currentPartition, "%s", partitionName);
+#endif        
         return true;
     }    
 }
@@ -130,31 +132,6 @@ void HAPKeystore::end(){
     clear();
 }
 
-// bool HAPKeystore::readFromNVS(const char* entryName, uint8_t* buffer, uint16_t* len) {
-
-//     LogD(HAPServer::timeString() + " " + "HAPKeystore" + "->" + String(__FUNCTION__) + " [   ] " + "Reading nvs entry " + String(entryName), true);
-
-//     *len = _prefs.getBytesLength(entryName);
-
-//     if (*len == 0){
-//         LogD("Length was 0", true);
-//         return false;
-//     }
-
-//     buffer = (uint8_t*) malloc(sizeof(uint8_t) * (*len));
-//     size_t read = _prefs.getBytes(entryName, buffer, *len);        
-
-// #if HAP_DEBUG_KEYSTORE
-//     HAPHelper::array_print(entryName, buffer, *len);    
-// #endif
-
-//     if ( read != *len){
-//         LogE("ERROR: Failed to read " + String(entryName) + "from keystore", true );
-//         return false;
-//     }
-//     return true;
-// }
-
 
 void HAPKeystore::clear(){
 
@@ -177,112 +154,6 @@ void HAPKeystore::clear(){
     init();    
 }
 
-
-
-// bool HAPKeystore::load(const char* partitionName, const char* name){
-
-//     if (open(partitionName, name, true) == false) return false;
-
-//     // _rootCa
-//     {
-//         const char* entryName = "0x00";
-//         _rootCaLength = _prefs.getBytesLength(entryName);
-        
-
-//         if (_rootCaLength == 0){
-//             LogD("Length was 0", true);
-//             return false;
-//         }
-
-//         _rootCa = (uint8_t*) malloc(sizeof(uint8_t) * _rootCaLength);
-//         size_t read = _prefs.getBytes(entryName, _rootCa, _rootCaLength);        
-
-// #if HAP_DEBUG_KEYSTORE
-//         HAPHelper::array_print(entryName, _rootCa, _rootCaLength);    
-// #endif
-
-//         if ( read != _rootCaLength){
-//             LogE("ERROR: Failed to read " + String(entryName) + "from keystore", true );
-//             return false;
-//         }
-//     }
-
-//     // _rootCAPublicKeySignature
-//     if (readFromNVS("0x01", _rootCaPublicKeySignature, &_rootCaPublicKeySignatureLength) == false) {  
-//         LogD("Keystore has no entry for device client cert", true);      
-//     }
-
-//     // _deviceClientCert
-//     if (readFromNVS("0x10", _deviceClientCert, &_deviceClientCertLength) == false) {  
-//         LogD("Keystore has no entry for device client cert", true);      
-//     }
-
-//     // _devicePrivateKey
-//     // if (readFromNVS("0x11", _devicePrivateKey, &_devicePrivateKeyLength) == false) {  
-//     //     LogD("Keystore has no entry for device private key", true);      
-//     // }
-//     {
-//         const char* entryName = "0x11";
-//         _devicePrivateKeyLength = _prefs.getBytesLength(entryName);
-        
-
-//         if (_devicePrivateKeyLength == 0){
-//             LogD("Length was 0", true);
-//             return false;
-//         }
-
-//         _devicePrivateKey = (uint8_t*) malloc(sizeof(uint8_t) * _devicePrivateKeyLength);
-//         size_t read = _prefs.getBytes(entryName, _devicePrivateKey, _devicePrivateKeyLength);        
-
-// #if HAP_DEBUG_KEYSTORE
-//         HAPHelper::array_print(entryName, _devicePrivateKey, _devicePrivateKeyLength);    
-// #endif
-
-//         if ( read != _devicePrivateKeyLength){
-//             LogE("ERROR: Failed to read " + String(entryName) + "from keystore", true );
-//             return false;
-//         }
-//     }
-
-//     // _devicePublicKey
-//     if (readFromNVS("0x12", _devicePublicKey, &_devicePublicKeyLength) == false) {  
-//         LogD("Keystore has no entry for device public key", true);      
-//     }
-
-//     // _deviceWebserverCert
-//     // if (readFromNVS("0x13", _deviceWebserverCert, &_deviceWebserverCertLength) == false) {  
-//     //     LogD("Keystore has no entry for device webserver cert", true);      
-//     // }
-
-
-//     // _updateServerCert
-//     if (readFromNVS("0x20", _updateServerCert, &_updateServerCertLength) == false) {  
-//         LogD("Keystore has no entry for update server cert", true);      
-//     }
-
-//     // _pluginServerCert_0
-//     if (readFromNVS("0x30", _pluginServerCert_0, &_pluginServerCert_0Length) == false) {  
-//         LogD("Keystore has no entry for _pluginServerCert_0", true);      
-//     }
-
-//     // _pluginServerCert_1
-//     if (readFromNVS("0x31", _pluginServerCert_1, &_pluginServerCert_1Length) == false) {  
-//         LogD("Keystore has no entry for _pluginServerCert_1", true);      
-//     }
-
-//     // _pluginServerCert_2
-//     if (readFromNVS("0x32", _pluginServerCert_2, &_pluginServerCert_2Length) == false) {  
-//         LogD("Keystore has no entry for _pluginServerCert_2", true);      
-//     }
-
-//     // _pluginServerCert_3
-//     if (readFromNVS("0x33", _pluginServerCert_3, &_pluginServerCert_3Length) == false) {  
-//         LogD("Keystore has no entry for _pluginServerCert_3", true);      
-//     }
-
-//     _initialized = true;
-//     return true;
-// }
 
 uint8_t HAPKeystore::getContainerId(){    
     return _containerId;

@@ -48,8 +48,8 @@
 // #define BODSE 2                 // BOD Sleep enable bit in MCUCR
 
 // #define DELAY_INTERVAL 32000     // in ms (advice a power of 8)
-#define DELAY_INTERVAL 48000        // in ms (advice a power of 8)
-// #define DELAY_INTERVAL 16000        // in ms (advice a power of 8)
+// #define DELAY_INTERVAL 48000        // in ms (advice a power of 8)
+#define DELAY_INTERVAL 16000        // in ms (advice a power of 8)
 
 #define CE_PIN  PB2
 #define CSN_PIN PB2             // Since we are using 3 pin configuration we will use same pin for both CE and CSN
@@ -106,14 +106,14 @@ uint8_t address[RF24_ADDRESS_SIZE] = RF24_ADDRESS;
 
 
 // EEPROM Settings version
-const uint8_t EEPROM_SETTINGS_VERSION = 1;
+const uint8_t EEPROM_SETTINGS_VERSION = 0;
 
 
 
 struct EepromSettings
 {
-    uint8_t     radioId;
-    uint32_t    sleepIntervalSeconds;
+    uint16_t    radioId;
+    uint32_t    sleepInterval;
     uint8_t     measureMode;
     uint8_t     version;
 };
@@ -121,10 +121,10 @@ struct EepromSettings
 
 struct RadioPacket
 {
-    uint8_t     radioId;
+    uint16_t    radioId;
     uint8_t     type;
     
-    uint32_t    temperature;    // temperature
+    int32_t     temperature;    // temperature
     uint32_t    humidity;       // humidity
     uint16_t    pressure;       // pressure
     
@@ -141,25 +141,26 @@ enum RemoteDeviceType {
 
 enum MeasureMode
 {
-	MeasureModeWeatherStation   = 0x01,
-	MeasureModeIndoor           = 0x11,
+	MeasureModeWeatherStation   = 0x00, // = measureWeather 0x01,
+	MeasureModeIndoor           = 0x01, // = measureIndoor  0x11,
 };
 
 
 enum ChangeType
 {
-    ChangeRadioId               = 0x00,
-    ChangeSleepInterval         = 0x01,
-    ChangeMeasureType           = 0x02,
+    ChangeTypeNone              = 0x00,
+    ChangeRadioId               = 0x01,
+    ChangeSleepInterval         = 0x02,
+    ChangeMeasureType           = 0x03,
 };
 
 
 struct NewSettingsPacket
 {
-    enum ChangeType changeType;
-    uint8_t         forRadioId;
-    uint8_t         newRadioId;
-    uint32_t        newSleepIntervalSeconds;
+    uint8_t         changeType; // enum ChangeType
+    uint16_t        forRadioId;
+    uint16_t        newRadioId;
+    uint32_t        newSleepInterval;
     uint8_t         newMeasureMode;
 };
 
@@ -246,7 +247,7 @@ void setup() {
 #endif        
 
         _settings.radioId = RF24_ID;        
-        _settings.sleepIntervalSeconds = DELAY_INTERVAL;        
+        _settings.sleepInterval = DELAY_INTERVAL;        
         _settings.measureMode = MeasureModeWeatherStation;        
         _settings.version = EEPROM_SETTINGS_VERSION;
         saveSettings();
@@ -285,8 +286,10 @@ void setupRadio()
 #endif        
         _radio.setPALevel(RF24_PA_LEVEL);   // You can set it as minimum or maximum depending on the distance between the transmitter and receiver.
         _radio.setDataRate(RF24_DATA_RATE);
-        _radio.setAutoAck(1);               // Ensure autoACK is enabled
-        _radio.setRetries(15,15);           // Max delay between retries & number of retries
+        // _radio.setAutoAck(1);            // Ensure autoACK is enabled
+        _radio.enableAckPayload();
+        _radio.setRetries(5,5);             // delay, count
+                                            // 5 gives a 1500 µsec delay which is needed for a 32 byte ackPayload
         _radio.openWritingPipe(address);    // Write to device address 'HOMEKIT_RF24'
 #ifdef DEBUG                                
     } else {
@@ -305,7 +308,7 @@ void setupBME280(){
 	if (_settings.measureMode == MeasureModeWeatherStation) {
 
 		// set mode forced
-    	_sensor.setMode(MeasureModeWeatherStation);
+    	_sensor.setMode(0x01);
 
 		// Oversampling settings: pressure *1, temperature *1, humidity *1    
 	    _sensor.setHumidityOverSample(1);
@@ -317,7 +320,7 @@ void setupBME280(){
     } else if (_settings.measureMode == MeasureModeIndoor) {
 
 		// set mode to normal
-    	_sensor.setMode(MeasureModeIndoor);
+    	_sensor.setMode(0x11);
 
 		//	normal mode, 16x pressure / 2x temperature / 1x humidity oversampling,");
 		// Serial.println("0.5ms standby period, filter 16x");
@@ -429,32 +432,70 @@ void loop() {
 #ifdef DEBUG
             softSerial.println(F("Sending failed! :("));        
 #endif
-        } 
-        
-        // ToDo: Check if neccessary!
-        delay(200);
+        } else {
+            if ( _radio.isAckPayloadAvailable() ) {
+                NewSettingsPacket newSettingsData;
+                _radio.read(&newSettingsData, sizeof(NewSettingsPacket));
 
-        if (_radio.available()) {        	
-            NewSettingsPacket newSettingsData;
-            _radio.read(&newSettingsData, sizeof(NewSettingsPacket));
+#ifdef DEBUG
+                softSerial.print("Received new settings for: ");
+                softSerial.println(newSettingsData.forRadioId, HEX);
+                softSerial.print("   changeType: ");
+                softSerial.println(newSettingsData.changeType, HEX);
 
-            if (newSettingsData.forRadioId == _settings.radioId) {
-#ifdef DEBUG        
-        	    softSerial.println(F("Received new settings! Changing settings!"));
-#endif         	
-                processSettingsChange(newSettingsData);
-            } else {
-#ifdef DEBUG        
-        	    softSerial.print(F("Ignoring settings change! Request for radioId: "));
-        	    softSerial.println(newSettingsData.forRadioId);
-#endif    	            
+                softSerial.print("   newRadioId: ");
+                softSerial.println(newSettingsData.newRadioId, HEX);
+
+                softSerial.print("   newSleepInterval: ");
+                softSerial.println(newSettingsData.newSleepInterval);
+
+                softSerial.print("   newMeasureMode: ");
+                softSerial.println(newSettingsData.newMeasureMode, HEX);
+
+                softSerial.print("   sizeOf NewSettingsPacket: ");
+                softSerial.println(sizeof(NewSettingsPacket));
+                
+#endif
+
+                if (newSettingsData.forRadioId == _settings.radioId) {
+#ifdef DEBUG 
+        	        softSerial.println(F("Received new settings. Changing settings!"));
+#endif                    
+                    processSettingsChange(newSettingsData);        
+
+#ifdef DEBUG 
+        	        softSerial.print(F("Sending updated settings ..."));
+#endif  
+                    // Send new updated settings
+                    if (!_radio.write( &_settings, sizeof(EepromSettings) ) ) { //Send data to 'Receiver' every x seconds                                
+#ifdef DEBUG 
+        	            softSerial.println(F("Failed to send settings :("));
+#endif 
+
+#ifdef DEBUG 
+                    } else {
+        	            softSerial.println(F("Failed to send updated settings :("));
+#endif                         
+                    }
+#ifdef DEBUG    
+                } else {             
+                    softSerial.print(F("Ignoring settings change! Request for radioId: "));
+        	        softSerial.println(newSettingsData.forRadioId);
+#endif   
+                }
+
+#ifdef DEBUG                   
+            } else {              
+                softSerial.println(F("Acknowledge but no data "));
+#endif                
             }
-        }   
+        }
+  
 
     
 #ifdef DEBUG        
         softSerial.print(F("Sleep for: "));    
-        softSerial.println(_settings.sleepIntervalSeconds);    
+        softSerial.println(_settings.sleepInterval);    
 #endif  
 
         _radio.powerDown();                  // Put the radio into a low power state.        
@@ -471,7 +512,12 @@ void loop() {
 
 void processSettingsChange(NewSettingsPacket newSettings) {
 
-    if (newSettings.changeType == ChangeRadioId) {
+    if (newSettings.changeType == ChangeTypeNone) {
+#ifdef DEBUG        
+        softSerial.print(F("Changing type None!"));        
+#endif         
+        return;
+    } else if (newSettings.changeType == ChangeRadioId) {
 #ifdef DEBUG        
         softSerial.print(F("Changing radioId to: "));
         softSerial.println(newSettings.newRadioId, HEX);
@@ -481,9 +527,9 @@ void processSettingsChange(NewSettingsPacket newSettings) {
     } else if (newSettings.changeType == ChangeSleepInterval) {
 #ifdef DEBUG        
         softSerial.print(F("Changing sleep interval to: "));
-        softSerial.println(newSettings.newSleepIntervalSeconds);
+        softSerial.println(newSettings.newSleepInterval);
 #endif
-        _settings.sleepIntervalSeconds = newSettings.newSleepIntervalSeconds;
+        _settings.sleepInterval = newSettings.newSleepInterval;
     } else if (newSettings.changeType == ChangeMeasureType) {
         // sendMessage(F("Changing temperature"));
         // sendMessage(F(" correction"));
@@ -494,7 +540,10 @@ void processSettingsChange(NewSettingsPacket newSettings) {
         _settings.measureMode = newSettings.newMeasureMode;
     }
 
+
     saveSettings();
+    
+    
 }
 
 
@@ -542,7 +591,7 @@ void setup_watchdog(int ii) {
 // Watchdog Interrupt Service / is executed when watchdog timed out
 ISR(WDT_vect) {
     counter++;
-    uint8_t times = _settings.sleepIntervalSeconds / 8000;
+    uint8_t times = _settings.sleepInterval / 8000;
 
     if (counter >= times ) {
         f_wdt = 1;  // set global flag

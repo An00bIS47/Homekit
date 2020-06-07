@@ -29,12 +29,20 @@ enum RemoteDeviceType {
     RemoteDeviceTypeDHT	       = 0x02,
 };
 
+struct __attribute__((__packed__)) RemoteDeviceSettings
+{
+    uint16_t    radioId;
+    uint32_t    sleepInterval;
+    uint8_t     measureMode;
+    uint8_t     version;
+};
+
 
 struct __attribute__((__packed__)) RadioPacket {
-    uint8_t     radioId;
+    uint16_t     radioId;
     uint8_t     type;
     
-    uint32_t    temperature;    // temperature
+    int32_t     temperature;    // temperature
     uint32_t    humidity;       // humidity
     uint16_t    pressure;       // pressure
     
@@ -43,25 +51,26 @@ struct __attribute__((__packed__)) RadioPacket {
 
 enum MeasureMode
 {
-	MeasureModeWeatherStation   = 0x01,
-	MeasureModeIndoor           = 0x11,
+	MeasureModeWeatherStation   = 0x00,
+	MeasureModeIndoor           = 0x01,
 };
 
 
 enum ChangeType
 {
-    ChangeRadioId               = 0x00,
-    ChangeSleepInterval         = 0x01,
-    ChangeMeasureType           = 0x02,
+    ChangeTypeNone              = 0x00,
+    ChangeRadioId               = 0x01,
+    ChangeSleepInterval         = 0x02,
+    ChangeMeasureType           = 0x03,
 };
 
 
 struct __attribute__((__packed__)) NewSettingsPacket
 {
     uint8_t         changeType;     // enum ChangeType
-    uint8_t         forRadioId;
-    uint8_t         newRadioId;
-    uint32_t        newSleepIntervalSeconds;
+    uint16_t        forRadioId;
+    uint16_t        newRadioId;
+    uint32_t        newSleepInterval;
     uint8_t         newMeasureMode;
 };
 
@@ -69,7 +78,7 @@ struct __attribute__((__packed__)) NewSettingsPacket
 class HAPPluginRF24Device {
 public:
     HAPPluginRF24Device();
-    HAPPluginRF24Device(uint16_t id_, String name_);
+    HAPPluginRF24Device(uint16_t id_, String name_, uint8_t measureMode_);
     ~HAPPluginRF24Device();
     
                             
@@ -80,19 +89,26 @@ public:
     void setFakeGatoFactory(HAPFakeGatoFactory* fakegatoFactory);
     
     virtual void setValuesFromPayload(struct RadioPacket payload) = 0;
+    virtual void setSettingsFromPayload(struct RemoteDeviceSettings settings) = 0;
 
-    uint16_t            id;
-    String              name;
-    uint8_t             type;
 
     virtual void setSendSettingsCallback(std::function<void(NewSettingsPacket)> callback){
         _callbackSendSettings = callback;
     }
 
-private:    
-    
-    std::function<void(NewSettingsPacket)> _callbackSendSettings = NULL;  
 
+    uint16_t            id;
+    String              name;
+    uint8_t             type;
+
+    enum MeasureMode    measureMode;
+    uint32_t            sleepInterval;    
+
+private:    
+
+
+
+    std::function<void(NewSettingsPacket)> _callbackSendSettings = NULL;  
 
     HAPAccessory*           _accessory;
     EventManager*			_eventManager;

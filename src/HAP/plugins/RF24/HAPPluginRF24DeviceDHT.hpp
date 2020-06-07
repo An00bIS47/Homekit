@@ -24,7 +24,7 @@ class HAPPluginRF24DeviceDHT : public HAPPluginRF24Device{
 public:
 
     HAPPluginRF24DeviceDHT();
-    HAPPluginRF24DeviceDHT(uint16_t id_, String name_);
+    HAPPluginRF24DeviceDHT(uint16_t id_, String name_, uint8_t measureMode_);
     // ~HAPPluginRF24DeviceDHT();                            
 
     HAPAccessory* initAccessory() override;    
@@ -44,11 +44,12 @@ public:
     void setFakeGatoFactory(HAPFakeGatoFactory* fakegatoFactory);
 
     void setValuesFromPayload(struct RadioPacket payload) override;
+    void setSettingsFromPayload(struct RemoteDeviceSettings settings) override;
+
 
     void setSendSettingsCallback(std::function<void(NewSettingsPacket)> callback) override {
         _callbackSendSettings = callback;
     }
-
     
 private:    
     
