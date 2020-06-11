@@ -11,9 +11,18 @@
 // #define DEBUG
 // #define DEBUG_RF24
 
-#define DELAY_INTERVAL          16000
-#define EEPROM_SETTINGS_VERSION 1
+#ifdef DEBUG_RF24
+#ifndef DEBUG
+#define DEBUG
+#endif
+#endif
 
+#define DELAY_INTERVAL          48000
+#define EEPROM_SETTINGS_VERSION 0
+
+#ifndef DEVICE_ID
+#define DEVICE_ID               0x01
+#endif
 
 #ifndef DEBUG_RF24
 #define SDA_PORT PORTB
@@ -41,16 +50,25 @@ SoftWire sWire = SoftWire();
 #endif 
 
 #define RF24_ADDRESS_SIZE   13
-#define RF24_PA_LEVEL       RF24_PA_MIN
-#define RF24_DATA_RATE      RF24_250KBPS
 
-#ifndef RF24_ID
-#define RF24_ID 0x01
+#ifndef RF24_PA_LEVEL
+#define RF24_PA_LEVEL       RF24_PA_HIGH
+#endif
+
+#ifndef RF24_DATA_RATE
+#define RF24_DATA_RATE      RF24_250KBPS
 #endif
 
 // RF24 Address
+#ifndef RF24_ID
+#define RF24_ID DEVICE_ID
+#endif
 
 
+
+// 
+// Pins
+// 
 #define RF24_CE_PIN     PB2
 #define RF24_CSN_PIN    PB2  // Since we are using 3 pin configuration we will use same pin for both CE and CSN
 #define BME280_CS_PIN   PB3

@@ -439,6 +439,8 @@ JsonObject HAPPluginRF24::getConfigImpl(){
 
 void HAPPluginRF24::setConfigImpl(JsonObject root){
 
+    // ToDo: A duplicated accessory is made, when loaded from config??
+    /*
     if (root.containsKey("devices")){    
 
         begin();
@@ -449,7 +451,7 @@ void HAPPluginRF24::setConfigImpl(JsonObject root){
             if ( index == -1 ){
                 RemoteDeviceType type = (RemoteDeviceType)dev["type"].as<uint8_t>();
                 
-                // ToDo: Implement DHT Remote Device without pressure
+                
                 if (type == RemoteDeviceTypeWeather){
                     HAPPluginRF24DeviceWeather* newDevice = new HAPPluginRF24DeviceWeather(
                         dev["id"].as<uint16_t>(),
@@ -512,6 +514,7 @@ void HAPPluginRF24::setConfigImpl(JsonObject root){
             }     
         }
     }
+    */
 }
 
 int HAPPluginRF24::indexOfDevice(uint16_t id){

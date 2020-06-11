@@ -47,13 +47,12 @@ HAPPluginRF24DeviceWeather::HAPPluginRF24DeviceWeather(uint16_t id_, String name
 
 
 
-
 HAPAccessory* HAPPluginRF24DeviceWeather::initAccessory(){
     // Create accessory if not already created
     _accessory = new HAPAccessory();
     //HAPAccessory::addInfoServiceToAccessory(_accessory, "Builtin LED", "ACME", "LED", "123123123", &identify);
     auto callbackIdentify = std::bind(&HAPPluginRF24Device::identify, this, std::placeholders::_1, std::placeholders::_2);
-    _accessory->addInfoService(name, "ACME", "RF24", String("Remote Weather ") +String(id, HEX), callbackIdentify, "1.0");
+    _accessory->addInfoService(String("Remote Weather ") + String(name), "ACME", "RF24", String("Remote Weather ") +String(id, HEX), callbackIdentify, "1.0");
 
 
     //
@@ -95,7 +94,7 @@ HAPAccessory* HAPPluginRF24DeviceWeather::initAccessory(){
 	_accessory->addService(temperatureService);
 
 	stringCharacteristics *tempServiceName = new stringCharacteristics(HAP_CHARACTERISTIC_NAME, permission_read, 0);
-	tempServiceName->setValue("Remote Weather Sensor " + String(id));
+	tempServiceName->setValue("Remote Weather " + String(id));
 
 	_accessory->addCharacteristics(temperatureService, tempServiceName);
 
@@ -160,6 +159,7 @@ HAPAccessory* HAPPluginRF24DeviceWeather::initAccessory(){
 
     // 
     // Measure Mode
+	// is bound to temperature service
     // 
     uint8_t validValues[2] = {0,1};
     _measureMode = new uint8Characteristics("000004EA-6B66-4FFD-88CC-16A60B5C4E03", permission_read|permission_write, 0, 1, 1, unit_none, 2, validValues);
@@ -175,7 +175,7 @@ HAPAccessory* HAPPluginRF24DeviceWeather::initAccessory(){
 	// 		
 	_fakegato.registerFakeGatoService(_accessory, name);    
 	auto callbackAddEntry = std::bind(&HAPPluginRF24DeviceWeather::fakeGatoCallback, this);
-	_fakegatoFactory->registerFakeGato(&_fakegato,  String("RF24 ") + String(id, HEX), callbackAddEntry);
+	_fakegatoFactory->registerFakeGato(&_fakegato,  String("Remote Weather ") + String(id, HEX), callbackAddEntry);
 
     return _accessory;
 }
@@ -241,6 +241,8 @@ void HAPPluginRF24DeviceWeather::changeMeasureMode(uint8_t oldValue, uint8_t new
 #endif
 
         _callbackSendSettings(newSettings);
+		        
+        _eventManager->queueEvent( EventManager::kEventUpdatedConfig, HAPEvent());            	
     }
 
 }
@@ -309,9 +311,5 @@ void HAPPluginRF24DeviceWeather::setSettingsFromPayload(struct RemoteDeviceSetti
     measureMode 	= (enum MeasureMode) settings.measureMode;
     sleepInterval 	= settings.sleepInterval;
 
-	_measureMode->setValue(String((uint8_t) measureMode ));
-	{        
-        // struct HAPEvent event = HAPEvent(nullptr, _accessory->aid, _lastUpdate->iid, _lastUpdate->value());
-        _eventManager->queueEvent( EventManager::kEventUpdatedConfig, HAPEvent());        
-    }	
+	_measureMode->setValue(String((uint8_t) measureMode ));	
 }
