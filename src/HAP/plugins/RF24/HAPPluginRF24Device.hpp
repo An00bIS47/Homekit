@@ -44,7 +44,7 @@ struct __attribute__((__packed__)) RadioPacket {
     
     int32_t     temperature;    // temperature
     uint32_t    humidity;       // humidity
-    uint16_t    pressure;       // pressure
+    uint32_t    pressure;       // pressure
     
     uint16_t    voltage;        // voltage
 };

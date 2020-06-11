@@ -57,7 +57,7 @@ private:
     RF24* _radio;
 
 	bool _awaitSettingsConfirmation;
-	
+	bool _isInitialized;
 
 	// HAPPluginRF24Device* _newDevice;
 

@@ -283,6 +283,7 @@
 
 #ifndef HAP_NTP_SERVER_URL
 #define HAP_NTP_SERVER_URL			"time.euro.apple.com"						// NTP server url
+#define HAP_NTP_SERVER_URL_FALLBACK	"pool.ntp.org"
 #endif
 
 #ifndef HAP_NTP_TIME_FORMAT

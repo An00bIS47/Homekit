@@ -25,6 +25,7 @@ HAPPluginRF24DeviceWeather::HAPPluginRF24DeviceWeather(){
     _batteryStatus      = nullptr;
 
 	_lastUpdate			= nullptr;
+	_measureMode        = nullptr;
 }
 
 HAPPluginRF24DeviceWeather::HAPPluginRF24DeviceWeather(uint16_t id_, String name_, uint8_t measureMode_){    
@@ -41,6 +42,7 @@ HAPPluginRF24DeviceWeather::HAPPluginRF24DeviceWeather(uint16_t id_, String name
     _batteryStatus      = nullptr;
 
 	_lastUpdate			= nullptr;
+	_measureMode        = nullptr;
 }
 
 
@@ -156,7 +158,17 @@ HAPAccessory* HAPPluginRF24DeviceWeather::initAccessory(){
     _accessory->addCharacteristics(temperatureService, _lastUpdate);
 
 
+    // 
+    // Measure Mode
+    // 
+    uint8_t validValues[2] = {0,1};
+    _measureMode = new uint8Characteristics("000004EA-6B66-4FFD-88CC-16A60B5C4E03", permission_read|permission_write, 0, 1, 1, unit_none, 2, validValues);
+    _measureMode->setDescription("Measure Mode");
+    _measureMode->setValue(String((uint8_t) measureMode));    // 0 indoor, 1 outdoor
 
+    auto callbackChangeMeasureMode = std::bind(&HAPPluginRF24DeviceWeather::changeMeasureMode, this, std::placeholders::_1, std::placeholders::_2);
+    _measureMode->valueChangeFunctionCall = callbackChangeMeasureMode;
+    _accessory->addCharacteristics(temperatureService, _measureMode);
 
 	//
 	// FakeGato
@@ -206,6 +218,33 @@ void HAPPluginRF24DeviceWeather::changeLastUpdate(String oldValue, String newVal
     Serial.printf("[RF24:%d] New LastUpdate: %s\n", id, newValue.c_str());
 }
 
+void HAPPluginRF24DeviceWeather::changeMeasureMode(uint8_t oldValue, uint8_t newValue){
+    Serial.printf("[RF24:%d] New Measure Mode: %d\n", id, newValue);
+
+    if (oldValue != newValue){
+        NewSettingsPacket newSettings;
+        
+        newSettings.forRadioId = id;
+        newSettings.changeType = ChangeMeasureType;
+        newSettings.newRadioId = 0;
+        newSettings.newSleepInterval = 0;
+        newSettings.newMeasureMode = newValue;    
+
+#if HAP_DEBUG_RF24
+        LogD(HAPServer::timeString() + " New Settings for " + String(newSettings.forRadioId, HEX), true);
+        LogD(HAPServer::timeString() + "   changeType: " + String(newSettings.changeType, HEX), true);
+        LogD(HAPServer::timeString() + "   newRadioId: " + String(newSettings.newRadioId, HEX), true);
+        LogD(HAPServer::timeString() + "   newMeasureMode: " + String(newSettings.newMeasureMode, HEX), true);
+        LogD(HAPServer::timeString() + "   sleepInterval: " + String(newSettings.newSleepInterval), true);        
+
+        LogD(HAPServer::timeString() + "   Size of struct: " + String(sizeof(NewSettingsPacket)), true);        
+#endif
+
+        _callbackSendSettings(newSettings);
+    }
+
+}
+
 // void HAPPluginRF24DeviceWeather::identify(bool oldValue, bool newValue) {
 //     printf("Start Identify rf24: %d\n", id);
 // }
@@ -220,9 +259,9 @@ bool HAPPluginRF24DeviceWeather::fakeGatoCallback(){
 void HAPPluginRF24DeviceWeather::setValuesFromPayload(struct RadioPacket payload){
 
 	LogD("Setting values for remote weather device ...", false);
-	_humidityValue->setValue(String(payload.humidity * 1.0));
-	_temperatureValue->setValue(String(payload.temperature * 1.0));
-	_pressureValue->setValue(String(payload.pressure));
+	_humidityValue->setValue(String(payload.humidity / 100.0));
+	_temperatureValue->setValue(String(payload.temperature / 100.0));
+	_pressureValue->setValue(String(payload.pressure / 100.0));
 
 
 	uint8_t percentage = map(payload.voltage * 10, REMOTE_DEVICE_VMIN, REMOTE_DEVICE_VMAX, 0, 100);

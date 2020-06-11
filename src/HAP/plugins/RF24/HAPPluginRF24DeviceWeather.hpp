@@ -30,6 +30,9 @@ public:
     HAPAccessory* initAccessory() override;    
 	
     void changeLastUpdate(String oldValue, String newValue);
+    
+    void changeMeasureMode(uint8_t oldValue, uint8_t newValue);
+
 	void changeTemp(float oldValue, float newValue);
 	void changeHum(float oldValue, float newValue);
 	void changePressure(uint16_t oldValue, uint16_t newValue);

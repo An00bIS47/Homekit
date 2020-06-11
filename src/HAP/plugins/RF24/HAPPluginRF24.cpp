@@ -24,7 +24,7 @@
 #define HAP_PLUGIN_RF24_ADDRESS        "HOMEKIT_RF24"
 #endif 
 
-#define HAP_PLUGIN_RF24_PA_LEVEL       RF24_PA_HIGH
+#define HAP_PLUGIN_RF24_PA_LEVEL       RF24_PA_MIN
 #define HAP_PLUGIN_RF24_DATA_RATE      RF24_250KBPS
 
 // http://www.iotsharing.com/2018/03/esp-and-raspberry-connect-with-nrf24l01.html
@@ -63,7 +63,7 @@ HAPPluginRF24::HAPPluginRF24(){
     // _newDevice  = nullptr;
     _awaitSettingsConfirmation = false;
     
-
+    _isInitialized = false;
     _radio = nullptr;
 }
 
@@ -75,6 +75,9 @@ HAPPluginRF24::~HAPPluginRF24(){
 
 
 bool HAPPluginRF24::begin() {
+
+    if (_isInitialized) return true;
+    
     // _radio = new RF24(13, 33);
     _radio = new RF24(12, 33, 5, 19, 18);
     
@@ -437,7 +440,10 @@ JsonObject HAPPluginRF24::getConfigImpl(){
 
 void HAPPluginRF24::setConfigImpl(JsonObject root){
 
-    if (root.containsKey("devices")){        
+    if (root.containsKey("devices")){    
+
+        begin();
+
         for (JsonVariant dev : root["devices"].as<JsonArray>()) {
 
             int index = indexOfDevice( dev["id"].as<uint16_t>());

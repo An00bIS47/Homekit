@@ -284,8 +284,20 @@ bool HAPServer::begin(bool resume) {
 		LogI("Set time to: " + timeString(), true);
 
 		_config.setRefTime(timestamp());
-	} else {
-		LogI("[ERROR] Time not set!", true);	
+	} else {		
+		LogI("[ERROR] Failed to set time! Trying fallback server ...", false);	
+		configTzTime(HAP_NTP_TZ_INFO, HAP_NTP_SERVER_URL_FALLBACK);
+
+		if (getLocalTime(&_timeinfo, 10000)) {  // wait up to 10sec to sync
+			//Serial.println(&_timeinfo, "Time set: %B %d %Y %H:%M:%S (%A)");		
+			LogI( " OK", true);
+			LogI("Set time to: " + timeString(), true);
+
+			_config.setRefTime(timestamp());
+		} else {
+			LogI("[ERROR] Failed to set time!", true);	
+		}
+
   	}
 #endif
 
@@ -483,13 +495,13 @@ bool HAPServer::begin(bool resume) {
     	auto plugin = factory.getPlugin(*it);
 		
 		plugin->setAccessorySet(_accessorySet);
+		plugin->setFakeGatoFactory(&_fakeGatoFactory);
+		plugin->addEventListener(&_eventManager);
+
 		plugin->setConfig(_config.config()["plugins"][plugin->name()]);
 		// plugin->setWebServer(_webserver);
 	
 		if ( plugin->isEnabled()) {    		
-
-			plugin->setFakeGatoFactory(&_fakeGatoFactory);
-			plugin->addEventListener(&_eventManager);
 						
 			if (plugin->begin()) {
 
