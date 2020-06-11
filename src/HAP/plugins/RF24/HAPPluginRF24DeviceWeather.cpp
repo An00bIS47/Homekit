@@ -95,7 +95,7 @@ HAPAccessory* HAPPluginRF24DeviceWeather::initAccessory(){
 	_accessory->addService(temperatureService);
 
 	stringCharacteristics *tempServiceName = new stringCharacteristics(HAP_CHARACTERISTIC_NAME, permission_read, 0);
-	tempServiceName->setValue("Remote Temperature Sensor " + String(id));
+	tempServiceName->setValue("Remote Weather Sensor " + String(id));
 
 	_accessory->addCharacteristics(temperatureService, tempServiceName);
 
@@ -308,4 +308,10 @@ void HAPPluginRF24DeviceWeather::setValuesFromPayload(struct RadioPacket payload
 void HAPPluginRF24DeviceWeather::setSettingsFromPayload(struct RemoteDeviceSettings settings){
     measureMode 	= (enum MeasureMode) settings.measureMode;
     sleepInterval 	= settings.sleepInterval;
+
+	_measureMode->setValue(String((uint8_t) measureMode ));
+	{        
+        // struct HAPEvent event = HAPEvent(nullptr, _accessory->aid, _lastUpdate->iid, _lastUpdate->value());
+        _eventManager->queueEvent( EventManager::kEventUpdatedConfig, HAPEvent());        
+    }	
 }

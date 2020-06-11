@@ -143,7 +143,7 @@ HAPAccessory* HAPPluginBME280::initAccessory(){
 	String sn = md5(HAPDeviceID::deviceID() + _name);
 
 	auto callbackIdentify = std::bind(&HAPPlugin::identify, this, std::placeholders::_1, std::placeholders::_2);
-   	_accessory->addInfoService("Weather", "ACME", "BME280" + String(hex), sn, callbackIdentify, version());
+   	_accessory->addInfoService("Weather", "ACME", "BME280 " + String(hex), sn, callbackIdentify, version());
 
 	//
 	// Temperature

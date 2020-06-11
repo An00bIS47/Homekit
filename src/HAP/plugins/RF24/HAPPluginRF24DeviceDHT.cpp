@@ -289,5 +289,8 @@ void HAPPluginRF24DeviceDHT::setSettingsFromPayload(struct RemoteDeviceSettings 
     sleepInterval = settings.sleepInterval;
 
     _measureMode->setValue(String((uint8_t) measureMode ));
-
+	{        
+        // struct HAPEvent event = HAPEvent(nullptr, _accessory->aid, _lastUpdate->iid, _lastUpdate->value());
+        _eventManager->queueEvent( EventManager::kEventUpdatedConfig, HAPEvent());        
+    }
 }

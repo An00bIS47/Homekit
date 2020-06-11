@@ -187,15 +187,14 @@ void HAPPluginRF24::handleImpl(bool forced){
                             0                                
                         );            
                     
-
                         NewSettingsPacket newSettings;
                         newSettings.forRadioId = payload.radioId;
                         newSettings.changeType = ChangeTypeNone;
                         newSettings.newRadioId = 0;
                         newSettings.newSleepInterval = 0;
                         newSettings.newMeasureMode = 0;
-
-                        _radio->writeAckPayload(newSettings.forRadioId, &newSettings, sizeof(NewSettingsPacket)); // pre-load data    
+                        
+                        _radio->writeAckPayload(newSettings.forRadioId, &newSettings, sizeof(NewSettingsPacket)); // pre-load data                            
                         newDeviceAdded = true;
 
                         newDevice->setEventManager(_eventManager);
