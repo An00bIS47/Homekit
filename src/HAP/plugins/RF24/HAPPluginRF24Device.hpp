@@ -32,9 +32,10 @@ enum RemoteDeviceType {
 struct __attribute__((__packed__)) RemoteDeviceSettings
 {
     uint16_t    radioId;
-    uint32_t    sleepInterval;
+    uint8_t     sleepInterval;
     uint8_t     measureMode;
     uint8_t     version;
+    char        firmware_version[6];
 };
 
 
@@ -70,7 +71,7 @@ struct __attribute__((__packed__)) NewSettingsPacket
     uint8_t         changeType;     // enum ChangeType
     uint16_t        forRadioId;
     uint16_t        newRadioId;
-    uint32_t        newSleepInterval;
+    uint8_t         newSleepInterval;
     uint8_t         newMeasureMode;
 };
 

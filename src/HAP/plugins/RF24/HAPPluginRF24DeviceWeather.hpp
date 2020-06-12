@@ -19,6 +19,7 @@
 #include "HAPFakeGatoFactory.hpp"
 #include "HAPFakeGatoWeather.hpp"
 #include "HAPPluginRF24Device.hpp"
+#include "HAPVersion.hpp"
 
 class HAPPluginRF24DeviceWeather : public HAPPluginRF24Device{
 public:
@@ -30,6 +31,7 @@ public:
     HAPAccessory* initAccessory() override;    
 	
     void changeLastUpdate(String oldValue, String newValue);
+    void changeFirmware(String oldValue, String newValue);
     
     void changeMeasureMode(uint8_t oldValue, uint8_t newValue);
 
@@ -68,10 +70,13 @@ private:
 	intCharacteristics* 	_batteryStatus;	
     
     uint8Characteristics*   _measureMode;
+    stringCharacteristics*  _firmware;
 
     HAPFakeGatoWeather      _fakegato;
    
     bool fakeGatoCallback() override;  
+
+    // HAPVersion              _firmwareVersion;
 
     std::function<void(NewSettingsPacket)> _callbackSendSettings = NULL;  
 };

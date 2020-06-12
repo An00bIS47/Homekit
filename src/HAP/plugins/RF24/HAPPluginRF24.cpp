@@ -303,9 +303,10 @@ bool HAPPluginRF24::readSettingsFromRadio(){
 
 #if HAP_DEBUG_RF24
         LogD(HAPServer::timeString() + " Got Settings from id: " + String(remoteSettings.radioId, HEX), true);        
-        LogD(HAPServer::timeString() + "   sleepIntervalSeconds:    " + String(remoteSettings.sleepInterval), true);
-        LogD(HAPServer::timeString() + "   measureMode:             " + String(remoteSettings.measureMode), true);
-        LogD(HAPServer::timeString() + "   version:                 " + String(remoteSettings.version), true);
+        LogD(HAPServer::timeString() + "   sleepInterval:    " + String(remoteSettings.sleepInterval), true);
+        LogD(HAPServer::timeString() + "   measureMode:      " + String(remoteSettings.measureMode), true);
+        LogD(HAPServer::timeString() + "   settings version: " + String(remoteSettings.version), true);
+        LogD(HAPServer::timeString() + "   firmware version: " + String(remoteSettings.firmware_version), true);
                         
         LogD(HAPServer::timeString() + "   Size of struct: " + String(sizeof(RemoteDeviceSettings)), true);                        
 #endif                  

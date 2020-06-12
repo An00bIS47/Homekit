@@ -127,7 +127,7 @@ String HAPAccessory::describe() const {
 }
 
 
-void HAPAccessory::addInfoService(String accessoryName, String manufactuerName, String modelName, String serialNumber, identifyFunctionCallback callback, String firmwareRev){
+HAPService* HAPAccessory::addInfoService(String accessoryName, String manufactuerName, String modelName, String serialNumber, identifyFunctionCallback callback, String firmwareRev){
     
     setName(accessoryName);
     
@@ -142,7 +142,8 @@ void HAPAccessory::addInfoService(String accessoryName, String manufactuerName, 
     if ( firmwareRev != "" ) {
         setFirmware(firmwareRev);
     }
-        
+    
+    return _infoService;
 }
 
 

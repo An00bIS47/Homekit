@@ -1,4 +1,14 @@
-
+// 
+// Power Saving Tips
+// 
+// - add a capacitor of 100-200µF in parallel with your battery. 
+//   Ceramic is better, but I have no problem with nodes using electrolytic capacitors. 
+//   This will help when there is a peak power consumption from the radio. 
+//   If you do not put one, voltage will drop quickly and that's probably what is triggering reboot loop 
+//   on one of your nodes: maybe radio is less efficient and needs to resend more messages. 
+//   Or maybe your BOD is not updated so it resets when voltage drops at 2.7V...
+// - in your code, add a sleep command between message sending to give time for your cell to rest, 
+//   and for the capacitor to recharge. Do it also at the beginning of presentation method and between each message sending in presentation.
 #include <Arduino.h>
 
 #include <avr/eeprom.h>
@@ -17,23 +27,34 @@
 #endif
 #endif
 
-#define DELAY_INTERVAL          48000
-#define EEPROM_SETTINGS_VERSION 0
+
+
+// time until the watchdog wakes the mc in seconds
+#define WATCHDOG_TIME 8 // 1, 2, 4 or 8
+ 
+// after how many watchdog wakeups we should collect and send the data
+#define WATCHDOG_WAKEUPS_TARGET 6 // 8 * 6 = 48 seconds between each data collection
+ 
+// after how many data collections we should get the battery status
+// #define BAT_CHECK_INTERVAL 5 
+
+#define EEPROM_SETTINGS_VERSION 2
+const char FIRMWARE_VERSION[6] = "1.0.1";
 
 #ifndef DEVICE_ID
 #define DEVICE_ID               0x01
 #endif
 
 #ifndef DEBUG_RF24
-#define SDA_PORT PORTB
-#define SDA_PIN 3
-#define SCL_PORT PORTB
-#define SCL_PIN 4
-#include <SoftWire.h>
-SoftWire sWire = SoftWire();
+    #define SDA_PORT PORTB
+    #define SDA_PIN 3
+    #define SCL_PORT PORTB
+    #define SCL_PIN 4
+    #include <SoftWire.h>
+    SoftWire sWire = SoftWire();
 
-#define BME280_ADDRESS 0x76
-#include "TinyBME280.h"
+    #define BME280_ADDRESS 0x76
+    #include "TinyBME280.h"
 #endif // DEBUG_RF24
 
 // Sleep macros
@@ -83,9 +104,10 @@ SoftWire sWire = SoftWire();
 struct EepromSettings
 {
     uint16_t    radioId;
-    uint32_t    sleepInterval;
+    uint8_t     sleepInterval;
     uint8_t     measureMode;
     uint8_t     version;
+    char        firmware_version[6];
 };
 
 struct RadioPacket
@@ -128,7 +150,7 @@ struct NewSettingsPacket
     uint8_t         changeType; // enum ChangeType
     uint16_t        forRadioId;
     uint16_t        newRadioId;
-    uint32_t        newSleepInterval;
+    uint8_t         newSleepInterval;
     uint8_t         newMeasureMode;
 };
 
@@ -145,7 +167,7 @@ void processSettingsChange(NewSettingsPacket newSettings); // Need to pre-declar
 void setupRadio();
 void saveSettings();
 void system_sleep();
-void setup_watchdog(int ii);
+void setup_watchdog();
 
 
 
@@ -154,13 +176,12 @@ uint8_t         address[RF24_ADDRESS_SIZE] = RF24_ADDRESS;
 
 EepromSettings  _settings;
 
-
-volatile boolean f_wdt = 1;
-volatile uint8_t counter = 0;
+// volatile boolean f_wdt = 1;
+// volatile uint8_t counter = 0;
 
 uint16_t readVcc()
 {
-    //power_adc_enable() ;
+    power_adc_enable();
     // Details on http://provideyourown.com/2012/secret-arduino-voltmeter-measure-battery-voltage/
 
     ADMUX = _BV(MUX3) | _BV(MUX2); // Select internal 1.1V reference for measurement.
@@ -170,7 +191,7 @@ uint16_t readVcc()
     uint16_t adcReading = ADC;
     uint16_t vcc = (1.1 * 1024.0 / adcReading) * 100; // Note the 1.1V reference can be off +/- 10%, so calibration is needed.
 
-    //power_adc_disable();
+    power_adc_disable();
     return vcc;
 }
 
@@ -183,6 +204,9 @@ void setup() {
     delay(5000);
     softSerial.println(F("Starting ATTiny RF24 Test"));
 #endif // DEBUF
+
+    // Disable Analog Digital converter
+    power_adc_disable();
 
 
     // Load settings from eeprom.
@@ -208,185 +232,223 @@ void setup() {
 #endif // DEBUG
 
         _settings.radioId = RF24_ID;        
-        _settings.sleepInterval = DELAY_INTERVAL;        
+        _settings.sleepInterval = WATCHDOG_WAKEUPS_TARGET;        
         _settings.measureMode = MeasureModeWeatherStation;        
         _settings.version = EEPROM_SETTINGS_VERSION;
+        strncpy(_settings.firmware_version, FIRMWARE_VERSION, 5);
+        _settings.firmware_version[5] = '\0';
+
         saveSettings();
     }
 
 #ifndef DEBUG_RF24    
     sWire.begin();
-    delay(500);
+    delay(100);
 
     BME280setup(sWire, BME280_ADDRESS);
     
 
 #endif // DEBUG_RF24
-    setup_watchdog(9); // approximately 8 seconds sleep
+    setup_watchdog(); // approximately 8 seconds sleep
 }
+
+
 
 void loop() {
 
-    if (f_wdt==1) { 
-        f_wdt=0; 
-
-        setupRadio();                        // Re-initialize the radio.
-        
-        RadioPacket radioData;
-      
-        radioData.type = RemoteDeviceTypeWeather;
-        radioData.radioId = _settings.radioId;
-        
+    setupRadio();                        // Re-initialize the radio.
+    
+    RadioPacket radioData;
+    
+    radioData.type = RemoteDeviceTypeWeather;
+    radioData.radioId = _settings.radioId;
+    
 
 #ifdef DEBUG                            
-        softSerial.print(F("Reading BME280 ..."));
+    softSerial.print(F("Reading BME280 ..."));
 #endif // DEBUG
 
 
 #ifndef DEBUG_RF24    
-        radioData.temperature   = BME280temperature(sWire);;
-        radioData.pressure      = BME280pressure(sWire);
-        radioData.humidity      = BME280humidity(sWire);
+    radioData.temperature   = BME280temperature(sWire);;
+    radioData.pressure      = BME280pressure(sWire);
+    radioData.humidity      = BME280humidity(sWire);
 #else
-        radioData.temperature   = 1000;
-        radioData.humidity      = 1100;
-        radioData.pressure      = 12000;
+    radioData.temperature   = 1000;
+    radioData.humidity      = 1100;
+    radioData.pressure      = 12000;
 #endif // DEBUG_RF24
 
 
 #ifdef DEBUG                            
-        softSerial.println(F("OK"));
+    softSerial.println(F("OK"));
 #endif // DEBUG
-        radioData.voltage       = readVcc();
+    radioData.voltage       = readVcc();
 
 
 #ifdef DEBUG
-        softSerial.println(F("Sensor values:"));
-        softSerial.print(F("  Temp: "));
-        softSerial.println(radioData.temperature);
-        softSerial.print(F("  Hum:  "));
-        softSerial.println(radioData.humidity);
-        softSerial.print(F("  Pres: "));
-        softSerial.println(radioData.pressure);
-        softSerial.print(F("  Voltage: "));
-        softSerial.println(radioData.voltage);
+    softSerial.println(F("Sensor values:"));
+    softSerial.print(F("  Temp: "));
+    softSerial.println(radioData.temperature);
+    softSerial.print(F("  Hum:  "));
+    softSerial.println(radioData.humidity);
+    softSerial.print(F("  Pres: "));
+    softSerial.println(radioData.pressure);
+    softSerial.print(F("  Voltage: "));
+    softSerial.println(radioData.voltage);
 
-        softSerial.print(F("Size of struct: "));
-        softSerial.println( sizeof(struct RadioPacket) );
+    softSerial.print(F("Size of struct: "));
+    softSerial.println( sizeof(struct RadioPacket) );
 #endif // DEBUG
 
-        if (!_radio.write( &radioData, sizeof(RadioPacket) ) ) { //Send data to 'Receiver' every x seconds                        
+    
+    
+
+    if (!_radio.write( &radioData, sizeof(RadioPacket) ) ) { //Send data to 'Receiver' every x seconds                        
 #ifdef DEBUG
-            softSerial.println(F("Sending failed! :("));        
+        softSerial.println(F("Sending failed! :("));        
 #endif // DEBUG
-        } else {
-            if ( _radio.isAckPayloadAvailable() ) {
-                NewSettingsPacket newSettingsData;
-                _radio.read(&newSettingsData, sizeof(NewSettingsPacket));
+    } else {
+        if ( _radio.isAckPayloadAvailable() ) {
+            NewSettingsPacket newSettingsData;
+            _radio.read(&newSettingsData, sizeof(NewSettingsPacket));
 
 #ifdef DEBUG
-                softSerial.print(F("Received new settings for: "));
-                softSerial.println(newSettingsData.forRadioId, HEX);
-                softSerial.print(F("   changeType: "));
-                softSerial.println(newSettingsData.changeType, HEX);
+            softSerial.print(F("Received new settings for: "));
+            softSerial.println(newSettingsData.forRadioId, HEX);
+            softSerial.print(F("   changeType: "));
+            softSerial.println(newSettingsData.changeType, HEX);
 
-                softSerial.print(F("   newRadioId: "));
-                softSerial.println(newSettingsData.newRadioId, HEX);
+            softSerial.print(F("   newRadioId: "));
+            softSerial.println(newSettingsData.newRadioId, HEX);
 
-                softSerial.print(F("   newSleepInterval: "));
-                softSerial.println(newSettingsData.newSleepInterval);
+            softSerial.print(F("   newSleepInterval: "));
+            softSerial.println(newSettingsData.newSleepInterval);
 
-                softSerial.print(F("   newMeasureMode: "));
-                softSerial.println(newSettingsData.newMeasureMode, HEX);
+            softSerial.print(F("   newMeasureMode: "));
+            softSerial.println(newSettingsData.newMeasureMode, HEX);
 
-                softSerial.print(F("   sizeOf NewSettingsPacket: "));
-                softSerial.println(sizeof(NewSettingsPacket));
-                
+            softSerial.print(F("   sizeOf NewSettingsPacket: "));
+            softSerial.println(sizeof(NewSettingsPacket));
+            
 #endif // DEBUG
 
-                if (newSettingsData.forRadioId == _settings.radioId) {
+            if (newSettingsData.forRadioId == _settings.radioId) {
 #ifdef DEBUG 
-                    softSerial.println(F("Received new settings. Changing settings!"));
+                softSerial.println(F("Received new settings. Changing settings!"));
 #endif // DEBUG                  
-                    processSettingsChange(newSettingsData);        
+                processSettingsChange(newSettingsData);        
 
 #ifdef DEBUG 
-                    softSerial.print(F("Sending updated settings ..."));
+                softSerial.print(F("Sending updated settings ..."));
 #endif // DEBUG
-                    // Send new updated settings
-                    if (!_radio.write( &_settings, sizeof(EepromSettings) ) ) { //Send data to 'Receiver' every x seconds                                
+                // Send new updated settings
+                if (!_radio.write( &_settings, sizeof(EepromSettings) ) ) { //Send data to 'Receiver' every x seconds                                
 #ifdef DEBUG 
-                        softSerial.println(F("Failed to send settings :("));
+                    softSerial.println(F("Failed to send settings :("));
 #endif // DEBUG
 
 #ifdef DEBUG 
-                    } else {
-                        softSerial.println(F("Failed to send updated settings :("));
+                } else {
+                    softSerial.println(F("Failed to send updated settings :("));
 #endif // DEBUG                     
-                    }
-#ifdef DEBUG    
-                } else {             
-                    softSerial.print(F("Ignoring settings change! Request for radioId: "));
-                    softSerial.println(newSettingsData.forRadioId);
-#endif // DEBUG
                 }
+#ifdef DEBUG    
+            } else {             
+                softSerial.print(F("Ignoring settings change! Request for radioId: "));
+                softSerial.println(newSettingsData.forRadioId);
+#endif // DEBUG
+            }
 
 #ifdef DEBUG                   
-            } else {              
-                softSerial.println(F("Acknowledge but no data "));
+        } else {              
+            softSerial.println(F("Acknowledge but no data "));
 #endif // DEBUG            
-            }
         }
+    }
   
 
     
 #ifdef DEBUG        
-        softSerial.print(F("Sleep for: "));    
-        softSerial.println(_settings.sleepInterval);    
+    softSerial.print(F("Sleep for: "));    
+    softSerial.println(_settings.sleepInterval);    
 #endif // DEBUG
 
-        _radio.powerDown();                  // Put the radio into a low power state.        
-    }
+    _radio.powerDown();                  // Put the radio into a low power state.        
+    
 
-    // delay(5000);
-    system_sleep();
+    // deep sleep
+    for (uint8_t i=0; i < _settings.sleepInterval; i++) {
+        system_sleep();
+    }
     
 }
 
 
-void setup_watchdog(int ii) {
+void setup_watchdog() {
 
-    uint8_t bb;
-    if (ii > 9 ) ii=9;
-    bb=ii & 7;
-    if (ii > 7) bb|= (1<<5);
-    bb|= (1<<WDCE);
+    // uint8_t bb;
+    // if (ii > 9 ) ii=9;
+    // bb=ii & 7;
+    // if (ii > 7) bb|= (1<<5);
+    // bb|= (1<<WDCE);
 
 
+    // MCUSR &= ~(1<<WDRF);
+    // // start timed sequence
+    // WDTCR |= (1<<WDCE) | (1<<WDE);
+    // // set new watchdog timeout value
+    // WDTCR = bb;
+    // WDTCR |= _BV(WDIE);
+
+    cli();
+  
+    // clear the reset flag
     MCUSR &= ~(1<<WDRF);
-    // start timed sequence
+    
+    // set WDCE to be able to change/set WDE
     WDTCR |= (1<<WDCE) | (1<<WDE);
-    // set new watchdog timeout value
-    WDTCR = bb;
-    WDTCR |= _BV(WDIE);
+    
+    // set new watchdog timeout prescaler value
+#if WATCHDOG_TIME == 1
+    WDTCR = 1<<WDP1 | 1<<WDP2;
+#elif WATCHDOG_TIME == 2
+    WDTCR = 1<<WDP0 | 1<<WDP1 | 1<<WDP2;
+#elif WATCHDOG_TIME == 4
+    WDTCR = 1<<WDP3;
+#elif WATCHDOG_TIME == 8
+    WDTCR = 1<<WDP0 | 1<<WDP3;
+#else
+    #error WATCHDOG_TIME must be 1, 2, 4 or 8!
+#endif
+    
+    // enable the WD interrupt to get an interrupt instead of a reset
+    WDTCR |= (1<<WDIE);
+    
+    sei();
 }
 
 // Watchdog Interrupt Service / is executed when watchdog timed out
-ISR(WDT_vect) {
-    counter++;
-    uint8_t times = _settings.sleepInterval / 8000;
+// ISR(WDT_vect) {
+//     counter++;
+//     uint8_t times = _settings.sleepInterval / 8000;
 
-    if (counter >= times ) {
-        f_wdt = 1;  // set global flag
-        counter = 0;
-    }    
+//     if (counter >= times ) {
+//         f_wdt = 1;  // set global flag
+//         counter = 0;
+//     }    
+// }
+
+// watchdog ISR
+ISR(WDT_vect){
+    // nothing to do here, just wake up
 }
 
 // set system into the sleep state 
 // system wakes up when wtchdog is timed out
 void system_sleep() {    
 
-    cbi(ADCSRA,ADEN);                    // switch Analog to Digitalconverter OFF
+    // cbi(ADCSRA,ADEN);                    // switch Analog to Digitalconverter OFF
 
 
     // mcucr1 = MCUCR | _BV(BODS) | _BV(BODSE);  //turn off the brown-out detector
@@ -403,7 +465,7 @@ void system_sleep() {
     sleep_disable();                     // System continues execution here when watchdog timed out 
     
 
-    sbi(ADCSRA,ADEN);                    // switch Analog to Digitalconverter ON
+    // sbi(ADCSRA,ADEN);                    // switch Analog to Digitalconverter ON
     
 }
 

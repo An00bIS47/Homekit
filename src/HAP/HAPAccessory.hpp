@@ -42,7 +42,7 @@ public:
 
     String describe() const;
 
-    void addInfoService(String accessoryName, String manufactuerName, String modelName, String serialNumber, identifyFunctionCallback callback, String firmwareRev = "");
+    HAPService* addInfoService(String accessoryName, String manufactuerName, String modelName, String serialNumber, identifyFunctionCallback callback, String firmwareRev = "");
     
     void setName(String name);
     String name();

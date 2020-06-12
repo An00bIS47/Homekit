@@ -4,6 +4,8 @@
    CC BY 4.0
    Licensed under a Creative Commons Attribution 4.0 International license: 
    http://creativecommons.org/licenses/by/4.0/
+
+   + Modified for Softwire and setSamplingModes
 */
 
 #ifndef TINYBME280

@@ -26,6 +26,8 @@ HAPPluginRF24DeviceWeather::HAPPluginRF24DeviceWeather(){
 
 	_lastUpdate			= nullptr;
 	_measureMode        = nullptr;
+
+    // _firmwareVersion    = HAPVersion("0.0.0");
 }
 
 HAPPluginRF24DeviceWeather::HAPPluginRF24DeviceWeather(uint16_t id_, String name_, uint8_t measureMode_){    
@@ -43,6 +45,7 @@ HAPPluginRF24DeviceWeather::HAPPluginRF24DeviceWeather(uint16_t id_, String name
 
 	_lastUpdate			= nullptr;
 	_measureMode        = nullptr;
+    // _firmwareVersion    = HAPVersion("0.0.0");
 }
 
 
@@ -52,7 +55,7 @@ HAPAccessory* HAPPluginRF24DeviceWeather::initAccessory(){
     _accessory = new HAPAccessory();
     //HAPAccessory::addInfoServiceToAccessory(_accessory, "Builtin LED", "ACME", "LED", "123123123", &identify);
     auto callbackIdentify = std::bind(&HAPPluginRF24Device::identify, this, std::placeholders::_1, std::placeholders::_2);
-    _accessory->addInfoService(String("Remote Weather ") + String(name), "ACME", "RF24", String("Remote Weather ") +String(id, HEX), callbackIdentify, "1.0");
+    _accessory->addInfoService(String("Remote Weather ") + String(name), "ACME", "ATTiny85 Remote Weather", String(id, HEX), callbackIdentify, "unknown");
 
 
     //
@@ -247,6 +250,11 @@ void HAPPluginRF24DeviceWeather::changeMeasureMode(uint8_t oldValue, uint8_t new
 
 }
 
+
+void HAPPluginRF24DeviceWeather::changeFirmware(String oldValue, String newValue){
+    Serial.printf("[RF24:%d] New Firmware: %s\n", id, newValue.c_str());    
+}
+
 // void HAPPluginRF24DeviceWeather::identify(bool oldValue, bool newValue) {
 //     printf("Start Identify rf24: %d\n", id);
 // }
@@ -310,6 +318,8 @@ void HAPPluginRF24DeviceWeather::setValuesFromPayload(struct RadioPacket payload
 void HAPPluginRF24DeviceWeather::setSettingsFromPayload(struct RemoteDeviceSettings settings){
     measureMode 	= (enum MeasureMode) settings.measureMode;
     sleepInterval 	= settings.sleepInterval;
+    
+    _accessory->setFirmware(HAPVersion(settings.firmware_version).toString());
 
 	_measureMode->setValue(String((uint8_t) measureMode ));	
 }
