@@ -55,7 +55,7 @@ HAPAccessory* HAPPluginRF24DeviceDHT::initAccessory(){
     _accessory = new HAPAccessory();
     //HAPAccessory::addInfoServiceToAccessory(_accessory, "Builtin LED", "ACME", "LED", "123123123", &identify);
     auto callbackIdentify = std::bind(&HAPPluginRF24Device::identify, this, std::placeholders::_1, std::placeholders::_2);
-    _accessory->addInfoService(String("Remote Weather ") + String(name), "ACME", "RF24", String("Remote DHT ") + String(id, HEX), callbackIdentify, "1.0");
+    _accessory->addInfoService(String("Remote DHT ") + String(name), "ACME", "ATTiny85 Remote DHT", String(id, HEX), callbackIdentify, "unknown");
 
     //
     // Battery service
@@ -289,6 +289,8 @@ void HAPPluginRF24DeviceDHT::setValuesFromPayload(struct RadioPacket payload){
 void HAPPluginRF24DeviceDHT::setSettingsFromPayload(struct RemoteDeviceSettings settings){
     measureMode = (enum MeasureMode) settings.measureMode;
     sleepInterval = settings.sleepInterval;
+
+    _accessory->setFirmware(HAPVersion(settings.firmware_version).toString());
 
     _measureMode->setValue(String((uint8_t) measureMode ));
 }

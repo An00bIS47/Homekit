@@ -76,8 +76,6 @@ private:
    
     bool fakeGatoCallback() override;  
 
-    // HAPVersion              _firmwareVersion;
-
     std::function<void(NewSettingsPacket)> _callbackSendSettings = NULL;  
 };
 
