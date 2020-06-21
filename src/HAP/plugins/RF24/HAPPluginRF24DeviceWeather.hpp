@@ -34,6 +34,7 @@ public:
     void changeFirmware(String oldValue, String newValue);
     
     void changeMeasureMode(uint8_t oldValue, uint8_t newValue);
+    void changeHeartbeat(uint8_t oldValue, uint8_t newValue);
 
 	void changeTemp(float oldValue, float newValue);
 	void changeHum(float oldValue, float newValue);
@@ -70,6 +71,7 @@ private:
 	intCharacteristics* 	_batteryStatus;	
     
     uint8Characteristics*   _measureMode;
+    uint8Characteristics*   _heartbeat;
     stringCharacteristics*  _firmware;
 
     HAPFakeGatoWeather      _fakegato;

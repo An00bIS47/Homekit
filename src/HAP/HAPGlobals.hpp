@@ -39,7 +39,7 @@
  ********************************************************************/
 #define HOMEKIT_VERSION_MAJOR 		0
 #define HOMEKIT_VERSION_MINOR 		5
-#define HOMEKIT_VERSION_REVISION 	3
+#define HOMEKIT_VERSION_REVISION 	4
 
 
 /**

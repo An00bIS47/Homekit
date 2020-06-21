@@ -208,13 +208,13 @@ uint32_t BME280pressure (SoftWire &wire);
 uint32_t BME280humidity (SoftWire &wire);
 
 
-int16_t read16 (SoftWire &wire) {
+int16_t read16(SoftWire &wire) {
 	uint8_t lo, hi;
 	lo = wire.read(); hi = wire.read();
 	return hi<<8 | lo;
 }
 
-int32_t read32 (SoftWire &wire) {
+int32_t read32(SoftWire &wire) {
 	uint8_t msb, lsb, xlsb;
 	msb = wire.read(); lsb = wire.read(); xlsb = wire.read();
 	return (uint32_t)msb<<12 | (uint32_t)lsb<<4 | (xlsb>>4 & 0x0F);
@@ -235,28 +235,31 @@ uint8_t read8(SoftWire &wire,uint8_t reg) {
     return wire.read();
 }
 
-void BME280setSampling(SoftWire &wire, sensor_mode mode = MODE_NORMAL,
-                   sensor_sampling tempSampling = SAMPLING_X16,
-                   sensor_sampling pressSampling = SAMPLING_X16,
-                   sensor_sampling humSampling = SAMPLING_X16,
+// 
+// Defaults to Weather Station Mode
+// 
+void BME280setSampling(SoftWire &wire, sensor_mode mode = MODE_FORCED,
+                   sensor_sampling tempSampling = SAMPLING_X1,
+                   sensor_sampling pressSampling = SAMPLING_X1,
+                   sensor_sampling humSampling = SAMPLING_X1,
                    sensor_filter filter = FILTER_OFF,
                    standby_duration duration = STANDBY_MS_0_5) {
 
 
-	_measReg.mode = mode;
-	_measReg.osrs_t = tempSampling;
-	_measReg.osrs_p = pressSampling;
+    _measReg.mode = mode;
+    _measReg.osrs_t = tempSampling;
+    _measReg.osrs_p = pressSampling;
 
-	_humReg.osrs_h = humSampling;
-	_configReg.filter = filter;
-	_configReg.t_sb = duration;
+    _humReg.osrs_h = humSampling;
+    _configReg.filter = filter;
+    _configReg.t_sb = duration;
 
 	// making sure sensor is in sleep mode before setting configuration
-	// as it otherwise may be ignored
+    // as it otherwise may be ignored
 	write8(wire, BME280_REGISTER_CONTROL, MODE_SLEEP);
 
 
-	// you must make sure to also set REGISTER_CONTROL after setting the
+	  // you must make sure to also set REGISTER_CONTROL after setting the
   	// CONTROLHUMID register, otherwise the values won't be applied (see
   	// DS 5.4.3)
   	write8(wire, BME280_REGISTER_CONTROLHUMID, _humReg.get());
@@ -265,12 +268,17 @@ void BME280setSampling(SoftWire &wire, sensor_mode mode = MODE_NORMAL,
 }
 
 
+void BME280powerDown(SoftWire &wire){
+	write8(wire, BME280_REGISTER_CONTROL, MODE_SLEEP);
+}
+
+
 // Must be called once at start
-bool BME280setup (SoftWire &wire, int address = 0x76) {
+bool BME280setup(SoftWire &wire, int address = 0x76) {
 
-	BME280address = address;
+    BME280address = address;
 
-	delay(2);
+    delay(2);
 
   	// check if sensor, i.e. the chip ID is correct
   	BME280sensorID = read8(wire, BME280_REGISTER_CHIPID);
@@ -313,7 +321,8 @@ bool BME280setup (SoftWire &wire, int address = 0x76) {
 
 // Returns temperature in DegC, resolution is 0.01 DegC
 // Output value of “5123” equals 51.23 DegC
-int32_t BME280temperature (SoftWire &wire) {
+int32_t BME280temperature(SoftWire &wire) {
+
 	wire.beginTransmission(BME280address);
 	wire.write(0xFA);
 	wire.endTransmission();
@@ -330,12 +339,14 @@ int32_t BME280temperature (SoftWire &wire) {
 
 // Returns pressure in Pa as unsigned 32 bit integer
 // Output value of “96386” equals 96386 Pa = 963.86 hPa
-uint32_t BME280pressure (SoftWire &wire) {
+uint32_t BME280pressure(SoftWire &wire) {
+
 	wire.beginTransmission(BME280address);
 	wire.write(0xF7);
 	wire.endTransmission();
 	wire.requestFrom(BME280address, 3);
 	int32_t adc = read32(wire);
+
 	// Compensate
 	int32_t var1, var2;
 	uint32_t p;
@@ -357,7 +368,8 @@ uint32_t BME280pressure (SoftWire &wire) {
 
 // Humidity in %RH, resolution is 0.01%RH
 // Output value of “4653” represents 46.53 %RH
-uint32_t BME280humidity (SoftWire &wire) {
+uint32_t BME280humidity(SoftWire &wire) {
+
 	wire.beginTransmission(BME280address);
 	wire.write(0xFD);
 	wire.endTransmission();
@@ -374,6 +386,7 @@ uint32_t BME280humidity (SoftWire &wire) {
 	var1 = (var1 - (((((var1 >> 15) * (var1 >> 15)) >> 7) * ((int32_t)H[1])) >> 4));
 	var1 = (var1 < 0 ? 0 : var1);
 	var1 = (var1 > 419430400 ? 419430400 : var1);
+
 	return (uint32_t)((var1>>12)*25)>>8;
 }
 
