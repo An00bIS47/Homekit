@@ -1,572 +1,399 @@
 {
   "accessories": [
     {
-      "aid": 1,
-      "services": [
-        {
-          "iid": 1,
-          "type": "3E",
-          "characteristics": [
+        "aid": 1,
+        "services": [
             {
-              "value": "esp32-CAFEEC",
-              "perms": [
-                "pr"
-              ],
-              "type": "23",
-              "iid": 2,
-              "maxLen": 32,
-              "format": "string"
-            },
-            {
-              "perms": [
-                "pw"
-              ],
-              "type": "14",
-              "iid": 3,
-              "format": "bool"
-            },
-            {
-              "value": "An00bIS47",
-              "perms": [
-                "pr"
-              ],
-              "type": "20",
-              "iid": 4,
-              "maxLen": 32,
-              "format": "string"
-            },
-            {
-              "value": "Huzzah32",
-              "perms": [
-                "pr"
-              ],
-              "type": "21",
-              "iid": 5,
-              "maxLen": 32,
-              "format": "string"
-            },
-            {
-              "value": "44-22-777",
-              "perms": [
-                "pr"
-              ],
-              "type": "30",
-              "iid": 6,
-              "maxLen": 32,
-              "format": "string"
-            },
-            {
-              "value": "0.3.0+142",
-              "perms": [
-                "pr"
-              ],
-              "type": "52",
-              "iid": 7,
-              "maxLen": 32,
-              "format": "string"
+                "iid": 1,
+                "type": "0000003E-0000-1000-8000-0026BB765291",
+                "characteristics": [
+                    {
+                        "value": "esp32-CB3DC4",
+                        "perms": [
+                            "pr"
+                        ],
+                        "type": "00000023-0000-1000-8000-0026BB765291",
+                        "iid": 2,
+                        "maxLen": 32,
+                        "format": "string"
+                    },
+                    {
+                        "perms": [
+                            "pw"
+                        ],
+                        "type": "00000014-0000-1000-8000-0026BB765291",
+                        "iid": 3,
+                        "format": "bool"
+                    },
+                    {
+                        "value": "An00bIS47",
+                        "perms": [
+                            "pr"
+                        ],
+                        "type": "00000020-0000-1000-8000-0026BB765291",
+                        "iid": 4,
+                        "maxLen": 32,
+                        "format": "string"
+                    },
+                    {
+                        "value": "Huzzah32",
+                        "perms": [
+                            "pr"
+                        ],
+                        "type": "00000021-0000-1000-8000-0026BB765291",
+                        "iid": 5,
+                        "maxLen": 32,
+                        "format": "string"
+                    },
+                    {
+                        "value": "44-22-777",
+                        "perms": [
+                            "pr"
+                        ],
+                        "type": "00000030-0000-1000-8000-0026BB765291",
+                        "iid": 6,
+                        "maxLen": 32,
+                        "format": "string"
+                    },
+                    {
+                        "value": "0.5.4+142",
+                        "perms": [
+                            "pr"
+                        ],
+                        "type": "00000052-0000-1000-8000-0026BB765291",
+                        "iid": 7,
+                        "maxLen": 32,
+                        "format": "string"
+                    }
+                ]
             }
-          ]
-        }
-      ]
+        ]
     },
     {
-      "aid": 2,
-      "services": [
-        {
-          "iid": 1,
-          "type": "3E",
-          "characteristics": [
+        "aid": 2,
+        "services": [
             {
-              "value": "Weather",
-              "perms": [
-                "pr"
-              ],
-              "type": "23",
-              "iid": 2,
-              "maxLen": 32,
-              "format": "string"
+                "iid": 1,
+                "type": "0000003E-0000-1000-8000-0026BB765291",
+                "characteristics": [
+                    {
+                        "value": "Remote Weather 1",
+                        "perms": [
+                            "pr"
+                        ],
+                        "type": "00000023-0000-1000-8000-0026BB765291",
+                        "iid": 2,
+                        "maxLen": 32,
+                        "format": "string"
+                    },
+                    {
+                        "perms": [
+                            "pw"
+                        ],
+                        "type": "00000014-0000-1000-8000-0026BB765291",
+                        "iid": 3,
+                        "format": "bool"
+                    },
+                    {
+                        "value": "ACME",
+                        "perms": [
+                            "pr"
+                        ],
+                        "type": "00000020-0000-1000-8000-0026BB765291",
+                        "iid": 4,
+                        "maxLen": 32,
+                        "format": "string"
+                    },
+                    {
+                        "value": "ATTiny85 Remote Weather",
+                        "perms": [
+                            "pr"
+                        ],
+                        "type": "00000021-0000-1000-8000-0026BB765291",
+                        "iid": 5,
+                        "maxLen": 32,
+                        "format": "string"
+                    },
+                    {
+                        "value": "1",
+                        "perms": [
+                            "pr"
+                        ],
+                        "type": "00000030-0000-1000-8000-0026BB765291",
+                        "iid": 6,
+                        "maxLen": 32,
+                        "format": "string"
+                    },
+                    {
+                        "value": "1.0.5+1",
+                        "perms": [
+                            "pr"
+                        ],
+                        "type": "00000052-0000-1000-8000-0026BB765291",
+                        "iid": 7,
+                        "maxLen": 32,
+                        "format": "string"
+                    }
+                ]
             },
             {
-              "perms": [
-                "pw"
-              ],
-              "type": "14",
-              "iid": 3,
-              "format": "bool"
+                "iid": 8,
+                "type": "00000096-0000-1000-8000-0026BB765291",
+                "characteristics": [
+                    {
+                        "value": 64,
+                        "minValue": 0,
+                        "maxValue": 100,
+                        "minStep": 1,
+                        "perms": [
+                            "pr",
+                            "ev"
+                        ],
+                        "type": "00000068-0000-1000-8000-0026BB765291",
+                        "iid": 9,
+                        "unit": "percentage",
+                        "format": "int"
+                    },
+                    {
+                        "value": 0,
+                        "minValue": 0,
+                        "maxValue": 1,
+                        "minStep": 1,
+                        "perms": [
+                            "pr",
+                            "ev"
+                        ],
+                        "type": "00000079-0000-1000-8000-0026BB765291",
+                        "iid": 10,
+                        "unit": "",
+                        "format": "int"
+                    },
+                    {
+                        "value": 2,
+                        "minValue": 0,
+                        "maxValue": 2,
+                        "minStep": 1,
+                        "perms": [
+                            "pr"
+                        ],
+                        "type": "0000008F-0000-1000-8000-0026BB765291",
+                        "iid": 11,
+                        "unit": "",
+                        "format": "int"
+                    }
+                ]
             },
             {
-              "value": "ACME",
-              "perms": [
-                "pr"
-              ],
-              "type": "20",
-              "iid": 4,
-              "maxLen": 32,
-              "format": "string"
+                "iid": 12,
+                "type": "0000008A-0000-1000-8000-0026BB765291",
+                "characteristics": [
+                    {
+                        "value": "Remote Weather 1",
+                        "perms": [
+                            "pr"
+                        ],
+                        "type": "00000023-0000-1000-8000-0026BB765291",
+                        "iid": 13,
+                        "format": "string"
+                    },
+                    {
+                        "value": 23.8,
+                        "minValue": -50.0,
+                        "maxValue": 100.0,
+                        "minStep": 0.1,
+                        "perms": [
+                            "pr",
+                            "ev"
+                        ],
+                        "type": "00000011-0000-1000-8000-0026BB765291",
+                        "iid": 14,
+                        "unit": "celsius",
+                        "format": "float"
+                    },
+                    {
+                        "value": "2020-06-25 17:48:04",
+                        "perms": [
+                            "pr",
+                            "ev"
+                        ],
+                        "type": "000003EA-6B66-4FFD-88CC-16A60B5C4E03",
+                        "iid": 21,
+                        "maxLen": 32,
+                        "description": "LastUpdate",
+                        "format": "string"
+                    },
+                    {
+                        "value": 0,
+                        "minValue": 0,
+                        "maxValue": 1,
+                        "minStep": 1,
+                        "perms": [
+                            "pr",
+                            "pw"
+                        ],
+                        "type": "000004EA-6B66-4FFD-88CC-16A60B5C4E03",
+                        "iid": 22,
+                        "unit": "",
+                        "description": "Measure Mode",
+                        "valid-values": [
+                            0,
+                            1
+                        ],
+                        "format": "uint8"
+                    },
+                    {
+                        "value": 6,
+                        "minValue": 1,
+                        "maxValue": 15,
+                        "minStep": 1,
+                        "perms": [
+                            "pr",
+                            "pw"
+                        ],
+                        "type": "000005EA-6B66-4FFD-88CC-16A60B5C4E03",
+                        "iid": 23,
+                        "unit": "",
+                        "description": "Heartbeat",
+                        "valid-values": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6,
+                            7,
+                            8,
+                            9,
+                            10,
+                            11,
+                            12,
+                            13,
+                            14,
+                            15
+                        ],
+                        "format": "uint8"
+                    }
+                ]
             },
             {
-              "value": "BME2800",
-              "perms": [
-                "pr"
-              ],
-              "type": "21",
-              "iid": 5,
-              "maxLen": 32,
-              "format": "string"
+                "iid": 15,
+                "type": "00000082-0000-1000-8000-0026BB765291",
+                "characteristics": [
+                    {
+                        "value": "Remote Humidity Sensor 1",
+                        "perms": [
+                            "pr"
+                        ],
+                        "type": "00000023-0000-1000-8000-0026BB765291",
+                        "iid": 16,
+                        "format": "string"
+                    },
+                    {
+                        "value": 0.0,
+                        "minValue": 0.0,
+                        "maxValue": 100.0,
+                        "minStep": 0.1,
+                        "perms": [
+                            "pr",
+                            "ev"
+                        ],
+                        "type": "00000010-0000-1000-8000-0026BB765291",
+                        "iid": 17,
+                        "unit": "percentage",
+                        "format": "float"
+                    }
+                ]
             },
             {
-              "value": "f75770f9792f4fd6a7f83fceaf7034c0",
-              "perms": [
-                "pr"
-              ],
-              "type": "30",
-              "iid": 6,
-              "maxLen": 32,
-              "format": "string"
+                "iid": 18,
+                "type": "E863F00A-079E-48FF-8F27-9C2605A29F52",
+                "characteristics": [
+                    {
+                        "value": "Remote Pressure Sensor 1",
+                        "perms": [
+                            "pr"
+                        ],
+                        "type": "00000023-0000-1000-8000-0026BB765291",
+                        "iid": 19,
+                        "format": "string"
+                    },
+                    {
+                        "value": 974,
+                        "minValue": 0,
+                        "maxValue": 1100,
+                        "minStep": 1,
+                        "perms": [
+                            "pr",
+                            "ev"
+                        ],
+                        "type": "E863F10F-079E-48FF-8F27-9C2605A29F52",
+                        "iid": 20,
+                        "unit": "hpa",
+                        "format": "uint16"
+                    }
+                ]
             },
             {
-              "value": "0.0.3+2",
-              "perms": [
-                "pr"
-              ],
-              "type": "52",
-              "iid": 7,
-              "maxLen": 32,
-              "format": "string"
+                "iid": 29,
+                "type": "E863F007-079E-48FF-8F27-9C2605A29F52",
+                "characteristics": [
+                    {
+                        "value": "EVE 1 History",
+                        "perms": [
+                            "pr"
+                        ],
+                        "type": "00000023-0000-1000-8000-0026BB765291",
+                        "iid": 24,
+                        "maxLen": 32,
+                        "format": "string"
+                    },
+                    {
+                        "value": null,
+                        "perms": [
+                            "pr",
+                            "ev",
+                            "hd"
+                        ],
+                        "type": "E863F116-079E-48FF-8F27-9C2605A29F52",
+                        "iid": 25,
+                        "maxLen": 128,
+                        "format": "data"
+                    },
+                    {
+                        "value": null,
+                        "perms": [
+                            "pr",
+                            "ev",
+                            "hd"
+                        ],
+                        "type": "E863F117-079E-48FF-8F27-9C2605A29F52",
+                        "iid": 26,
+                        "maxLen": 512,
+                        "format": "data"
+                    },
+                    {
+                        "perms": [
+                            "pw",
+                            "hd"
+                        ],
+                        "type": "E863F11C-079E-48FF-8F27-9C2605A29F52",
+                        "iid": 27,
+                        "maxLen": 128,
+                        "format": "data"
+                    },
+                    {
+                        "perms": [
+                            "pw",
+                            "hd"
+                        ],
+                        "type": "E863F121-079E-48FF-8F27-9C2605A29F52",
+                        "iid": 28,
+                        "maxLen": 128,
+                        "format": "data"
+                    }
+                ]
             }
-          ]
-        },
-        {
-          "iid": 8,
-          "type": "8A",
-          "characteristics": [
-            {
-              "value": "Temperature Sensor",
-              "perms": [
-                "pr"
-              ],
-              "type": "23",
-              "iid": 9,
-              "format": "string"
-            },
-            {
-              "value": 30.7,
-              "minValue": -50.000000,
-              "maxValue": 100.000000,
-              "minStep": 0.100000,
-              "perms": [
-                "pr",
-                "ev"
-              ],
-              "type": "11",
-              "iid": 10,
-              "unit": "celsius",
-              "format": "float"
-            }
-          ]
-        },
-        {
-          "iid": 11,
-          "type": "82",
-          "characteristics": [
-            {
-              "value": "Humidity Sensor",
-              "perms": [
-                "pr"
-              ],
-              "type": "23",
-              "iid": 12,
-              "format": "string"
-            },
-            {
-              "value": 23.6,
-              "minValue": 0.000000,
-              "maxValue": 100.000000,
-              "minStep": 0.100000,
-              "perms": [
-                "pr",
-                "ev"
-              ],
-              "type": "10",
-              "iid": 13,
-              "unit": "percentage",
-              "format": "float"
-            }
-          ]
-        },
-        {
-          "iid": 14,
-          "type": "E863F00A-079E-48FF-8F27-9C2605A29F52",
-          "characteristics": [
-            {
-              "value": "Pressure Sensor",
-              "perms": [
-                "pr"
-              ],
-              "type": "23",
-              "iid": 15,
-              "format": "string"
-            },
-            {
-              "value": 330,
-              "minValue": 0,
-              "maxValue": 1100,
-              "minStep": 1,
-              "perms": [
-                "pr",
-                "ev"
-              ],
-              "type": "E863F10F-079E-48FF-8F27-9C2605A29F52",
-              "iid": 16,
-              "unit": "hpa",
-              "format": "uint16"
-            }
-          ]
-        },
-        {
-          "iid": 22,
-          "type": "E863F007-079E-48FF-8F27-9C2605A29F52",
-          "characteristics": [
-            {
-              "value": "EVE BME280 History",
-              "perms": [
-                "pr"
-              ],
-              "type": "23",
-              "iid": 17,
-              "maxLen": 32,
-              "format": "string"
-            },
-            {
-              "value": "JggAAAAAAACyQWckAwECAgIDAgAGAAY8AwAAAAAAAAEB",
-              "perms": [
-                "pr",
-                "ev",
-                "hd"
-              ],
-              "type": "E863F116-079E-48FF-8F27-9C2605A29F52",
-              "iid": 18,
-              "maxLen": 128,
-              "format": "data"
-            },
-            {
-              "value": null,
-              "perms": [
-                "pr",
-                "ev",
-                "hd"
-              ],
-              "type": "E863F117-079E-48FF-8F27-9C2605A29F52",
-              "iid": 19,
-              "maxLen": 512,
-              "format": "data"
-            },
-            {
-              "perms": [
-                "pw",
-                "hd"
-              ],
-              "type": "E863F11C-079E-48FF-8F27-9C2605A29F52",
-              "iid": 20,
-              "maxLen": 128,
-              "format": "data"
-            },
-            {
-              "perms": [
-                "pw",
-                "hd"
-              ],
-              "type": "E863F121-079E-48FF-8F27-9C2605A29F52",
-              "iid": 21,
-              "maxLen": 128,
-              "format": "data"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "aid": 3,
-      "services": [
-        {
-          "iid": 1,
-          "type": "3E",
-          "characteristics": [
-            {
-              "value": "DHT Sensor",
-              "perms": [
-                "pr"
-              ],
-              "type": "23",
-              "iid": 2,
-              "maxLen": 32,
-              "format": "string"
-            },
-            {
-              "perms": [
-                "pw"
-              ],
-              "type": "14",
-              "iid": 3,
-              "format": "bool"
-            },
-            {
-              "value": "ACME",
-              "perms": [
-                "pr"
-              ],
-              "type": "20",
-              "iid": 4,
-              "maxLen": 32,
-              "format": "string"
-            },
-            {
-              "value": "DHT",
-              "perms": [
-                "pr"
-              ],
-              "type": "21",
-              "iid": 5,
-              "maxLen": 32,
-              "format": "string"
-            },
-            {
-              "value": "21a15bcd6185ac5f9cbf6ef039b6ae6b",
-              "perms": [
-                "pr"
-              ],
-              "type": "30",
-              "iid": 6,
-              "maxLen": 32,
-              "format": "string"
-            },
-            {
-              "value": "0.0.3+1",
-              "perms": [
-                "pr"
-              ],
-              "type": "52",
-              "iid": 7,
-              "maxLen": 32,
-              "format": "string"
-            }
-          ]
-        },
-        {
-          "iid": 8,
-          "type": "8A",
-          "characteristics": [
-            {
-              "value": "Temperature Sensor",
-              "perms": [
-                "pr"
-              ],
-              "type": "23",
-              "iid": 9,
-              "format": "string"
-            },
-            {
-              "value": 23.5,
-              "minValue": -50.000000,
-              "maxValue": 100.000000,
-              "minStep": 0.100000,
-              "perms": [
-                "pr",
-                "ev"
-              ],
-              "type": "11",
-              "iid": 10,
-              "unit": "celsius",
-              "format": "float"
-            }
-          ]
-        },
-        {
-          "iid": 11,
-          "type": "82",
-          "characteristics": [
-            {
-              "value": "Humidity Sensor",
-              "perms": [
-                "pr"
-              ],
-              "type": "23",
-              "iid": 12,
-              "format": "string"
-            },
-            {
-              "value": 26.6,
-              "minValue": 0.000000,
-              "maxValue": 100.000000,
-              "minStep": 0.100000,
-              "perms": [
-                "pr",
-                "ev"
-              ],
-              "type": "10",
-              "iid": 13,
-              "unit": "percentage",
-              "format": "float"
-            }
-          ]
-        },
-        {
-          "iid": 19,
-          "type": "E863F007-079E-48FF-8F27-9C2605A29F52",
-          "characteristics": [
-            {
-              "value": "EVE DHT History",
-              "perms": [
-                "pr"
-              ],
-              "type": "23",
-              "iid": 14,
-              "maxLen": 32,
-              "format": "string"
-            },
-            {
-              "value": "JggAAAAAAACyQWckAwECAgIDAgAGAAY2AwAAAAAAAAEB",
-              "perms": [
-                "pr",
-                "ev",
-                "hd"
-              ],
-              "type": "E863F116-079E-48FF-8F27-9C2605A29F52",
-              "iid": 15,
-              "maxLen": 128,
-              "format": "data"
-            },
-            {
-              "value": "AA==",
-              "perms": [
-                "pr",
-                "ev",
-                "hd"
-              ],
-              "type": "E863F117-079E-48FF-8F27-9C2605A29F52",
-              "iid": 16,
-              "maxLen": 512,
-              "format": "data"
-            },
-            {
-              "perms": [
-                "pw",
-                "hd"
-              ],
-              "type": "E863F11C-079E-48FF-8F27-9C2605A29F52",
-              "iid": 17,
-              "maxLen": 128,
-              "format": "data"
-            },
-            {
-              "perms": [
-                "pw",
-                "hd"
-              ],
-              "type": "E863F121-079E-48FF-8F27-9C2605A29F52",
-              "iid": 18,
-              "maxLen": 128,
-              "format": "data"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "aid": 4,
-      "services": [
-        {
-          "iid": 1,
-          "type": "3E",
-          "characteristics": [
-            {
-              "value": "Builtin LED",
-              "perms": [
-                "pr"
-              ],
-              "type": "23",
-              "iid": 2,
-              "maxLen": 32,
-              "format": "string"
-            },
-            {
-              "perms": [
-                "pw"
-              ],
-              "type": "14",
-              "iid": 3,
-              "format": "bool"
-            },
-            {
-              "value": "ACME",
-              "perms": [
-                "pr"
-              ],
-              "type": "20",
-              "iid": 4,
-              "maxLen": 32,
-              "format": "string"
-            },
-            {
-              "value": "LED",
-              "perms": [
-                "pr"
-              ],
-              "type": "21",
-              "iid": 5,
-              "maxLen": 32,
-              "format": "string"
-            },
-            {
-              "value": "123123123",
-              "perms": [
-                "pr"
-              ],
-              "type": "30",
-              "iid": 6,
-              "maxLen": 32,
-              "format": "string"
-            },
-            {
-              "value": "0.0.3+1",
-              "perms": [
-                "pr"
-              ],
-              "type": "52",
-              "iid": 7,
-              "maxLen": 32,
-              "format": "string"
-            }
-          ]
-        },
-        {
-          "iid": 8,
-          "type": "43",
-          "characteristics": [
-            {
-              "value": "LED",
-              "perms": [
-                "pr"
-              ],
-              "type": "23",
-              "iid": 9,
-              "maxLen": 32,
-              "format": "string"
-            },
-            {
-              "value": 1,
-              "perms": [
-                "pr",
-                "pw",
-                "ev"
-              ],
-              "type": "25",
-              "iid": 10,
-              "format": "bool"
-            }
-          ]
-        }
-      ]
+        ]
     }
-  ]
+]
 }

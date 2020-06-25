@@ -19,7 +19,7 @@ HAPPluginRF24Device::HAPPluginRF24Device(){
     _eventManager       = nullptr;  
     _fakegatoFactory    = nullptr;
 
-    sleepInterval       = 0;
+    sleepInterval       = 1;
     measureMode         = (enum MeasureMode)0;
 
 }
@@ -33,7 +33,7 @@ HAPPluginRF24Device::HAPPluginRF24Device(uint16_t id_, String name_, uint8_t mea
     _eventManager       = nullptr;      
     _fakegatoFactory    = nullptr;
 
-    sleepInterval       = 0;
+    sleepInterval       = 1;
     measureMode         = (enum MeasureMode)measureMode_;
 }
 
