@@ -183,10 +183,10 @@ HAPAccessory* HAPPluginRF24DeviceWeather::initAccessory(){
     uint8_t validValuesHeartbeat[15] = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
     _heartbeat = new uint8Characteristics("000005EA-6B66-4FFD-88CC-16A60B5C4E03", permission_read|permission_write, 1, 15, 1, unit_none, 15, validValuesHeartbeat);
     _heartbeat->setDescription("Heartbeat");
-    _heartbeat->setValue(String((uint8_t) sleepInterval)); 
+    _heartbeat->setValue(String(sleepInterval)); 
 
     auto callbackChangeHeartbeat = std::bind(&HAPPluginRF24DeviceWeather::changeHeartbeat, this, std::placeholders::_1, std::placeholders::_2);
-    _measureMode->valueChangeFunctionCall = callbackChangeHeartbeat;
+    _heartbeat->valueChangeFunctionCall = callbackChangeHeartbeat;
     _accessory->addCharacteristics(temperatureService, _heartbeat);
 
 
@@ -273,7 +273,7 @@ void HAPPluginRF24DeviceWeather::changeHeartbeat(uint8_t oldValue, uint8_t newVa
         NewSettingsPacket newSettings;
         
         newSettings.forRadioId = id;
-        newSettings.changeType = ChangeMeasureType;
+        newSettings.changeType = ChangeSleepInterval;
         newSettings.newRadioId = 0;
         newSettings.newSleepInterval = newValue;
         newSettings.newMeasureMode = 0;    
@@ -367,5 +367,5 @@ void HAPPluginRF24DeviceWeather::setSettingsFromPayload(struct RemoteDeviceSetti
     _accessory->setFirmware(HAPVersion(settings.firmware_version).toString());
 
 	_measureMode->setValue(String((uint8_t) measureMode ));	
-    _heartbeat->setValue(String((uint8_t) sleepInterval ));	
+    _heartbeat->setValue(String(sleepInterval));	
 }

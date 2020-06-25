@@ -24,7 +24,7 @@
 #define HAP_PLUGIN_RF24_ADDRESS        "HOMEKIT_RF24"
 #endif 
 
-#define HAP_PLUGIN_RF24_PA_LEVEL       RF24_PA_MIN
+#define HAP_PLUGIN_RF24_PA_LEVEL       RF24_PA_MAX
 #define HAP_PLUGIN_RF24_DATA_RATE      RF24_250KBPS
 
 // http://www.iotsharing.com/2018/03/esp-and-raspberry-connect-with-nrf24l01.html
@@ -168,6 +168,9 @@ void HAPPluginRF24::handleImpl(bool forced){
                 return;
             } else if (payload.type > 2) {
                 LogW("WARNING: Got invalid payload.type from remote device!", true);
+                return;
+            } else if (payload.radioId == 0) {
+                LogW("WARNING: Got invalid payload.id from remote device!", true);
                 return;
             } else {
 
@@ -335,7 +338,8 @@ HAPConfigValidationResult HAPPluginRF24::validateConfig(JsonObject object){
                     "id": 17,
                     "type": 1,
                     "name": "test1",
-                    "measureMode": 1
+                    "measureMode": 1,
+                    "sleepInterval": 1
                 }
             ]
         }
@@ -398,6 +402,22 @@ HAPConfigValidationResult HAPPluginRF24::validateConfig(JsonObject object){
             return result;
         }
 
+        // plugin._name.devices.count.sleepInterval
+        if (!value.containsKey("sleepInterval") ) {
+            result.reason = "plugins." + _name + ".devices." + String(count) + ".sleepInterval is required";
+            return result;
+        }
+
+        if (value.containsKey("sleepInterval") && !value["sleepInterval"].is<uint8_t>()) {
+            result.reason = "plugins." + _name + ".devices." + String(count) + ".sleepInterval is not an integer";
+            return result;
+        }    
+
+        if (value["sleepInterval"].as<int>() < 0 || value["sleepInterval"].as<int>() > 15) {
+            result.reason = "plugins." + _name + ".devices." + String(count) + ".sleepInterval is not a valid value";
+            return result;
+        }
+
 
         // optional
         // plugin._name.devices.count.name
@@ -433,6 +453,7 @@ JsonObject HAPPluginRF24::getConfigImpl(){
         devices_["name"]            = dev->name;
         devices_["type"]            = dev->type;
         devices_["measureMode"]     = (uint8_t)dev->measureMode;
+        devices_["sleepInterval"]   = (uint8_t)dev->sleepInterval;
     }
 
     return doc.as<JsonObject>();

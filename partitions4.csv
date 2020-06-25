@@ -48,3 +48,11 @@ nvs_key,    data,       nvs_keys,   ,           4K,
 ## Name,    Type,       SubType,    Offset,     Size,   Flags
 nvs,        data,       nvs,        ,           32K,
 
+
+##
+## NVS (Keystore)
+##
+## 
+## Name,    Type,       SubType,    Offset,     Size,   Flags
+keystore_0, data,       nvs,        0x337000,   32K,
+keystore_1, data,       nvs,        0x33F000,   32K,

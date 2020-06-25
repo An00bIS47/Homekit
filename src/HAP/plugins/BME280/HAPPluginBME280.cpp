@@ -25,7 +25,7 @@ HAPPluginBME280::HAPPluginBME280(){
 	_type 				= HAP_PLUGIN_TYPE_ACCESSORY;
 	_name 				= "BME280";
 	_isEnabled 			= HAP_PLUGIN_USE_BME280;
-	_interval 			= 0;	// will be set according to selected mode
+	_interval 			= HAP_PLUGIN_BME280_INTERVAL;	
 	_previousMillis 	= 0;
 	_mode 				= HAP_PLUGIN_BME280_INDOOR;
 
@@ -324,7 +324,7 @@ bool HAPPluginBME280::begin(){
                     Adafruit_BME280::FILTER_OFF );
                       
     	// suggested rate is 1Hz (1s)
-    	_interval = 1000;  // in milliseconds
+    	// _interval = 1000;  // in milliseconds
 	
 	} else if (_mode == HAP_PLUGIN_BME280_INDOOR) {
 		// Serial.println("-- Indoor Navigation Scenario --");
@@ -344,7 +344,7 @@ bool HAPPluginBME280::begin(){
 		// H_ovs = 1
 		// = 40ms (25Hz)
 		// with standby time that should really be 24.16913... Hz
-		_interval = 41;
+		// _interval = 41;
 
 	} else if (_mode == HAP_PLUGIN_BME280_GAMING) {
 		// gaming
@@ -363,7 +363,7 @@ bool HAPPluginBME280::begin(){
 		// T_ovs = 1
 		// P_ovs = 4
 		// = 11.5ms + 0.5ms standby
-		_interval = 12;
+		// _interval = 12;
 	} else {
 		_interval = HAP_PLUGIN_BME280_INTERVAL;
 	}
