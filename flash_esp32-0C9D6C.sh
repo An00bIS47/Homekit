@@ -1,0 +1,3 @@
+make erase_flash && python /Users/michael/Development/esp/esp-idf/components/esptool_py/esptool/esptool.py --chip esp32 --port /dev/cu.SLAB_USBtoUART --baud 2000000 --before default_reset --after hard_reset write_flash -z --flash_mode dio --flash_freq 80m --flash_size detect 0x10000 /Users/michael/Development/Homekit/build/Homekit.bin 0x337000 /Users/michael/Development/Homekit/utils/TLV8Keystore/esp32-0C9D6C/truststore.bin  0x33F000 /Users/michael/Development/Homekit/truststore_empty.bin
+
+make -j8 app flash 

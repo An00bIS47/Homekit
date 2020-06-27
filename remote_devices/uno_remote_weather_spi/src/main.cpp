@@ -54,6 +54,7 @@
 // 
 
 #include <Arduino.h>
+#include <SPI.h>
 
 #include <avr/eeprom.h>
 #include <avr/power.h>      // Power management
@@ -62,42 +63,15 @@
 
 #include "RF24.h"
 
-const char FIRMWARE_VERSION[6] = "1.0.3";
+const char FIRMWARE_VERSION[6] = "1.0.5";
 
-
-// #define DEBUG                        
-#define DEBUG_RF24                   // uncomment to debug RF24 - BME280 will be disabled
-#define RESET_EEPROM                    // uncomment to reset EEPRom at startup
-// #define USE_BATTERY_CHECK_INTERVAL   // uncomment to check battery interval only every X cycles
-#define USE_QUICK_TIMER              // uncomment for 8 sec sleep
+// #define DEBUG       
+#define EEPROM_SETTINGS_VERSION 1
+#define WATCHDOG_WAKEUPS_TARGET 7                
 
 
 #ifndef DEVICE_ID
-#define DEVICE_ID               0x02
-#endif
-
-
-#ifdef DEBUG_RF24
-#ifndef DEBUG
-#define DEBUG
-#endif
-#endif
-
-// time until the watchdog wakes the mc in seconds
-#define WATCHDOG_TIME           8   // 1, 2, 4 or 8
- 
-// after how many watchdog wakeups we should collect and send the data
-#ifdef DEBUG_RF24
-    #define WATCHDOG_WAKEUPS_TARGET 1   // 8 * 1 =  8 seconds between each data collection
-    #define EEPROM_SETTINGS_VERSION 0
-#else
-    #ifdef USE_QUICK_TIMER
-        #define WATCHDOG_WAKEUPS_TARGET 1   // 8 * 6 = 48 seconds between each data collection
-        #define EEPROM_SETTINGS_VERSION 3
-    #else
-        #define WATCHDOG_WAKEUPS_TARGET 6   // 8 * 6 = 48 seconds between each data collection
-        #define EEPROM_SETTINGS_VERSION 1
-    #endif
+#define DEVICE_ID               0x12
 #endif
 
 
@@ -105,17 +79,6 @@ const char FIRMWARE_VERSION[6] = "1.0.3";
     #define BAT_CHECK_INTERVAL      5        // after how many data collections we should get the battery status
     uint16_t batteryVoltage = 0;
     uint8_t batteryCheckCounter = BAT_CHECK_INTERVAL;
-#endif
-
-
-// 
-// Sleep macros
-// 
-#ifndef cbi
-    #define cbi(sfr, bit) (_SFR_BYTE(sfr) &= ~_BV(bit))
-#endif
-#ifndef sbi
-    #define sbi(sfr, bit) (_SFR_BYTE(sfr) |= _BV(bit))
 #endif
 
 
@@ -147,8 +110,8 @@ const char FIRMWARE_VERSION[6] = "1.0.3";
 // 
 // Pins
 // 
-#define RF24_CE_PIN     PIN_B3  // PB2 
-#define RF24_CSN_PIN    PIN_B4  // Since we are using 3 pin configuration we will use same pin for both CE and CSN
+#define RF24_CE_PIN     9  // PB3
+#define RF24_CSN_PIN    10  // Since we are using 3 pin configuration we will use same pin for both CE and CSN
 
 
 // 
@@ -157,10 +120,18 @@ const char FIRMWARE_VERSION[6] = "1.0.3";
 #define eepromBegin() eeprom_busy_wait(); noInterrupts() // Details on https://youtu.be/_yOcKwu7mQA
 #define eepromEnd()   interrupts()
 
+
+
 // Utility macro
 #define adc_enable()  (ADCSRA |= (1 << ADEN))
 #define adc_disable() (ADCSRA &= ~(1 << ADEN)) // disable ADC (before power-off)
 
+
+// *****************************************************************************************************************************
+// 
+// Structs
+// 
+// *****************************************************************************************************************************
 
 struct EepromSettings
 {
@@ -216,18 +187,34 @@ struct NewSettingsPacket
 };
 
 
+
+
+// *****************************************************************************************************************************
+// 
+// Prototyps
+// 
+// *****************************************************************************************************************************
+
 uint16_t readVcc();
-void processSettingsChange(NewSettingsPacket newSettings); // Need to pre-declare this function since it uses a custom struct as a parameter (or use a .h file instead).
-void setupRadio();
 
-
-
-void saveSettings();
 void system_sleep();
 void setup_watchdog(int ii);
 void resetWatchDog();
 
-uint8_t saveADCSRA;                 // variable to save the content of the ADC for later. if needed.
+
+bool setupRadio();
+
+void processSettingsChange(NewSettingsPacket newSettings); 
+void saveSettings();
+
+
+// *****************************************************************************************************************************
+// 
+// Variables
+// 
+// *****************************************************************************************************************************
+
+// uint8_t saveADCSRA;                 // variable to save the content of the ADC for later. if needed.
 volatile uint8_t counterWD = 0;     // Count how many times WDog has fired. Used in the timing of the 
                                     // loop to increase the delay before the LED is illuminated. For example,
                                     // if WDog is set to 1 second TimeOut, and the counterWD loop to 10, the delay
@@ -238,6 +225,13 @@ RF24            _radio(RF24_CE_PIN, RF24_CSN_PIN);
 uint8_t         address[RF24_ADDRESS_SIZE] = RF24_ADDRESS;
 EepromSettings  _settings;
 
+
+
+// *****************************************************************************************************************************
+// 
+// Read VCC
+// 
+// *****************************************************************************************************************************
 
 uint16_t readVcc()
 {
@@ -255,19 +249,25 @@ uint16_t readVcc()
     return vcc;
 }
 
+
+// *****************************************************************************************************************************
+// 
+// Setup
+// 
+// *****************************************************************************************************************************
     
 void setup() {
 
+    Serial.begin(19200);
 
-
+    Serial.println("Starting NRF24 Test...");
     // Disable Analog Digital converter
     adc_disable();  // disable ADC
 
     // Load settings from eeprom.
     eepromBegin();
 
-#ifdef RESET_EEPROM
-    
+#ifdef RESET_EEPROM    
     eeprom_write_block(0xFF, 0, sizeof(_settings));
 #endif // RESET_EEPROM
 
@@ -275,12 +275,8 @@ void setup() {
     eeprom_read_block(&_settings, 0, sizeof(_settings));
     eepromEnd();
 
-    if (_settings.version == EEPROM_SETTINGS_VERSION) {
-  
-    } else {
+    if (_settings.version != EEPROM_SETTINGS_VERSION) {
         // The settings version in eeprom is not what we expect, so assign default values.
-
-
         _settings.radioId = RF24_ID;        
         _settings.sleepInterval = WATCHDOG_WAKEUPS_TARGET;        
         _settings.measureMode = MeasureModeWeatherStation;        
@@ -291,26 +287,54 @@ void setup() {
         saveSettings();
     }
 
-    setup_watchdog(9); // approximately 8 seconds sleep
+    // set slave select pins BME280 as outputs
+    // pinMode(BME280_CS_PIN, OUTPUT);
+  
+    // set BME280_CS_PIN 
+    // digitalWrite(BME280_CS_PIN, HIGH);
+
+
+    // init BME280
+    // _bme280.beginSPI(BME280_CS_PIN); // Start using SPI and CS Pin 10
+
+    // _bme280.setTempOverSample(1);
+    // _bme280.setPressureOverSample(1);
+    // _bme280.setHumidityOverSample(1);
+
+    // _bme280.setMode(tiny::Mode::SLEEP);
+    
+    // _bme280.setFilter(0);
+             
+    // setup_watchdog(9); // approximately 8 seconds sleep
 }
 
 
 
-void loop() {        
+// *****************************************************************************************************************************
+// 
+// Loop
+// 
+// *****************************************************************************************************************************
 
-    if ( counterWD == 2 ) {
-        counterWD = 0;
+void loop() {    
+    
+
+    if ( counterWD == _settings.sleepInterval ) {
 
         RadioPacket radioData;
         
         radioData.type = RemoteDeviceTypeWeather;
         radioData.radioId = _settings.radioId;
+                
+        // _bme280.setMode(tiny::Mode::FORCED); //Wake up sensor and take reading
+
+        // radioData.temperature   = _bme280.readFixedTempC();
+        // radioData.pressure      = _bme280.readFixedPressure();
+        // radioData.humidity      = _bme280.readFixedHumidity();
         
-
-        radioData.temperature   = 1000;
-        radioData.humidity      = 1100;
+        radioData.temperature   = 1100;
         radioData.pressure      = 12000;
-
+        radioData.humidity      = 1300;
 
 #ifdef USE_BATTERY_CHECK_INTERVAL
         batteryCheckCounter++;
@@ -324,67 +348,90 @@ void loop() {
 #else
         radioData.voltage = readVcc();
 #endif
-          
-        setupRadio();                        // Re-initialize the radio.    
         
-        if (!_radio.write( &radioData, sizeof(RadioPacket) ) ) { //Send data to 'Receiver' every x seconds                        
 
-        } else {
-            if ( _radio.isAckPayloadAvailable() ) {
-                NewSettingsPacket newSettingsData;
-                _radio.read(&newSettingsData, sizeof(NewSettingsPacket));
+        Serial.print("Setup Radio ...");
+        // Re-initialize the radio.               
+        if (setupRadio()){
+            Serial.println("OK");
+            if (!_radio.write( &radioData, sizeof(RadioPacket) ) ) { //Send data to 'Receiver' every x seconds                        
+                
+            } else {
+                
+                if ( _radio.isAckPayloadAvailable() ) {
+                    NewSettingsPacket newSettingsData;
+                    _radio.read(&newSettingsData, sizeof(NewSettingsPacket));
 
+                    if (newSettingsData.forRadioId == _settings.radioId) {
+                        processSettingsChange(newSettingsData);        
 
+                        // Send new updated settings
+                        if (!_radio.write( &_settings, sizeof(EepromSettings) ) ) { //Send data to 'Receiver' every x seconds                                
 
-                if (newSettingsData.forRadioId == _settings.radioId) {
-              
-                    processSettingsChange(newSettingsData);        
-
-
-                    // Send new updated settings
-                    if (!_radio.write( &_settings, sizeof(EepromSettings) ) ) { //Send data to 'Receiver' every x seconds                                
-                    
-                    }
-                }         
+                        }
+                    }           
+                }
             }
-        }
+        } else {
+            Serial.println("FAILED");
+        }                         
     
         _radio.powerDown();                  // Put the radio into a low power state.        
         
         // Put the SPI pins to low for energy saving
         // SPI.end();
-        // digitalWrite(SCK, LOW);
-        // digitalWrite(MOSI, LOW);
+        
 
+#ifdef DEBUG
+        delay(1000);
+#endif        
+
+        counterWD = 0;
     }
 
-  
 
     // deep sleep    
-    system_sleep();
+    // system_sleep();
+    delay(1000);
+    counterWD++;
         
 }
+
+
+
+// *****************************************************************************************************************************
+// 
+// Watchdog
+// 
+// *****************************************************************************************************************************
 
 // 0=16ms, 1=32ms,2=64ms,3=128ms,4=250ms,5=500ms
 // 6=1 sec,7=2 sec, 8=4 sec, 9= 8sec
 void setup_watchdog(int ii) {
 
-    uint8_t bb;
-    // int ww;
-    if (ii > 9 ) ii=9;
-    bb=ii & 7;
-    if (ii > 7) bb|= (1<<5);
-    bb|= (1<<WDCE);
-    // ww=bb;
-
-    MCUSR &= ~(1<<WDRF);
-    // start timed sequence
-    WDTCR |= (1<<WDCE) | (1<<WDE);
-    // set new watchdog timeout value
-    WDTCR = bb;
-    WDTCR |= _BV(WDIE);
+    /* Setup des Watchdog Timers */
+    MCUSR &= ~(1<<WDRF);             /* WDT reset flag loeschen */
+    WDTCSR |= (1<<WDCE) | (1<<WDE);  /* WDCE setzen, Zugriff auf Presclaler etc. */
+    WDTCSR = 1<<WDP0 | 1<<WDP3;      /* Prescaler auf 8.0 s */
+    WDTCSR |= 1<<WDIE;               /* WDT Interrupt freigeben */
 }
 
+void resetWatchDog(){
+    MCUSR = 0;     // clear various "reset" flags
+    // WDTCR = bit (WDCE) | bit (WDE) | bit (WDIF);  // allow changes, disable reset, clear existing interrupt
+    // // set interrupt mode and an interval (WDE must be changed from 1 to 0 here)
+    // WDTCR = bit (WDIE) | bit (WDP3) | bit (WDP0);    // set WDIE, and 8 seconds delay
+    // pat the dog
+    wdt_reset();  
+}  // end of resetWatchdog
+
+
+
+// *****************************************************************************************************************************
+// 
+// Interrupt
+// 
+// *****************************************************************************************************************************
 
 ISR( WDT_vect ){    
     counterWD ++;                           // increase the WDog firing counter. Used in the loop to time the flash
@@ -394,75 +441,81 @@ ISR( WDT_vect ){
                                             // delay () commands.
 } // end of ISR
 
+
+
+
+// *****************************************************************************************************************************
+// 
+// Sleep
+// 
+// *****************************************************************************************************************************
+
+
 // set system into the sleep state 
 // system wakes up when wtchdog is timed out
 void system_sleep() {    
-    
+        
     set_sleep_mode ( SLEEP_MODE_PWR_DOWN ); // set sleep mode Power Down
 
     power_all_disable ();                   // turn power off to ADC, TIMER 1 and 2, Serial Interface
     
-    noInterrupts ();                        // turn off interrupts as a precaution
-    resetWatchDog ();                       // reset the WatchDog before beddy bies
-    sleep_enable ();                        // allows the system to be commanded to sleep
-    interrupts ();                          // turn on interrupts
+    noInterrupts();                        // turn off interrupts as a precaution
+    resetWatchDog();                       // reset the WatchDog before beddy bies
+    sleep_enable();                        // allows the system to be commanded to sleep
+    interrupts();                          // turn on interrupts
     
-    sleep_cpu ();                           // send the system to sleep, night night!
+    sleep_cpu();                           // send the system to sleep, night night!
 
-    sleep_disable ();                       // after ISR fires, return to here and disable sleep
-    power_all_enable ();                    // turn on power to ADC, TIMER1 and 2, Serial Interface
+    sleep_disable();                       // after ISR fires, return to here and disable sleep
+    power_all_enable();                    // turn on power to ADC, TIMER1 and 2, Serial Interface    
     
-    
-
 }
 
-void resetWatchDog(){
-    MCUSR = 0;     // clear various "reset" flags
-    WDTCR = bit (WDCE) | bit (WDE) | bit (WDIF);  // allow changes, disable reset, clear existing interrupt
-    // set interrupt mode and an interval (WDE must be changed from 1 to 0 here)
-    WDTCR = bit (WDIE) | bit (WDP3) | bit (WDP0);    // set WDIE, and 8 seconds delay
-    // pat the dog
-    wdt_reset();  
-}  // end of resetWatchdog
 
 
 
-void setupRadio(){
+// *****************************************************************************************************************************
+// 
+// BME280
+// 
+// *****************************************************************************************************************************
 
 
 
-    if (_radio.begin() ){  
-
-
-
-        _radio.setPALevel(RF24_PA_LEVEL);   // You can set it as minimum or maximum depending on the distance between the transmitter and receiver.
-        _radio.setDataRate(RF24_DATA_RATE);
-        // _radio.setAutoAck(1);            // Ensure autoACK is enabled
-        _radio.enableAckPayload();
-        _radio.setRetries(5,5);             // delay, count
-                                            // 5 gives a 1500 µsec delay which is needed for a 32 byte ackPayload
-        _radio.openWritingPipe(address);    // Write to device address 'HOMEKIT_RF24'
-
-         
-    }  
-}
+// *****************************************************************************************************************************
+// 
+// Settings
+// 
+// *****************************************************************************************************************************
 
 void processSettingsChange(NewSettingsPacket newSettings) {
 
     if (newSettings.changeType == ChangeTypeNone) {
-
         return;
     } else if (newSettings.changeType == ChangeRadioId) {
-
         _settings.radioId = newSettings.newRadioId;
         setupRadio();
     } else if (newSettings.changeType == ChangeSleepInterval) {
-
         _settings.sleepInterval = newSettings.newSleepInterval;
-    } else if (newSettings.changeType == ChangeMeasureType) {
-        // sendMessage(F("Changing temperature"));
-        // sendMessage(F(" correction"));        
-        _settings.measureMode = newSettings.newMeasureMode;       
+    } else if (newSettings.changeType == ChangeMeasureType) {       
+        _settings.measureMode = newSettings.newMeasureMode;
+      
+        if (_settings.measureMode == MeasureModeWeatherStation){
+            // _bme280.setTempOverSample(1);
+            // _bme280.setPressureOverSample(1);
+            // _bme280.setHumidityOverSample(1);
+            // _bme280.setMode(tiny::Mode::SLEEP);
+            // _bme280.setFilter(0);
+        } else if (_settings.measureMode == MeasureModeIndoor){
+            // _bme280.setTempOverSample(2);
+            // _bme280.setPressureOverSample(16);
+            // _bme280.setHumidityOverSample(1);
+            // _bme280.setMode(tiny::Mode::NORMAL);
+            // _bme280.setFilter(16);
+            // _bme280.setStandbyTime(0);
+        }
+
+        
     }
 
     saveSettings();
@@ -479,11 +532,39 @@ void saveSettings()
 
     // Do not waste 1 of the 100,000 guaranteed eeprom writes if settings have not changed.
     if (memcmp(&settingsCurrentlyInEeprom, &_settings, sizeof(_settings)) == 0) {        
-
+ 
     } else {
 
         eepromBegin();
         eeprom_write_block(&_settings, 0, sizeof(_settings));
         eepromEnd();
     }
+}
+
+
+
+
+
+// *****************************************************************************************************************************
+// 
+// RF24
+// 
+// *****************************************************************************************************************************
+
+
+bool setupRadio(){
+
+    if (_radio.begin() ){  
+
+        _radio.setPALevel(RF24_PA_LEVEL);   // You can set it as minimum or maximum depending on the distance between the transmitter and receiver.
+        _radio.setDataRate(RF24_DATA_RATE);
+        // _radio.setAutoAck(1);            // Ensure autoACK is enabled
+        _radio.enableAckPayload();
+        _radio.setRetries(5,5);             // delay, count
+                                            // 5 gives a 1500 µsec delay which is needed for a 32 byte ackPayload
+        _radio.openWritingPipe(address);    // Write to device address 'HOMEKIT_RF24'
+
+        return true;
+    }  
+    return false;
 }

@@ -589,15 +589,20 @@ bool HAPConfig::save(){
 
     serializeJson(_config, cfg); 
 
-    size_t writtenBytes = _prefs.putString("json", cfg);
+    String cfgOld = _prefs.getString("json", "");
 
-    _prefs.end();
+    if (cfgOld != cfg) {
+        size_t writtenBytes = _prefs.putString("json", cfg);
 
-    LogD("Bytes written: " + String(writtenBytes) + "/" + String(measureJson(_config)), true);
-    if (writtenBytes != measureJson(_config)){
-        return false;
+        LogD("Bytes written: " + String(writtenBytes) + "/" + String(measureJson(_config)), true);
+        if (writtenBytes != measureJson(_config)){
+            return false;
+        }
+    } else {
+        LogD("Config hasn't changed! Saving not required!", true);
     }
-
+    
+    _prefs.end();
     return true;        
 }
 
