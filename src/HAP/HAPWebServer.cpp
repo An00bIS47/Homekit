@@ -831,6 +831,12 @@ void HAPWebServer::handleApi(HTTPRequest *req, HTTPResponse *res)
         handleApiKeystorePost(req, res);
         return;
     } 
+    else if ( (strcmp(params->getPathParameter(0).c_str(), "csr") == 0) && (strcmp(req->getMethod().c_str(), "GET") == 0) )
+    {
+        //req->discardRequestBody();
+        handleApiCSRGet(req, res);
+        return;
+    } 
     
     handle404(req, res);
     
@@ -859,6 +865,10 @@ bool HAPWebServer::validateApiGet(const std::string s)
     {
         return true;
     }
+    else if (strcmp(s.c_str(), "csr") == 0)
+    {
+        return true;
+    }    
 
     return false;
 }
@@ -974,6 +984,24 @@ void HAPWebServer::handleApiConfigPost(HTTPRequest *req, HTTPResponse *res)
 
     delete[] buffer;
     return;
+}
+
+
+// ===========================================================================================================
+// /api/csr
+// ===========================================================================================================
+void HAPWebServer::handleApiCSRGet(HTTPRequest *req, HTTPResponse *res)
+{
+
+    LogD("Generating new CSR ...", false);
+    HAPKeystore::createCSR((unsigned char *)server_privateKey_der_start, server_privateKey_der_end - server_privateKey_der_start, _accessorySet->modelName());
+
+    LogD("OK", true);
+
+    res->setStatusCode(200);
+    res->setStatusText("OK");
+    res->setHeader("Content-Type", "application/json");
+    res->printf("{ \"heap\": %d }\n", ESP.getFreeHeap());
 }
 
 

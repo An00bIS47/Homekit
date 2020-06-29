@@ -14,7 +14,9 @@
 #include "mbedtls/error.h"
 #include "mbedtls/md.h"
 #include "mbedtls/pk.h"
-
+#include "mbedtls/x509_csr.h"
+#include "mbedtls/entropy.h"
+#include "mbedtls/ctr_drbg.h"
 
 
 HAPKeystore::HAPKeystore(){
@@ -465,6 +467,108 @@ bool HAPKeystore::verifySignature(const uint8_t* publicKey, size_t publicKeyLeng
     }
 
     mbedtls_pk_free( &ctxPublicKey );
+
+    return true;
+}
+
+
+// ToDo: not yet working
+bool HAPKeystore::createCSR(const uint8_t* privateKey, size_t privateKey_Length, const char* hostname){
+    
+    mbedtls_x509write_csr req;
+    mbedtls_entropy_context entropy;
+    mbedtls_ctr_drbg_context ctr_drbg;
+    
+    Serial.println("Init stuff");
+    mbedtls_x509write_csr_init( &req );         
+
+    // Set key algorithm
+    Serial.println("set algo");
+    mbedtls_x509write_csr_set_md_alg( &req, MBEDTLS_MD_SHA256 );
+
+    // set cert type
+    Serial.println("set cert type");
+    int result = mbedtls_x509write_csr_set_ns_cert_type( &req, MBEDTLS_X509_NS_CERT_TYPE_SSL_SERVER );
+    if (result != 0){
+        LogE("Failed to set cert type for csr", true);
+        mbedtls_x509write_csr_free(&req);
+        return false;
+    }
+
+
+    Serial.println("Init random");
+    mbedtls_entropy_init( &entropy );
+    mbedtls_ctr_drbg_init( &ctr_drbg );
+    
+    Serial.println("Init random 2");
+    result = mbedtls_ctr_drbg_seed( &ctr_drbg, mbedtls_entropy_func, &entropy, NULL, 0 ) ;
+    if (result != 0){
+        LogE("Failed to set seed random", true);
+        mbedtls_ctr_drbg_free( &ctr_drbg );
+        mbedtls_entropy_free( &entropy );
+        mbedtls_x509write_csr_free(&req);
+            
+        return false;
+    }
+
+    // parse key    
+    Serial.println("PArse key");
+    mbedtls_pk_context key;
+    mbedtls_pk_init( &key );   
+
+    HAPHelper::array_print("private Key", privateKey, privateKey_Length);
+    result = mbedtls_pk_parse_key( &key, privateKey, privateKey_Length, NULL, 0 );
+    if (result != 0){
+        LogE("Failed to parse pk for csr: " + String(result), true);
+        mbedtls_pk_free(&key);
+        mbedtls_ctr_drbg_free( &ctr_drbg );
+        mbedtls_entropy_free( &entropy );
+        mbedtls_x509write_csr_free(&req);
+        
+        return false;
+    }
+
+    // set key
+    Serial.println("Set key");
+    mbedtls_x509write_csr_set_key( &req, &key );
+    
+    // set subject
+    Serial.println("Set subject");
+    result = mbedtls_x509write_csr_set_subject_name( &req, hostname );
+    if (result != 0){
+        LogE("Failed mbedtls_x509write_csr_set_subject_name", true);
+        mbedtls_pk_free(&key);
+        mbedtls_ctr_drbg_free( &ctr_drbg );
+        mbedtls_entropy_free( &entropy );
+        mbedtls_x509write_csr_free(&req);
+        
+        return false;
+    }
+    
+    Serial.println("output buf");
+    unsigned char output_buf[4096];    
+    // uint8_t* output_buf = (uint8_t*) malloc(sizeof(uint8_t) * 4096);
+    memset( output_buf, 0, 4096 );
+
+    Serial.println("write csr to pem");
+    result = mbedtls_x509write_csr_pem( &req, output_buf, 4096, mbedtls_ctr_drbg_random, &ctr_drbg );
+    if (result != 0){
+        LogE("Failed mbedtls_x509write_csr_set_subject_name", true);
+        mbedtls_ctr_drbg_free( &ctr_drbg );
+        mbedtls_entropy_free( &entropy );
+        mbedtls_pk_free(&key);
+        mbedtls_x509write_csr_free(&req);                
+
+        return false;
+    } else {
+        HAPHelper::array_print("CSR", output_buf, 4096);
+    }
+
+    mbedtls_ctr_drbg_free( &ctr_drbg );
+    mbedtls_entropy_free( &entropy );
+    mbedtls_pk_free(&key);
+    mbedtls_x509write_csr_free(&req);
+    
 
     return true;
 }

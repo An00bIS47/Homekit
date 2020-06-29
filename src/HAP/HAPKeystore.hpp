@@ -56,7 +56,8 @@ public:
     ~HAPKeystore();
 
     static bool verifySignature(const uint8_t* publicKey, size_t publicKeyLength, const uint8_t* hash, const uint8_t* signature, size_t signatureLength);
-
+    
+    static bool createCSR(const uint8_t* privateKey, size_t privateKey_Length, const char* hostname);
 
     bool begin();
     bool begin(const char* partitionName, const char* name, bool ReadOnly = true);
