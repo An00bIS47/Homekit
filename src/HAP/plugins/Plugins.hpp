@@ -70,5 +70,8 @@
 #include "HAPPluginRF24.hpp"
 #endif
 
+#if HAP_PLUGIN_USE_IRSWITCH
+#include "HAPPluginIRSwitch.hpp"
+#endif
 
 #endif /* PLUGINS_HPP_ */  

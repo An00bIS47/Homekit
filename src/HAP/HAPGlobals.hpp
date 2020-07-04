@@ -361,8 +361,13 @@
  *     add them as well on top of the define bellow !!!
  ********************************************************************/
 
+
+#ifndef HAP_PLUGIN_USE_IRSWITCH
+#define HAP_PLUGIN_USE_IRSWITCH		1
+#endif
+
 #ifndef HAP_PLUGIN_USE_RF24
-#define HAP_PLUGIN_USE_RF24			1
+#define HAP_PLUGIN_USE_RF24			0
 #endif
 
 #ifndef HAP_PLUGIN_USE_SSD1306
@@ -422,6 +427,7 @@
  * !!! Add new plugins on top here !!!     
  ********************************************************************/
 #define HAP_PLUGIN_FEATURE_NUMBER \
+STR(HAP_PLUGIN_USE_IRSWITCH) \
 STR(HAP_PLUGIN_USE_RF24) \
 STR(HAP_PLUGIN_USE_SSD1306) \
 STR(HAP_PLUGIN_USE_LED) \
