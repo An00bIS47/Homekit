@@ -49,6 +49,3 @@
 [submodule "components/RF24"]
 	path = components/RF24
 	url = https://github.com/nhatuan84/RF24.git
-[submodule "components/Arduino-IRremote"]
-	path = components/Arduino-IRremote
-	url = https://github.com/ExploreEmbedded/Arduino-IRremote.git
