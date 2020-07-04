@@ -13,6 +13,7 @@
 #include <Arduino.h>
 #include <vector>
 #include <algorithm>
+#include "IRremote.h"
 
 #include "HAPPlugins.hpp"
 #include "HAPLogger.hpp"
@@ -58,6 +59,11 @@ public:
     static void prependZeros(char *dest, String src, uint8_t width);
 private:
 
+	void dumpCode(decode_results *results);
+	void dumpRaw(decode_results *results);
+	void encoding(decode_results *results);
+	void ircode(decode_results *results);
+
 	boolCharacteristics*	_stateValue;
 
 	int indexOfDevice(HAPPluginIRSwitchDevice* device);
@@ -72,7 +78,7 @@ private:
 	HAPConfigValidationResult validateHouseAddress(const char* houseAddress);
 
     
-
+	IRrecv* _irrecv;
 	HAPPluginIRSwitchDevice* _newDevice;
 
 	bool fakeGatoCallback();
