@@ -47,7 +47,7 @@ HAPAccessory* HAPPluginRCSwitchDevice::initAccessory(){
 
     // 
     // Outlet Service / Switch Service
-    // !!! Fakegato history is only with switch service !!!
+    // !!! Fakegato history is only working with switch service !!!
     // 
     HAPService* outletService = new HAPService(HAP_SERVICE_SWITCH);
     _accessory->addService(outletService);

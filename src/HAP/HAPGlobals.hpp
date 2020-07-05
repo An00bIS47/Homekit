@@ -362,12 +362,12 @@
  ********************************************************************/
 
 
-#ifndef HAP_PLUGIN_USE_IRSWITCH
-#define HAP_PLUGIN_USE_IRSWITCH		1
+#ifndef HAP_PLUGIN_USE_HONEYWELL
+#define HAP_PLUGIN_USE_HONEYWELL	1
 #endif
 
 #ifndef HAP_PLUGIN_USE_RF24
-#define HAP_PLUGIN_USE_RF24			0
+#define HAP_PLUGIN_USE_RF24			1
 #endif
 
 #ifndef HAP_PLUGIN_USE_SSD1306
@@ -427,7 +427,7 @@
  * !!! Add new plugins on top here !!!     
  ********************************************************************/
 #define HAP_PLUGIN_FEATURE_NUMBER \
-STR(HAP_PLUGIN_USE_IRSWITCH) \
+STR(HAP_PLUGIN_USE_HONEYWELL) \
 STR(HAP_PLUGIN_USE_RF24) \
 STR(HAP_PLUGIN_USE_SSD1306) \
 STR(HAP_PLUGIN_USE_LED) \

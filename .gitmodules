@@ -52,3 +52,6 @@
 [submodule "components/Arduino-IRremote"]
 	path = components/Arduino-IRremote
 	url = https://github.com/z3t0/Arduino-IRremote.git
+[submodule "components/IRremote8266"]
+	path = components/IRremote8266
+	url = https://github.com/crankyoldgit/IRremoteESP8266.git
