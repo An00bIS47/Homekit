@@ -65,11 +65,6 @@ static heap_trace_record_t trace_record[HAP_DEBUG_HEAP_NUM_RECORDS]; // This buf
 #endif
 
 
-#if HAP_USE_PLUGIN_NEOPIXEL
-#include <FastLED.h>
-#include "plugin/HAPPluginNeopixel.hpp"
-#endif
-
 //
 // init static variables
 //
@@ -131,13 +126,6 @@ bool HAPServer::begin(bool resume) {
 	ESP_ERROR_CHECK( heap_trace_init_standalone(trace_record, HAP_DEBUG_HEAP_NUM_RECORDS) );
 #endif
 
-
-#if HAP_USE_PLUGIN_NEOPIXEL
-	HAPPluginNeoPixel::setupNeopixel();
-	HAPPluginNeoPixel::neopixels[0] = CRGB::Orange;
-  	FastLED.show();	
-#endif
-
 	int error_code = 0;
 	
 	// Generate DeviceID	
@@ -150,7 +138,8 @@ bool HAPServer::begin(bool resume) {
 		// 
 		HAPLogger::setPrinter(&Serial);
 		HAPLogger::setLogLevel(HAP_LOGLEVEL);
-		
+
+
 		//
 		// Configuration
 		// 
@@ -683,12 +672,6 @@ bool HAPServer::begin(bool resume) {
 	_keystore.end();
 
 
-#if HAP_USE_PLUGIN_NEOPIXEL	
-	HAPPluginNeoPixel::neopixels[0] = CRGB::Green;
-  	FastLED.show();	
-#endif
-
-
 	// Handle any events that are in the queue
 	_eventManager.processEvent();	
 
@@ -919,7 +902,11 @@ void HAPServer::handle() {
 	_fakeGatoFactory.handle();
 
 	// Handle any events that are in the queue
-	_eventManager.processEvent();		
+	_eventManager.processEvent();	
+
+
+
+
 }
 
 #if HAP_NTP_ENABLED

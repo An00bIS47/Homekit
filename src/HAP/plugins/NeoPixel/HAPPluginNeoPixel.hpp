@@ -13,13 +13,16 @@
 #include "HAPPlugins.hpp"
 #include "HAPLogger.hpp"
 #include "HAPAccessory.hpp"
-#include <FastLED.h>
+
+#include <Adafruit_NeoPixel.h>
+
+#define HAP_PLUGIN_NEOPIXEL_FORMAT NEO_GRB + NEO_KHZ800
 
 // How many leds in your strip?
 #define NUM_LEDS 1
-#define DATA_PIN 21
+#define DATA_PIN A1	
 
-#define BRIGHTNESS 255
+#define HAP_PLUGIN_NEOPIXEL_ENABLE_BRIGHTNESS   1
 
 struct rgb_t {
 	uint8_t r;
@@ -31,13 +34,9 @@ struct rgb_t {
 class HAPPluginNeoPixel: public HAPPlugin {
 public:
 
-	static CRGB neopixels[NUM_LEDS];
-
 	HAPPluginNeoPixel();
 	HAPAccessory* initAccessory() override;
 	
-	static bool setupNeopixels();
-
 	bool begin();
 
 	void setValue(int iid, String oldValue, String newValue);
@@ -50,9 +49,9 @@ public:
 	void changeHue(float oldValue, float newValue);
 	void changeSaturation(float oldValue, float newValue);
 	
-
+#if HAP_PLUGIN_NEOPIXEL_ENABLE_BRIGHTNESS	
 	void changeBrightness( int oldValue, int newValue);
-
+#endif
 
 	void handleImpl(bool forced=false);
 	
@@ -61,7 +60,7 @@ public:
 	JsonObject getConfigImpl();
 	void setConfigImpl(JsonObject root);
 
-	
+
 	static void hsi2rgb(float H, float S, float I, rgb_t* rgbw);
 private:	
 	//HAPAccessory*			_accessory;
@@ -69,11 +68,22 @@ private:
 	boolCharacteristics* 	_powerState;
 
 	floatCharacteristics*	_hue;
-	floatCharacteristics*	_saturation;	
-	intCharacteristics*	 	_brightnessState;
+	floatCharacteristics*	_saturation;
 
+
+#if HAP_PLUGIN_NEOPIXEL_ENABLE_BRIGHTNESS		
+	intCharacteristics*	 	_brightnessState;
+#endif
+
+	//intCharacteristics*	 	_brightnessState;
+
+	// unsigned long 		_interval;
+	// unsigned long 		_previousMillis;
+
+	// EventManager*	_eventManager;
+	// MemberFunctionCallable<HAPPlugin> listenerMemberFunctionPlugin;
 		
-	
+	Adafruit_NeoPixel *_pixels;
 
 	uint8_t _gpio;
 	bool _isOn;

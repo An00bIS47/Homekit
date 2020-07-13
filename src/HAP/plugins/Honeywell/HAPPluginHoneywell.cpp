@@ -17,6 +17,7 @@
 #define VERSION_REVISION    1
 #define VERSION_BUILD       1
 
+#define DELAY_BETWEEN_BUTTON_PRESS 150  // in ms
 
 // Button 1: Wind Type 
 // 3 Types: 
@@ -175,8 +176,11 @@ void HAPPluginHoneywell::changeRotationSpeed(float oldValue, float newValue){
     
     LogD(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Press rotation speed button " + String(numberOfPresses) + " times", true);
     for (int i = 0; i < numberOfPresses; i++){
-        _irsend->sendRaw(rawDataSpeed, 23, 38);  
-        delay(50);
+        _irsend->sendRaw(rawDataSpeed, 23, 38); 
+
+        if (numberOfPresses > 1) {
+            delay(DELAY_BETWEEN_BUTTON_PRESS);
+        }         
     }
 	
 
