@@ -100,8 +100,9 @@
 /**
  * WiFi
  ********************************************************************/
+#ifndef HAP_WIFI_MODE_DEFAULT
 #define HAP_WIFI_MODE_DEFAULT			1	// 0 = HAPWiFiModeAccessPoint	
-											// 1 = HAPWiFiModeMulti
+#endif										// 1 = HAPWiFiModeMulti
 											// 2 = HAPWiFiModeWPS			-> push button only
 											// 3 = HAPWiFiModeSmartConfig	-> not working with ios13 ?
 
@@ -363,11 +364,11 @@
 
 
 #ifndef HAP_PLUGIN_USE_HONEYWELL
-#define HAP_PLUGIN_USE_HONEYWELL	1
+#define HAP_PLUGIN_USE_HONEYWELL	0
 #endif
 
 #ifndef HAP_PLUGIN_USE_RF24
-#define HAP_PLUGIN_USE_RF24			1
+#define HAP_PLUGIN_USE_RF24			0
 #endif
 
 #ifndef HAP_PLUGIN_USE_SSD1306

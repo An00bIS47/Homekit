@@ -64,6 +64,12 @@
 static heap_trace_record_t trace_record[HAP_DEBUG_HEAP_NUM_RECORDS]; // This buffer must be in internal RAM
 #endif
 
+
+#if HAP_USE_PLUGIN_NEOPIXEL
+#include <FastLED.h>
+#include "plugin/HAPPluginNeopixel.hpp"
+#endif
+
 //
 // init static variables
 //
@@ -125,6 +131,12 @@ bool HAPServer::begin(bool resume) {
 	ESP_ERROR_CHECK( heap_trace_init_standalone(trace_record, HAP_DEBUG_HEAP_NUM_RECORDS) );
 #endif
 
+
+#if HAP_USE_PLUGIN_NEOPIXEL
+	HAPPluginNeoPixel::setupNeopixel();
+	HAPPluginNeoPixel::neopixels[0] = CRGB::Orange;
+  	FastLED.show();	
+#endif
 
 	int error_code = 0;
 	
@@ -669,6 +681,12 @@ bool HAPServer::begin(bool resume) {
 
 	// Close Keystore
 	_keystore.end();
+
+
+#if HAP_USE_PLUGIN_NEOPIXEL	
+	HAPPluginNeoPixel::neopixels[0] = CRGB::Green;
+  	FastLED.show();	
+#endif
 
 
 	// Handle any events that are in the queue

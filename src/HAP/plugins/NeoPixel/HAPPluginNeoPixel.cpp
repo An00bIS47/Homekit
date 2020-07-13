@@ -17,7 +17,7 @@
 #define VERSION_BUILD       1
 
 
-
+CRGB HAPPluginNeoPixel::neopixels[NUM_LEDS];
 
 
 HAPPluginNeoPixel::HAPPluginNeoPixel(){
@@ -38,97 +38,39 @@ HAPPluginNeoPixel::HAPPluginNeoPixel(){
 void HAPPluginNeoPixel::changePower(bool oldValue, bool newValue) {
     LogD(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Setting iid " + String(_powerState->iid) +  " oldValue: " + oldValue + " -> newValue: " + newValue, true);
 
-    if (newValue == true) {
-        // digitalWrite(_gpio, HIGH);     // dont know why to put low here, maybe because of SPI ?  
-    } else {
-        // digitalWrite(_gpio, LOW);
-    }      
-    _pixels->show();
+
 }
 
-#if HAP_PLUGIN_NEOPIXEL_ENABLE_BRIGHTNESS	
+
 
 void HAPPluginNeoPixel::changeBrightness(int oldValue, int newValue){
     printf("New brightness state: %d\n", newValue);
-
-    rgb_t rgb;
-
-    hsi2rgb(_hue->value().toFloat(), newValue, _brightnessState->value().toFloat(), &rgb);
-
-    Serial.printf("r: %d - g: %d - b: %d \n", rgb.r, rgb.g, rgb.b);
-
-
-    _pixels->setPixelColor(0, _pixels->Color(rgb.r, rgb.b, rgb.g));
-    _pixels->show();
+    FastLED.setBrightness(newValue);
 }   
 
-#endif
+
 
 void HAPPluginNeoPixel::changeHue(float oldValue, float newValue){
     printf("New hue state: %.2f\n", newValue);
-    rgb_t rgb;
 
-    hsi2rgb(newValue, _saturation->value().toFloat(), _brightnessState->value().toFloat(), &rgb);
-    
-    Serial.printf("r: %d - g: %d - b: %d \n", rgb.r, rgb.g, rgb.b);
-    
-    _pixels->setPixelColor(0, _pixels->Color(rgb.r, rgb.b, rgb.g));
-    // _hue->setValue(String(newValue));
-    _pixels->show();
 }
 
 
 
 void HAPPluginNeoPixel::changeSaturation(float oldValue, float newValue){
     printf("New saturation state: %.2F\n", newValue);
-    
-    rgb_t rgb;
-    hsi2rgb(_hue->value().toFloat(), _saturation->value().toFloat(), newValue, &rgb);
 
-    Serial.printf("r: %d - g: %d - b: %d \n", rgb.r, rgb.g, rgb.b);
-    _pixels->setPixelColor(0, _pixels->Color(rgb.r, rgb.b, rgb.g));
-
-    // _brightnessState->setValue(String(newValue));
-    _pixels->show();
 }
 
 
 void HAPPluginNeoPixel::handleImpl(bool forced){
     
-    LogD(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Handle plguin [" + String(_interval) + "]", true);
-
-    // if (_isOn) {            
-    //     _pixels->setPixelColor(0, _pixels->Color(0, 255, 0));
-    //     setValue(_powerState->iid, "1", "0");
-    // } else {
-    //     _pixels->setPixelColor(0, _pixels->Color(255, 0, 0));          
-    //     setValue(_powerState->iid, "0", "1");
-    // }
-
-    // _pixels->show();
-
-    // Add event
-    // struct HAPEvent event = HAPEvent(nullptr, _accessory->aid, _powerState->iid, _powerState->value());							
-    // _eventManager->queueEvent( EventManager::kEventNotifyController, event);
-
-#if HAP_PLUGIN_NEOPIXEL_ENABLE_BRIGHTNESS	
-    // uint32_t freeMem = ESP.getFreeHeap();        
-    // uint8_t percentage = ( freeMem * 100) / 245000;        
-    
-    // setValue(_brightnessState->iid, _brightnessState->value(), String(percentage));
-
-    // Add event
-    // struct HAPEvent eventB = HAPEvent(nullptr, _accessory->aid, _brightnessState->iid, _brightnessState->value());							
-    // _eventManager->queueEvent( EventManager::kEventNotifyController, eventB);
-#endif        
+    LogD(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Handle plguin [" + String(_interval) + "]", true);      
 
 }
 
 bool HAPPluginNeoPixel::begin(){
-
-    _pixels = new Adafruit_NeoPixel(NUM_LEDS, DATA_PIN, HAP_PLUGIN_NEOPIXEL_FORMAT);
-    _pixels->begin();
-    return true;
+    return setupNeopixels();
 }
 
 
@@ -157,16 +99,14 @@ HAPAccessory* HAPPluginNeoPixel::initAccessory(){
     auto callbackPowerState = std::bind(&HAPPluginNeoPixel::changePower, this, std::placeholders::_1, std::placeholders::_2);        
     _powerState->valueChangeFunctionCall = callbackPowerState;
     _accessory->addCharacteristics(_service, _powerState);
-
-#if HAP_PLUGIN_NEOPIXEL_ENABLE_BRIGHTNESS	    
+    
     _brightnessState = new intCharacteristics(HAP_CHARACTERISTIC_BRIGHTNESS, permission_read|permission_write|permission_notify, 0, 100, 1, unit_percentage);
-        //_brightnessState->valueChangeFunctionCall = &changeBrightness;
 
-    _brightnessState->setValue("50");
+    _brightnessState->setValue("255");
     auto callbackBrightness = std::bind(&HAPPluginNeoPixel::changeBrightness, this, std::placeholders::_1, std::placeholders::_2);        
     _brightnessState->valueChangeFunctionCall = callbackBrightness;
     _accessory->addCharacteristics(_service, _brightnessState);    
-#endif
+
 
 
     //
@@ -322,4 +262,11 @@ void HAPPluginNeoPixel::hsi2rgb(float H, float S, float I, rgb_t* rgbw) {
     rgbw->g = g;
     rgbw->b = b;
 	rgbw->w = 0;           // white channel is not used
+}
+
+
+bool HAPPluginNeoPixel::setupNeopixels(){
+    FastLED.addLeds<NEOPIXEL, DATA_PIN>(neopixels, NUM_LEDS);  // GRB ordering is assumed
+    FastLED.setBrightness( BRIGHTNESS );
+    return true;
 }

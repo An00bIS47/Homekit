@@ -10,7 +10,7 @@
 
 
 // https://www.nikolaus-lueneburg.de/2014/10/arduino-infrarot-sende-und-empfangsmodul-teil-1/
-#define HAP_IR_LED          0   // Add IR LED !!!
+#define HAP_IR_LED          14   // Add IR LED !!!
 
 #define VERSION_MAJOR       0
 #define VERSION_MINOR       3	// 2 = FakeGato support
@@ -21,7 +21,7 @@
 // Button 1: Wind Type 
 // 3 Types: 
 //      - Normal    : 1 Press
-//      - Nattural  : 2 Press
+//      - Natural   : 2 Press
 //      - Sleep     : 3 Press
 uint16_t rawDataWindType[23] = {1300,350, 1300,400, 450,1200, 1300,350, 1300,400, 450,1200, 450,1200, 500,1200, 450,1200, 1300,350, 500,1200, 450};  // UNKNOWN 371A3C86
 
@@ -59,10 +59,6 @@ HAPPluginHoneywell::HAPPluginHoneywell(){
     _interval           = 0;
     _previousMillis     = 0;
 
-    _isOn               = false;
-    _fanState           = 0;
-    _swingMode          = false;
-
     _gpio               = HAP_IR_LED;
 
     _version.major      = VERSION_MAJOR;
@@ -70,32 +66,73 @@ HAPPluginHoneywell::HAPPluginHoneywell(){
     _version.revision   = VERSION_REVISION;
     _version.build      = VERSION_BUILD;
 
+
+    _isOn               = false;
     _activeState        = nullptr;
-	_currentFanState    = nullptr;
+    
+    _swingMode          = false;
     _swingModeState     = nullptr;
+
+    _speed              = 1;
+    _speedState         = nullptr;
+
+#if USE_CURRNT_FAN_STATE  
+    _fanState           = 0;
+	_currentFanState    = nullptr;
+#endif    
+
+    
 
     _irsend             = nullptr;
 }
 
 void HAPPluginHoneywell::changeActive(uint8_t oldValue, uint8_t newValue) {
     LogD(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Setting Active State " +  " oldValue: " + String(oldValue) + " -> newValue: " + String(newValue), true);    
-    _irsend->sendGC(rawDataOnOff, 23);   
+    _irsend->sendRaw(rawDataOnOff, 23, 38);   
 
     _isOn = (bool)newValue;
+
+    // Add event
+    struct HAPEvent event = HAPEvent(nullptr, _accessory->aid, _activeState->iid, _activeState->value());							
+    _eventManager->queueEvent( EventManager::kEventNotifyController, event); 
 }
 
-
+#if USE_CURRNT_FAN_STATE
 void HAPPluginHoneywell::changeFanState(uint8_t oldValue, uint8_t newValue){
     LogD(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Setting Fan State " +  " oldValue: " + String(oldValue) + " -> newValue: " + String(newValue), true);    
-    _irsend->sendGC(rawDataOnOff, 23);   
+    _irsend->sendRaw(rawDataOnOff, 23, 38);   
 
-    _fanState = newValue;    
+    _fanState = newValue;   
+
+    // Add event
+    struct HAPEvent event = HAPEvent(nullptr, _accessory->aid, _currentFanState->iid, _currentFanState->value());							
+    _eventManager->queueEvent( EventManager::kEventNotifyController, event); 
 }
+#endif
 
 void HAPPluginHoneywell::changeSwingMode(uint8_t oldValue, uint8_t newValue){
     LogD(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Setting Swing Mode " +  " oldValue: " + String(oldValue) + " -> newValue: " + String(newValue), true);    
-    _irsend->sendGC(rawDataOscillation, 23);  
+    _irsend->sendRaw(rawDataOscillation, 23, 38);  
     _swingMode = (bool)newValue; 
+
+    // Add event
+    struct HAPEvent event = HAPEvent(nullptr, _accessory->aid, _swingModeState->iid, _swingModeState->value());							
+    _eventManager->queueEvent( EventManager::kEventNotifyController, event); 
+}
+
+void HAPPluginHoneywell::changeSpeed(uint8_t oldValue, uint8_t newValue){
+    LogD(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Setting Speed " +  " oldValue: " + String(oldValue) + " -> newValue: " + String(newValue), true);    
+
+    // for ((_speed + newValue) % 4){
+        _irsend->sendRaw(rawDataSpeed, 23, 38); 
+    //     delay(10);
+    // }
+     
+    _speed = newValue; 
+
+    // Add event
+    struct HAPEvent event = HAPEvent(nullptr, _accessory->aid, _speedState->iid, _speedState->value());							
+    _eventManager->queueEvent( EventManager::kEventNotifyController, event); 
 }
 
 
@@ -147,6 +184,7 @@ HAPAccessory* HAPPluginHoneywell::initAccessory(){
     _accessory->addCharacteristics(_service, _activeState);    
 
 
+#if USE_CURRNT_FAN_STATE
     // Current Fan State Characteristic - valid values 0 (inactive), 1 (idle), 2 (blowing air)
     uint8_t validValuesFanState[3] = {0,1,2};
     _currentFanState = new uint8Characteristics(HAP_CHARACTERISTIC_CURRENT_FAN_STATE, permission_read|permission_write|permission_notify, 0, 2, 1, unit_none, 2, validValuesFanState);
@@ -160,20 +198,30 @@ HAPAccessory* HAPPluginHoneywell::initAccessory(){
     auto callbackCurrentFanState = std::bind(&HAPPluginHoneywell::changeFanState, this, std::placeholders::_1, std::placeholders::_2);        
     _currentFanState->valueChangeFunctionCall = callbackCurrentFanState;
     _accessory->addCharacteristics(_service, _currentFanState); 
-
+#endif
 
 
     // Swing Mode Characteristic - valid values 0 (disabled), 1 (enabled)
     uint8_t validValuesSwingModeState[2] = {0,1};
     _swingModeState = new uint8Characteristics(HAP_CHARACTERISTIC_SWING_MODE, permission_read|permission_write|permission_notify, 0, 1, 1, unit_none, 2, validValuesSwingModeState);
     if (_swingMode)
-        _currentFanState->setValue("1");
+        _swingModeState->setValue("1");
     else
-        _currentFanState->setValue("0");
+        _swingModeState->setValue("0");
     
     auto callbackSwingModeState = std::bind(&HAPPluginHoneywell::changeSwingMode, this, std::placeholders::_1, std::placeholders::_2);        
     _swingModeState->valueChangeFunctionCall = callbackSwingModeState;
     _accessory->addCharacteristics(_service, _swingModeState); 
+
+
+    // Speed Characteristic - valid values 1, 2, 3, 4
+    uint8_t validValuesSpeedState[4] = {1,2,3,4};
+    _speedState = new uint8Characteristics("000005EA-6B66-4FFD-88CC-16A60B5C4E03", permission_read|permission_write|permission_notify, 1, 4, 1, unit_none, 4, validValuesSpeedState);
+    _speedState->setValue("1");
+    
+    auto callbackSpeedState = std::bind(&HAPPluginHoneywell::changeSpeed, this, std::placeholders::_1, std::placeholders::_2);        
+    _speedState->valueChangeFunctionCall = callbackSpeedState;
+    _accessory->addCharacteristics(_service, _speedState); 
 
     // 
     // FakeGato History

@@ -18,6 +18,8 @@
 #include "HAPAccessory.hpp"
 // #include "HAPFakeGatoSwitch.hpp"
 
+#define USE_CURRNT_FAN_STATE	1
+
 class HAPPluginHoneywell: public HAPPlugin {
 public:
 
@@ -26,14 +28,16 @@ public:
 	
 	bool begin();
 
-	void setValue(int iid, String oldValue, String newValue);
-
-	String getValue(int iid);
+	// void setValue(int iid, String oldValue, String newValue);
+	// String getValue(int iid);
 
 	void changeActive(uint8_t oldValue, uint8_t newValue);
-	void changeFanState(uint8_t oldValue, uint8_t newValue);
 	void changeSwingMode(uint8_t oldValue, uint8_t newValue);
+	void changeSpeed(uint8_t oldValue, uint8_t newValue);
 
+#if USE_CURRNT_FAN_STATE	
+	void changeFanState(uint8_t oldValue, uint8_t newValue);
+#endif	
 
 	void handleImpl(bool forced=false);
 	void identify( bool oldValue, bool newValue);
@@ -44,9 +48,20 @@ public:
 	void setConfigImpl(JsonObject root);	
 
 private:	
+	bool _isOn;
 	uint8Characteristics* 	_activeState;
-	uint8Characteristics* 	_currentFanState;
+
+	bool _swingMode;
 	uint8Characteristics*	_swingModeState;
+
+	uint8_t _speed;
+	uint8Characteristics* 	_speedState;
+
+#if USE_CURRNT_FAN_STATE	
+	uint8_t _fanState;
+	uint8Characteristics* 	_currentFanState;
+#endif	
+	
 
 	// bool fakeGatoCallback(); 
 	// HAPFakeGatoSwitch       _fakegato;
@@ -55,10 +70,6 @@ private:
 
 	uint8_t _gpio;
 	
-	// ToDo: Required ??
-	bool _isOn;
-	uint8_t _fanState;
-	bool _swingMode;
 };
 
 REGISTER_PLUGIN(HAPPluginHoneywell)
