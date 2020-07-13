@@ -1,53 +1,60 @@
 //
-// HAPPluginLED.hpp
+// HAPPluginIR.hpp
 // Homekit
 //
-//  Created on: 22.04.2018
+//  Created on: 13.07.2020
 //      Author: michael
 //
 
-#ifndef HAPPLUGINLED_HPP_
-#define HAPPLUGINLED_HPP_
+#ifndef HAPPLUGINIR_HPP_
+#define HAPPLUGINIR_HPP_
 
 #include <Arduino.h>
 #include "HAPPlugins.hpp"
 #include "HAPLogger.hpp"
 #include "HAPAccessory.hpp"
+#include <IRremoteESP8266.h>
+#include <IRsend.h>
 
-	
+#ifndef HAP_IR_LED_PIN
+#define HAP_IR_LED_PIN      14
+#endif
 
-class HAPPluginLED: public HAPPlugin {
+#define DELAY_BETWEEN_BUTTON_PRESS 150  // in ms
+
+
+class HAPPluginIR: public HAPPlugin {
 public:
 
-	HAPPluginLED();
+	HAPPluginIR();
 	HAPAccessory* initAccessory() override;
 	
 	bool begin();
 
-	void setValue(int iid, String oldValue, String newValue);
-
-	String getValue(int iid);
 
 	void changePower(bool oldValue, bool newValue);
 	void changeBrightness(int oldValue, int newValue);
 
 	void handleImpl(bool forced=false);
-	void identify( bool oldValue, bool newValue);
+	
 	
 	// void handleEvents(int eventCode, struct HAPEvent eventParam);
 	HAPConfigValidationResult validateConfig(JsonObject object);
 	JsonObject getConfigImpl();
 	void setConfigImpl(JsonObject root);
 
+	static void setupIRSend();
+
+	static IRsend* getIRSend(){
+		return _irsend;
+	}
+
 private:	
+	static uint8_t _gpioIRSend;
+	static IRsend* _irsend;
 
-	boolCharacteristics* 	_powerState;
-	intCharacteristics*	 	_brightnessState;
-
-	uint8_t _gpio;
-	bool _isOn;
 };
 
-REGISTER_PLUGIN(HAPPluginLED)
+REGISTER_PLUGIN(HAPPluginIR)
 
-#endif /* HAPPLUGINLED_HPP_ */ 
+#endif /* HAPPLUGINIR_HPP_ */ 

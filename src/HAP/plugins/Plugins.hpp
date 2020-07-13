@@ -74,4 +74,9 @@
 #include "HAPPluginFanHoneywell.hpp"
 #endif
 
+#if HAP_PLUGIN_USE_IR
+#include "HAPPluginIR.hpp"
+#endif
+
+
 #endif /* PLUGINS_HPP_ */  

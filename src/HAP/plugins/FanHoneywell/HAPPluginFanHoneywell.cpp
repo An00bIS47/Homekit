@@ -10,14 +10,14 @@
 #include "HAPCustomCharacteristics+Services.hpp"
 
 // https://www.nikolaus-lueneburg.de/2014/10/arduino-infrarot-sende-und-empfangsmodul-teil-1/
-#define HAP_IR_LED          14   // Add IR LED !!!
+// #define HAP_IR_LED          14   // Add IR LED !!!
 
 #define VERSION_MAJOR       0
 #define VERSION_MINOR       3	// 2 = FakeGato support
 #define VERSION_REVISION    1
 #define VERSION_BUILD       1
 
-#define DELAY_BETWEEN_BUTTON_PRESS 150  // in ms
+// #define DELAY_BETWEEN_BUTTON_PRESS 150  // in ms
 
 // Button 1: Wind Type 
 // 3 Types: 
@@ -90,7 +90,7 @@ HAPPluginFanHoneywell::HAPPluginFanHoneywell(){
     _interval           = 0;
     _previousMillis     = 0;
 
-    _gpio               = HAP_IR_LED;
+    // _gpio               = HAP_IR_LED;
 
     _version.major      = VERSION_MAJOR;
     _version.minor      = VERSION_MINOR;
@@ -112,12 +112,14 @@ HAPPluginFanHoneywell::HAPPluginFanHoneywell(){
 	_currentFanState    = nullptr;
 #endif        
 
-    _irsend             = nullptr;
+    // _irsend             = nullptr;
 }
 
 void HAPPluginFanHoneywell::changeActive(uint8_t oldValue, uint8_t newValue) {
     LogD(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Setting Active State " +  " oldValue: " + String(oldValue) + " -> newValue: " + String(newValue), true);    
-    _irsend->sendRaw(rawDataOnOff, 23, 38);   
+    
+    // _irsend->sendRaw(rawDataOnOff, 23, 38);   
+    HAPPluginIR::getIRSend()->sendRaw(rawDataOnOff, 23, 38);   
 
     _isOn = (bool)newValue;
 
@@ -129,8 +131,10 @@ void HAPPluginFanHoneywell::changeActive(uint8_t oldValue, uint8_t newValue) {
 #if USE_CURRNT_FAN_STATE
 void HAPPluginFanHoneywell::changeFanState(uint8_t oldValue, uint8_t newValue){
     LogD(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Setting Fan State " +  " oldValue: " + String(oldValue) + " -> newValue: " + String(newValue), true);    
-    _irsend->sendRaw(rawDataOnOff, 23, 38);   
-
+    
+    //_irsend->sendRaw(rawDataOnOff, 23, 38);       
+    HAPPluginIR::getIRSend()>sendRaw(rawDataOnOff, 23, 38);   
+    
     _fanState = newValue;   
 
     // Add event
@@ -141,7 +145,9 @@ void HAPPluginFanHoneywell::changeFanState(uint8_t oldValue, uint8_t newValue){
 
 void HAPPluginFanHoneywell::changeSwingMode(uint8_t oldValue, uint8_t newValue){
     LogD(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Setting Swing Mode " +  " oldValue: " + String(oldValue) + " -> newValue: " + String(newValue), true);    
-    _irsend->sendRaw(rawDataOscillation, 23, 38);  
+    // _irsend->sendRaw(rawDataOscillation, 23, 38);  
+
+    HAPPluginIR::getIRSend()->sendRaw(rawDataOscillation, 23, 38);  
     _swingMode = (bool)newValue; 
 
     // Add event
@@ -152,10 +158,7 @@ void HAPPluginFanHoneywell::changeSwingMode(uint8_t oldValue, uint8_t newValue){
 void HAPPluginFanHoneywell::changeRotationSpeed(float oldValue, float newValue){
     LogD(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Setting rotation speed " +  " oldValue: " + String(oldValue) + " -> newValue: " + String(newValue), true);    
 
-    // for ((_rotationSpeed+ newValue) % 4){
-        
-    //     delay(10);
-    // }
+
     uint8_t target = 0;
     if ((newValue > 0) && (newValue <= 33)) {
         target = 1;
@@ -176,7 +179,8 @@ void HAPPluginFanHoneywell::changeRotationSpeed(float oldValue, float newValue){
     
     LogD(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Press rotation speed button " + String(numberOfPresses) + " times", true);
     for (int i = 0; i < numberOfPresses; i++){
-        _irsend->sendRaw(rawDataSpeed, 23, 38); 
+        // _irsend->sendRaw(rawDataSpeed, 23, 38); 
+        HAPPluginIR::getIRSend()->sendRaw(rawDataSpeed, 23, 38); 
 
         if (numberOfPresses > 1) {
             delay(DELAY_BETWEEN_BUTTON_PRESS);
@@ -201,9 +205,11 @@ void HAPPluginFanHoneywell::handleImpl(bool forced){
 
 bool HAPPluginFanHoneywell::begin(){
 
-    _irsend = new IRsend(_gpio);
-    _irsend->begin();  
+    // _irsend = new IRsend(_gpio);
+    // _irsend->begin();  
 
+    
+    HAPPluginIR::setupIRSend();
     return true;
 }
 
@@ -300,30 +306,30 @@ HAPConfigValidationResult HAPPluginFanHoneywell::validateConfig(JsonObject objec
     if (result.valid == false) {
         return result;
     }
-    result.valid = false;
+    // result.valid = false;
     
-    // plugin._name.username
-    if (object.containsKey("gpio") && !object["gpio"].is<uint8_t>()) {
-        result.reason = "plugins." + _name + ".gpio is not an integer";
-        return result;
-    }
+    // // plugin._name.username
+    // if (object.containsKey("gpio") && !object["gpio"].is<uint8_t>()) {
+    //     result.reason = "plugins." + _name + ".gpio is not an integer";
+    //     return result;
+    // }
 
-    result.valid = true;
+    // result.valid = true;
     return result;
 }
 
 JsonObject HAPPluginFanHoneywell::getConfigImpl(){
     DynamicJsonDocument doc(128);
-    doc["gpio"] = _gpio;
+    // doc["gpio"] = _gpio;
 
 	return doc.as<JsonObject>();
 }
 
 void HAPPluginFanHoneywell::setConfigImpl(JsonObject root){
-    if (root.containsKey("gpio")){
-        // LogD(" -- password: " + String(root["password"]), true);
-        _gpio = root["gpio"].as<uint8_t>();
-    }
+    // if (root.containsKey("gpio")){
+    //     // LogD(" -- password: " + String(root["password"]), true);
+    //     _gpio = root["gpio"].as<uint8_t>();
+    // }
 }
 
 // bool HAPPluginFanHoneywell::fakeGatoCallback(){

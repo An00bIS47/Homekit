@@ -10,8 +10,10 @@
 #define HAPPLUGINFANHONEYWELL_HPP_
 
 #include <Arduino.h>
-#include <IRremoteESP8266.h>
-#include <IRsend.h>
+// #include <IRremoteESP8266.h>
+// #include <IRsend.h>
+
+#include "HAPPluginIR.hpp"
 
 #include "HAPPlugins.hpp"
 #include "HAPLogger.hpp"
@@ -67,9 +69,9 @@ private:
 	// bool fakeGatoCallback(); 
 	// HAPFakeGatoSwitch       _fakegato;
 
-	IRsend* _irsend;
+	// IRsend* _irsend;
 
-	uint8_t _gpio;
+	// uint8_t _gpio;
 	
 };
 
