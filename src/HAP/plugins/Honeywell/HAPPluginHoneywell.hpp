@@ -18,7 +18,8 @@
 #include "HAPAccessory.hpp"
 // #include "HAPFakeGatoSwitch.hpp"
 
-#define USE_CURRNT_FAN_STATE	1
+
+#define USE_CURRNT_FAN_STATE 0
 
 class HAPPluginHoneywell: public HAPPlugin {
 public:
@@ -33,7 +34,7 @@ public:
 
 	void changeActive(uint8_t oldValue, uint8_t newValue);
 	void changeSwingMode(uint8_t oldValue, uint8_t newValue);
-	void changeSpeed(uint8_t oldValue, uint8_t newValue);
+	void changeRotationSpeed(float oldValue, float newValue);
 
 #if USE_CURRNT_FAN_STATE	
 	void changeFanState(uint8_t oldValue, uint8_t newValue);
@@ -55,7 +56,7 @@ private:
 	uint8Characteristics*	_swingModeState;
 
 	uint8_t _speed;
-	uint8Characteristics* 	_speedState;
+	floatCharacteristics* 	_speedState;
 
 #if USE_CURRNT_FAN_STATE	
 	uint8_t _fanState;

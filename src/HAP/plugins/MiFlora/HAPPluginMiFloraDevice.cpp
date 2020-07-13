@@ -9,6 +9,7 @@
 #include "HAPPluginMiFlora.hpp"
 #include "HAPLogger.hpp"
 #include "HAPServer.hpp"
+#include "HAPCustomCharacteristics+Services.hpp"
 
 #define VERSION_MAJOR       1
 #define VERSION_MINOR       0
@@ -151,7 +152,7 @@ HAPAccessory* HAPPluginMiFloraDevice::initAccessory(){
     // Last Update characteristics  (Custom)
     // is bound to temperature service
     // 
-    _lastUpdate = new stringCharacteristics("000003EA-6B66-4FFD-88CC-16A60B5C4E03", permission_read|permission_notify, 32);
+    _lastUpdate = new stringCharacteristics(HAP_CUSTOM_CHARACTERISTICS_LAST_UPDATE, permission_read|permission_notify, 32);
     _lastUpdate->setDescription("LastUpdate");
     _lastUpdate->setValue("Never");
 
@@ -202,14 +203,14 @@ HAPAccessory* HAPPluginMiFloraDevice::initAccessory(){
     //
     // Fertility Sensor (Custom)
     //
-    HAPService* fertilityService = new HAPService("00000001-6B66-4FFD-88CC-16A60B5C4E03");
+    HAPService* fertilityService = new HAPService(HAP_CUSTOM_SERVICE_FERTILITY);
     _accessory->addService(fertilityService);
 
     stringCharacteristics *fertilityServiceName = new stringCharacteristics(HAP_CHARACTERISTIC_NAME, permission_read, 32);
     fertilityServiceName->setValue("Fertility Sensor");    
     _accessory->addCharacteristics(fertilityService, fertilityServiceName);
 
-    _fertilityValue = new floatCharacteristics("000003E8-6B66-4FFD-88CC-16A60B5C4E03", permission_read|permission_notify, 0.0, 10000, 0.1, unit_none);
+    _fertilityValue = new floatCharacteristics(HAP_CUSTOM_CHARACTERISTICS_FERTITLITY, permission_read|permission_notify, 0.0, 10000, 0.1, unit_none);
     _fertilityValue->setValue("0.0");
     _fertilityValue->setDescription("Fertility");
 

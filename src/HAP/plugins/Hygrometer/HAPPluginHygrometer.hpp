@@ -16,6 +16,7 @@
 
 #include "HAPFakeGato.hpp"
 #include "HAPFakeGatoWeather.hpp"
+#include "HAPCustomCharacteristics+Services.hpp"
 
 // Pinout:
 // The YL-39 module has 4 pins: 

@@ -4,20 +4,43 @@
 //
 //  Generated on: 23.09.2019
 //
-
 #ifndef HAPCUSTOMCHARACTERISTICSSERVICES_HPP_
 #define HAPCUSTOMCHARACTERISTICSSERVICES_HPP_
 
-//
-// Service:
-//
-#define HAP_CUSTOM_SERVICE_FERTILITY                    00000001-6B66-4FFD-88CC-16A60B5C4E03
+// ============================================================================================================
+// Services
+// ============================================================================================================
+
+// Fertility Service 
+// used for:
+//	- MiFlora
+#define HAP_CUSTOM_SERVICE_FERTILITY 			        "00000001-6B66-4FFD-88CC-16A60B5C4E03"
 
 
-//
-// Characteristic:
-//
-#define HAP_CUSTOM_CHARACTERISTIC_FERTILITYSENSOR       000003E8-6B66-4FFD-88CC-16A60B5C4E03
-#define HAP_CUSTOM_CHARACTERISTIC_HEARTBEAT             000003E9-6B66-4FFD-88CC-16A60B5C4E03
-#define HAP_CUSTOM_CHARACTERISTIC_LASTUPDATE            000003EA-6B66-4FFD-88CC-16A60B5C4E03
+// ============================================================================================================
+// Characteristics
+// ============================================================================================================
+
+// Fertility Characteristic 
+// used for:
+//	- MiFlora
+#define HAP_CUSTOM_CHARACTERISTICS_FERTITLITY	        "000001EA-6B66-4FFD-88CC-16A60B5C4E03"
+
+// Last Update Characteristic 
+// used for:
+//	- RF24 Remote Weather Device
+//  - ToDo: MiFlora
+#define HAP_CUSTOM_CHARACTERISTICS_LAST_UPDATE	        "000002EA-6B66-4FFD-88CC-16A60B5C4E03"
+
+// Measure Mode Characteristic 
+// used for:
+//	- RF24 Remote Weather Device
+#define HAP_CUSTOM_CHARACTERISTICS_MEASURE_MODE	        "000003EA-6B66-4FFD-88CC-16A60B5C4E03"
+
+// Heartbeat Characteristic 
+// used for:
+//	- RF24 Remote Weather Device
+//  - ToDo: MiFlora
+#define HAP_CUSTOM_CHARACTERISTICS_HEARTBEAT	        "000004EA-6B66-4FFD-88CC-16A60B5C4E03"
+
 #endif /* HAPCUSTOMCHARACTERISTICSSERVICES_HPP_ */

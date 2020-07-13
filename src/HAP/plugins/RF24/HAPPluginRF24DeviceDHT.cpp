@@ -10,7 +10,7 @@
 #include "HAPServer.hpp"
 #include "HAPLogger.hpp"
 #include "HAPPluginRF24.hpp"
-
+#include "HAPCustomCharacteristics+Services.hpp"
 
 HAPPluginRF24DeviceDHT::HAPPluginRF24DeviceDHT(){   
     name    = "";    
@@ -132,7 +132,7 @@ HAPAccessory* HAPPluginRF24DeviceDHT::initAccessory(){
     // Last Update characteristics  (Custom)
     // is bound to temperature service
     // 
-    _lastUpdate = new stringCharacteristics("000003EA-6B66-4FFD-88CC-16A60B5C4E03", permission_read|permission_notify, 32);
+    _lastUpdate = new stringCharacteristics(HAP_CUSTOM_CHARACTERISTICS_LAST_UPDATE, permission_read|permission_notify, 32);
     _lastUpdate->setDescription("LastUpdate");
     _lastUpdate->setValue("Never");
 
@@ -145,7 +145,7 @@ HAPAccessory* HAPPluginRF24DeviceDHT::initAccessory(){
     // Measure Mode
     // 
     uint8_t validValues[2] = {0,1};
-    _measureMode = new uint8Characteristics("000004EA-6B66-4FFD-88CC-16A60B5C4E03", permission_read|permission_write, 0, 1, 1, unit_none, 2, validValues);
+    _measureMode = new uint8Characteristics(HAP_CUSTOM_CHARACTERISTICS_MEASURE_MODE, permission_read|permission_write, 0, 1, 1, unit_none, 2, validValues);
     _measureMode->setDescription("Measure Mode");
     _measureMode->setValue(String((uint8_t) measureMode));    // 0 indoor, 1 outdoor
 

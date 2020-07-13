@@ -7,7 +7,7 @@
 //
 #include "HAPPluginHoneywell.hpp"
 #include "HAPServer.hpp"
-
+#include "HAPCustomCharacteristics+Services.hpp"
 
 // https://www.nikolaus-lueneburg.de/2014/10/arduino-infrarot-sende-und-empfangsmodul-teil-1/
 #define HAP_IR_LED          14   // Add IR LED !!!
@@ -23,6 +23,12 @@
 //      - Normal    : 1 Press
 //      - Natural   : 2 Press
 //      - Sleep     : 3 Press
+// Encoding  : UNKNOWN
+// Code      : 371A3C86 (32 bits)
+// Timing[23]: 
+//    +1300, - 350     +1300, - 400     + 450, -1200     +1300, - 350
+//    +1300, - 400     + 450, -1200     + 450, -1200     + 500, -1200
+//    + 450, -1200     +1300, - 350     + 500, -1200     + 450
 uint16_t rawDataWindType[23] = {1300,350, 1300,400, 450,1200, 1300,350, 1300,400, 450,1200, 450,1200, 500,1200, 450,1200, 1300,350, 500,1200, 450};  // UNKNOWN 371A3C86
 
 // Button 2: Timer
@@ -31,23 +37,47 @@ uint16_t rawDataWindType[23] = {1300,350, 1300,400, 450,1200, 1300,350, 1300,400
 //      -   1 h : 2 Press
 //      -   2 h : 3 Press
 //      -   4 h : 4 Press
+// Encoding  : UNKNOWN
+// Code      : E0984BB6 (32 bits)
+// Timing[23]: 
+//    +1300, - 350     +1300, - 400     + 450, -1200     +1300, - 350
+//    +1300, - 400     + 450, -1200     + 450, -1200     + 500, -1200
+//    +1300, - 350     + 500, -1200     + 450, -1200     + 450
 uint16_t rawDataTimer[23] = {1300,350, 1300,400, 450,1200, 1300,350, 1300,400, 450,1200, 450,1200, 500,1200, 1300,350, 500,1200, 450,1200, 450};  // UNKNOWN E0984BB6
 
 // Button 3: Oscillation
 //      - On  : 1 Press
 //      - Off : 2 Press
+// Encoding  : UNKNOWN
+// Code      : 39D41DC6 (32 bits)
+// Timing[23]: 
+//     +1300, - 400     +1250, - 400     + 450, -1200     +1300, - 400
+//     +1250, - 400     + 450, -1200     + 450, -1250     +1250, - 400
+//     + 450, -1200     + 500, -1200     + 450, -1200     + 450
 uint16_t rawDataOscillation[23] = {1300,400, 1250,400, 450,1200, 1300,400, 1250,400, 450,1200, 450,1250, 1250,400, 450,1200, 500,1200, 450,1200, 450};  // UNKNOWN 39D41DC6
 
 // Button 4: Speed Setting
 // 3 Speeds:
-//      - Low    : 1 Press   
-//      - Medium : 2 Press
-//      - High   : 3 Press
+//      - Low    : 1 Press  -  0 -  33 %
+//      - Medium : 2 Press  - 34 -  66 % 
+//      - High   : 3 Press  - 67 - 100 %
+// Encoding  : UNKNOWN
+// Code      : 143226DB (32 bits)
+// Timing[23]: 
+//     +1250, - 400     +1300, - 400     + 400, -1250     +1250, - 400
+//     +1300, - 400     + 400, -1250     + 450, -1200     + 450, -1250
+//     + 400, -1250     + 450, -1200     +1300, - 400     + 450
 uint16_t rawDataSpeed[23] = {1250,400, 1300,400, 400,1250, 1250,400, 1300,400, 400,1250, 450,1200, 450,1250, 400,1250, 450,1200, 1300,400, 450};  // UNKNOWN 143226DB
 
 // Button 5: On/Off
 //      - On  : 1 Press
 //      - Off : 2 Press
+// Encoding  : UNKNOWN
+// Code      : A32AB931 (32 bits)
+// Timing[23]: 
+//     +1300, - 350     +1300, - 400     + 450, -1200     +1300, - 350
+//     +1300, - 400     + 450, -1200     + 450, -1250     + 450, -1200
+//     + 450, -1200     + 500, -1200     + 450, -1200     +1300
 uint16_t rawDataOnOff[23] = {1300,350, 1300,400, 450,1200, 1300,350, 1300,400, 450,1200, 450,1250, 450,1200, 450,1200, 500,1200, 450,1200, 1300};  // UNKNOWN A32AB931
 
 
@@ -73,15 +103,13 @@ HAPPluginHoneywell::HAPPluginHoneywell(){
     _swingMode          = false;
     _swingModeState     = nullptr;
 
-    _speed              = 1;
+    _speed              = 0;
     _speedState         = nullptr;
 
 #if USE_CURRNT_FAN_STATE  
     _fanState           = 0;
 	_currentFanState    = nullptr;
-#endif    
-
-    
+#endif        
 
     _irsend             = nullptr;
 }
@@ -120,15 +148,37 @@ void HAPPluginHoneywell::changeSwingMode(uint8_t oldValue, uint8_t newValue){
     _eventManager->queueEvent( EventManager::kEventNotifyController, event); 
 }
 
-void HAPPluginHoneywell::changeSpeed(uint8_t oldValue, uint8_t newValue){
-    LogD(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Setting Speed " +  " oldValue: " + String(oldValue) + " -> newValue: " + String(newValue), true);    
+void HAPPluginHoneywell::changeRotationSpeed(float oldValue, float newValue){
+    LogD(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Setting rotation speed " +  " oldValue: " + String(oldValue) + " -> newValue: " + String(newValue), true);    
 
     // for ((_speed + newValue) % 4){
-        _irsend->sendRaw(rawDataSpeed, 23, 38); 
+        
     //     delay(10);
     // }
-     
-    _speed = newValue; 
+    uint8_t target = 0;
+    if ((newValue > 0) && (newValue <= 33)) {
+        target = 1;
+    } else if ((newValue > 34) && (newValue <= 66)) {
+        target = 2;
+    } else if ((newValue > 67) && (newValue <= 100)) { 
+        target = 3;
+    }
+
+    uint8_t numberOfPresses = 0;
+    while (_speed != target) {
+        numberOfPresses++;
+        _speed++;
+        if (_speed > 3){
+            _speed = 0;
+        }
+    }
+    
+    LogD(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Press rotation speed button " + String(numberOfPresses) + " times", true);
+    for (int i = 0; i < numberOfPresses; i++){
+        _irsend->sendRaw(rawDataSpeed, 23, 38);  
+        delay(50);
+    }
+	
 
     // Add event
     struct HAPEvent event = HAPEvent(nullptr, _accessory->aid, _speedState->iid, _speedState->value());							
@@ -214,12 +264,12 @@ HAPAccessory* HAPPluginHoneywell::initAccessory(){
     _accessory->addCharacteristics(_service, _swingModeState); 
 
 
-    // Speed Characteristic - valid values 1, 2, 3, 4
-    uint8_t validValuesSpeedState[4] = {1,2,3,4};
-    _speedState = new uint8Characteristics("000005EA-6B66-4FFD-88CC-16A60B5C4E03", permission_read|permission_write|permission_notify, 1, 4, 1, unit_none, 4, validValuesSpeedState);
-    _speedState->setValue("1");
+    // Rotation speed Characteristic     
+    _speedState = new floatCharacteristics(HAP_CHARACTERISTIC_ROTATION_SPEED, permission_read|permission_write|permission_notify, 0, 100, 1, unit_percentage);
+    _speedState->setValue("0");
+    _speed = 0;
     
-    auto callbackSpeedState = std::bind(&HAPPluginHoneywell::changeSpeed, this, std::placeholders::_1, std::placeholders::_2);        
+    auto callbackSpeedState = std::bind(&HAPPluginHoneywell::changeRotationSpeed, this, std::placeholders::_1, std::placeholders::_2);        
     _speedState->valueChangeFunctionCall = callbackSpeedState;
     _accessory->addCharacteristics(_service, _speedState); 
 
