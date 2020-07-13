@@ -363,8 +363,8 @@
  ********************************************************************/
 
 
-#ifndef HAP_PLUGIN_USE_HONEYWELL
-#define HAP_PLUGIN_USE_HONEYWELL	0
+#ifndef HAP_PLUGIN_USE_FAN_HONEYWELL
+#define HAP_PLUGIN_USE_FAN_HONEYWELL	0
 #endif
 
 #ifndef HAP_PLUGIN_USE_RF24
@@ -428,7 +428,7 @@
  * !!! Add new plugins on top here !!!     
  ********************************************************************/
 #define HAP_PLUGIN_FEATURE_NUMBER \
-STR(HAP_PLUGIN_USE_HONEYWELL) \
+STR(HAP_PLUGIN_USE_FAN_HONEYWELL) \
 STR(HAP_PLUGIN_USE_RF24) \
 STR(HAP_PLUGIN_USE_SSD1306) \
 STR(HAP_PLUGIN_USE_LED) \

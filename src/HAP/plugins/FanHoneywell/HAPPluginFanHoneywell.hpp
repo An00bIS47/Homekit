@@ -1,13 +1,13 @@
 //
-// HAPPluginHoneywell.hpp
+// HAPPluginFanHoneywell.hpp
 // Homekit
 //
 //  Created on: 22.04.2018
 //      Author: michael
 //
 
-#ifndef HAPPLUGINHONEYWELL_HPP_
-#define HAPPLUGINHONEYWELL_HPP_
+#ifndef HAPPLUGINFANHONEYWELL_HPP_
+#define HAPPLUGINFANHONEYWELL_HPP_
 
 #include <Arduino.h>
 #include <IRremoteESP8266.h>
@@ -21,10 +21,10 @@
 
 #define USE_CURRNT_FAN_STATE 0
 
-class HAPPluginHoneywell: public HAPPlugin {
+class HAPPluginFanHoneywell: public HAPPlugin {
 public:
 
-	HAPPluginHoneywell();
+	HAPPluginFanHoneywell();
 	HAPAccessory* initAccessory() override;
 	
 	bool begin();
@@ -55,8 +55,8 @@ private:
 	bool _swingMode;
 	uint8Characteristics*	_swingModeState;
 
-	uint8_t _speed;
-	floatCharacteristics* 	_speedState;
+	uint8_t _rotationSpeed;
+	floatCharacteristics* 	_rotationSpeedState;
 
 #if USE_CURRNT_FAN_STATE	
 	uint8_t _fanState;
@@ -73,6 +73,6 @@ private:
 	
 };
 
-REGISTER_PLUGIN(HAPPluginHoneywell)
+REGISTER_PLUGIN(HAPPluginFanHoneywell)
 
-#endif /* HAPPLUGINHONEYWELL_HPP_ */ 
+#endif /* HAPPLUGINFANHONEYWELL_HPP_ */ 

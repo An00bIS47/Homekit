@@ -70,8 +70,8 @@
 #include "HAPPluginRF24.hpp"
 #endif
 
-#if HAP_PLUGIN_USE_HONEYWELL
-#include "HAPPluginHoneywell.hpp"
+#if HAP_PLUGIN_USE_FAN_HONEYWELL
+#include "HAPPluginFanHoneywell.hpp"
 #endif
 
 #endif /* PLUGINS_HPP_ */  
