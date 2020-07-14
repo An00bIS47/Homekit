@@ -5,6 +5,8 @@
 //  Created on: 22.04.2018
 //      Author: michael
 //
+// !!! Requires HAPPluginIR !!! (will be enabled automatically)
+// 
 
 #ifndef HAPPLUGINFANHONEYWELL_HPP_
 #define HAPPLUGINFANHONEYWELL_HPP_
