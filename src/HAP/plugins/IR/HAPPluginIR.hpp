@@ -16,6 +16,8 @@
 #include <IRremoteESP8266.h>
 #include <IRsend.h>
 
+#define HAP_PLUGIN_IR_ENABLE_RECV 1
+
 #if HAP_PLUGIN_IR_ENABLE_RECV 
 #include <IRrecv.h>
 #include <IRutils.h>
@@ -28,12 +30,12 @@
 
 
 
-#define DELAY_BETWEEN_BUTTON_PRESS 	150  // in ms
+#define DELAY_BETWEEN_BUTTON_PRESS 	300  // in ms
 
 #if HAP_PLUGIN_IR_ENABLE_RECV   
 
 #ifndef HAP_IR_RECV_PIN
-#define HAP_IR_RECV_PIN		32
+#define HAP_IR_RECV_PIN		A2
 #endif
 
 #define HAP_IR_RECEIVE_BUFFER_SIZE	1024

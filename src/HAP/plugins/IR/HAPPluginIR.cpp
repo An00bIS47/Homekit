@@ -29,7 +29,7 @@ HAPPluginIR::HAPPluginIR(){
     _type               = HAP_PLUGIN_TYPE_OTHER;
     _name               = "IR";
     _isEnabled          = HAP_PLUGIN_USE_IR;
-    _interval           = 0;
+    _interval           = 1000;
     _previousMillis     = 0;    
     
     _gpioIRSend         = HAP_IR_LED_PIN;
@@ -49,9 +49,12 @@ HAPPluginIR::HAPPluginIR(){
 }
 
 #if HAP_PLUGIN_IR_ENABLE_RECV 
-bool HAPPluginIR::receiveIRSignal(){
+bool HAPPluginIR::receiveIRSignal(){    
+
+
     // Check if an IR message has been received.
     if (_irrecv->decode(&_decodeResults)) {  // We have captured something.
+        LogD(HAPServer::timeString() + " " + "IR" + "->" + String(__FUNCTION__) + " [   ] " + "Received IR Signal ...", true);
 
         DynamicJsonDocument doc(512);
 
@@ -113,7 +116,9 @@ bool HAPPluginIR::receiveIRSignal(){
 
 void HAPPluginIR::handleImpl(bool forced){
 #if HAP_PLUGIN_IR_ENABLE_RECV     
-    receiveIRSignal();   
+    if (_isOn) {
+        receiveIRSignal();   
+    }    
 #endif     
 }
 
@@ -121,16 +126,23 @@ void HAPPluginIR::handleImpl(bool forced){
 void HAPPluginIR::changePower(bool oldValue, bool newValue) {
     // LogD(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Setting iid " + String(iid) +  " oldValue: " + oldValue + " -> newValue: " + newValue, true);
 
-    if (_isOn == true) {
+    _isOn = newValue;
+
+    if (_isOn == true) {    
+        LogD(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Enable IR Receiver", true);
         _irrecv->enableIRIn();  // Start up the IR receiver.
     } else {
+        LogD(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Disable IR Receiver", true);
         _irrecv->disableIRIn();
     }      
+
+    
 }
 #endif
 
 bool HAPPluginIR::begin(){
 #if HAP_PLUGIN_IR_ENABLE_RECV     
+    LogD(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Begin IR Receiver", true);
     _irrecv = new IRrecv(_gpioIRRecv, HAP_IR_RECEIVE_BUFFER_SIZE, HAP_IR_RECEIVE_TIMEOUT, false);
 #endif
     return true;
