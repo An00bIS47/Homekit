@@ -65,6 +65,8 @@ static heap_trace_record_t trace_record[HAP_DEBUG_HEAP_NUM_RECORDS]; // This buf
 #endif
 
 
+
+
 //
 // init static variables
 //

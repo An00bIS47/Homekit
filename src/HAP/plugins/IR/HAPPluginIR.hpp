@@ -21,6 +21,15 @@
 #if HAP_PLUGIN_IR_ENABLE_RECV 
 #include <IRrecv.h>
 #include <IRutils.h>
+#include <IRac.h>
+#include <IRtext.h>
+#ifndef HAP_IR_RECV_PIN
+#define HAP_IR_RECV_PIN		A2
+#endif
+
+#define HAP_IR_RECEIVE_BUFFER_SIZE	1024
+#define HAP_IR_RECEIVE_TIMEOUT		150 // ms
+
 #endif
 
 
@@ -29,18 +38,6 @@
 #endif
 
 
-
-#define DELAY_BETWEEN_BUTTON_PRESS 	300  // in ms
-
-#if HAP_PLUGIN_IR_ENABLE_RECV   
-
-#ifndef HAP_IR_RECV_PIN
-#define HAP_IR_RECV_PIN		A2
-#endif
-
-#define HAP_IR_RECEIVE_BUFFER_SIZE	1024
-#define HAP_IR_RECEIVE_TIMEOUT		50 // ms
-#endif
 
 
 class HAPPluginIR: public HAPPlugin {
@@ -69,7 +66,7 @@ public:
 		return _irsend;
 	}
 #if HAP_PLUGIN_IR_ENABLE_RECV   
-	static bool receiveIRSignal();
+	bool receiveIRSignal();
 #endif
 private:	
 	
@@ -77,10 +74,9 @@ private:
 	static IRsend* _irsend;
 
 #if HAP_PLUGIN_IR_ENABLE_RECV   	
-	static IRrecv* _irrecv;
-	static uint8_t _gpioIRRecv;
-	static decode_results 	_decodeResults;
-
+	IRrecv* _irrecv;
+	uint8_t _gpioIRRecv;	
+	decode_results _results;  // Somewhere to store the results
 	bool _isOn;
 	boolCharacteristics* 	_powerState;
 #endif

@@ -15,21 +15,14 @@
 #define VERSION_REVISION    1
 #define VERSION_BUILD       1
 
-
 IRsend* HAPPluginIR::_irsend;
 uint8_t HAPPluginIR::_gpioIRSend = HAP_IR_LED_PIN;
-
-#if HAP_PLUGIN_IR_ENABLE_RECV  
-IRrecv* HAPPluginIR::_irrecv;
-uint8_t HAPPluginIR::_gpioIRRecv = HAP_IR_RECV_PIN;
-decode_results HAPPluginIR::_decodeResults;
-#endif
 
 HAPPluginIR::HAPPluginIR(){
     _type               = HAP_PLUGIN_TYPE_OTHER;
     _name               = "IR";
     _isEnabled          = HAP_PLUGIN_USE_IR;
-    _interval           = 1000;
+    _interval           = 1;
     _previousMillis     = 0;    
     
     _gpioIRSend         = HAP_IR_LED_PIN;
@@ -38,6 +31,7 @@ HAPPluginIR::HAPPluginIR(){
     _gpioIRRecv         = HAP_IR_RECV_PIN;
     _isOn               = false;
     _powerState         = nullptr;
+    _irrecv             = nullptr;
 #endif
 
 
@@ -51,24 +45,31 @@ HAPPluginIR::HAPPluginIR(){
 #if HAP_PLUGIN_IR_ENABLE_RECV 
 bool HAPPluginIR::receiveIRSignal(){    
 
+    LogD(HAPServer::timeString() + " " + "IR" + "->" + String(__FUNCTION__) + " [   ] " + "Received IR Signal ...", true);
 
     // Check if an IR message has been received.
-    if (_irrecv->decode(&_decodeResults)) {  // We have captured something.
-        LogD(HAPServer::timeString() + " " + "IR" + "->" + String(__FUNCTION__) + " [   ] " + "Received IR Signal ...", true);
+    if (_irrecv->decode(&_results)) {  // We have captured something.
+        
 
         DynamicJsonDocument doc(512);
 
         // The capture has stopped at this point.
-        decode_type_t protocol = _decodeResults.decode_type;
-        uint16_t size = _decodeResults.bits;
+        decode_type_t protocol = _results.decode_type;
+        uint16_t size = _results.bits;
         bool success = true;
+
+        Serial.print(resultToHumanReadableBasic(&_results));
+        Serial.println(resultToSourceCode(&_results));
+        Serial.println();    // Blank line between entries
+        
+
         // Is it a protocol we don't understand?
         if (protocol == decode_type_t::UNKNOWN) {  // Yes.
             // Convert the results into an array suitable for sendRaw().
             // resultToRawArray() allocates the memory we need for the array.
-            uint16_t *raw_array = resultToRawArray(&_decodeResults);
+            uint16_t *raw_array = resultToRawArray(&_results);
             // Find out how many elements are in the array.
-            size = getCorrectedRawLength(&_decodeResults);
+            size = getCorrectedRawLength(&_results);
 
             doc["protocol"] = (uint8_t) decode_type_t::UNKNOWN;
             doc["size"] = size;
@@ -85,12 +86,12 @@ bool HAPPluginIR::receiveIRSignal(){
             doc["protocol"] = (uint8_t) protocol;
             doc["size"] = size / 8;
             doc["hasACState"] = true;        
-            doc["rawData"] = _decodeResults.state;        
+            doc["rawData"] = _results.state;        
         } else {
             // doc["protocol"] = (uint8_t) protocol;
             // doc["size"] = size;
             // doc["hasACState"] = false;
-            // doc["rawData"] = _decodeResults.value;
+            // doc["rawData"] = _results.value;
             
         }
 
@@ -115,6 +116,7 @@ bool HAPPluginIR::receiveIRSignal(){
 #endif
 
 void HAPPluginIR::handleImpl(bool forced){
+    LogD(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Handle plguin [" + String(_interval) + "]", true);
 #if HAP_PLUGIN_IR_ENABLE_RECV     
     if (_isOn) {
         receiveIRSignal();   
@@ -130,20 +132,20 @@ void HAPPluginIR::changePower(bool oldValue, bool newValue) {
 
     if (_isOn == true) {    
         LogD(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Enable IR Receiver", true);
-        _irrecv->enableIRIn();  // Start up the IR receiver.
+        _irrecv->enableIRIn();  // Start up the IR receiver.  
     } else {
         LogD(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Disable IR Receiver", true);
         _irrecv->disableIRIn();
     }      
-
-    
 }
+
+
 #endif
 
 bool HAPPluginIR::begin(){
 #if HAP_PLUGIN_IR_ENABLE_RECV     
     LogD(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Begin IR Receiver", true);
-    _irrecv = new IRrecv(_gpioIRRecv, HAP_IR_RECEIVE_BUFFER_SIZE, HAP_IR_RECEIVE_TIMEOUT, false);
+    _irrecv = new IRrecv(_gpioIRRecv, HAP_IR_RECEIVE_BUFFER_SIZE, HAP_IR_RECEIVE_TIMEOUT, true);
 #endif
     return true;
 }

@@ -372,9 +372,6 @@ void HAPWebServer::rootKeyProcessor(const String& key, HTTPResponse * res){
 
         res->print("</div><p>Scan this code with your iPhone to pair this device</p></div></div>");
 
-
-
-
         // Main frame
 
         res->print("</body>");
