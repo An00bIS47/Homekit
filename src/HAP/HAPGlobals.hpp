@@ -363,7 +363,7 @@
  ********************************************************************/
 
 #ifndef HAP_PLUGIN_USE_NIMBLE_MIFLORA
-#define HAP_PLUGIN_USE_NIMBLE_MIFLORA 	1		// https://github.com/h2zero/esp-nimble-cpp
+#define HAP_PLUGIN_USE_NIMBLE_MIFLORA 	0		// https://github.com/h2zero/esp-nimble-cpp
 #endif
 
 #ifndef HAP_PLUGIN_USE_IR
@@ -388,14 +388,6 @@
 
 #ifndef HAP_PLUGIN_USE_SWITCH
 #define HAP_PLUGIN_USE_SWITCH			0
-#endif
-
-#ifndef HAP_PLUGIN_USE_MIFLORA
-#define HAP_PLUGIN_USE_MIFLORA			0	// deprecated !!!
-#endif
-
-#ifndef HAP_PLUGIN_USE_MIFLORA2
-#define HAP_PLUGIN_USE_MIFLORA2			0   // deprecated !!!
 #endif
 
 #ifndef HAP_PLUGIN_USE_SSD1331
@@ -451,8 +443,6 @@ STR(HAP_PLUGIN_USE_RF24) \
 STR(HAP_PLUGIN_USE_SSD1306) \
 STR(HAP_PLUGIN_USE_LED) \
 STR(HAP_PLUGIN_USE_SWITCH) \
-STR(HAP_PLUGIN_USE_MIFLORA) \
-STR(HAP_PLUGIN_USE_MIFLORA2) \
 STR(HAP_PLUGIN_USE_SSD1331) \
 STR(HAP_PLUGIN_USE_PCA301) \
 STR(HAP_PLUGIN_USE_NEOPIXEL) \
