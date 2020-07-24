@@ -1,22 +1,23 @@
 //
-// HAPPluginMifloraDevice.cpp
+// HAPPluginNimbleMiFloraDevice.cpp
 // Homekit
 //
 //  Created on: 22.09.2019
 //      Author: michael
 //
-#include "HAPPluginMifloraDevice.hpp"
-#include "HAPPluginMiFlora.hpp"
+#include "HAPPluginNimbleMiFloraDevice.hpp"
+#include "HAPPluginNimbleMiFlora.hpp"
 #include "HAPLogger.hpp"
 #include "HAPServer.hpp"
 #include "HAPCustomCharacteristics+Services.hpp"
+#include <NimBLEDevice.h>
 
 #define VERSION_MAJOR       1
 #define VERSION_MINOR       0
 #define VERSION_REVISION    3
 #define VERSION_BUILD       2
 
-HAPPluginMiFloraDevice::HAPPluginMiFloraDevice(const std::string& address) : _deviceAddress(address){
+HAPPluginNimbleMiFloraDevice::HAPPluginNimbleMiFloraDevice(const std::string& address) : _deviceAddress(address){
     
     _version.major      = VERSION_MAJOR;
     _version.minor      = VERSION_MINOR;
@@ -39,7 +40,7 @@ HAPPluginMiFloraDevice::HAPPluginMiFloraDevice(const std::string& address) : _de
 	_batteryStatus      = nullptr;
 }
 
-HAPPluginMiFloraDevice::HAPPluginMiFloraDevice(BLEAddress address) : _deviceAddress(address.toString()){
+HAPPluginNimbleMiFloraDevice::HAPPluginNimbleMiFloraDevice(BLEAddress address) : _deviceAddress(address.toString()){
     
     _version.major      = VERSION_MAJOR;
     _version.minor      = VERSION_MINOR;
@@ -63,24 +64,24 @@ HAPPluginMiFloraDevice::HAPPluginMiFloraDevice(BLEAddress address) : _deviceAddr
 }
 
 
-bool HAPPluginMiFloraDevice::begin(){
+bool HAPPluginNimbleMiFloraDevice::begin(){
 
     return true;
 }
 
-std::string HAPPluginMiFloraDevice::address(){
+std::string HAPPluginNimbleMiFloraDevice::address(){
     return _deviceAddress;
 }
 
 
 
-HAPAccessory* HAPPluginMiFloraDevice::initAccessory(){
+HAPAccessory* HAPPluginNimbleMiFloraDevice::initAccessory(){
     
     String sn = md5(HAPDeviceID::deviceID() + String(_deviceAddress.c_str()));
     
     _accessory = new HAPAccessory();
     //HAPAccessory::addInfoServiceToAccessory(_accessory, "Builtin LED", "ACME", "LED", "123123123", &identify);
-    auto callbackIdentify = std::bind(&HAPPluginMiFloraDevice::identify, this, std::placeholders::_1, std::placeholders::_2);
+    auto callbackIdentify = std::bind(&HAPPluginNimbleMiFloraDevice::identify, this, std::placeholders::_1, std::placeholders::_2);
     _accessory->addInfoService("MiFlora", "Xioami", "Flower Care", sn, callbackIdentify, version());
 
     //
@@ -103,7 +104,7 @@ HAPAccessory* HAPPluginMiFloraDevice::initAccessory(){
     // 
     _batteryLevel = new intCharacteristics(HAP_CHARACTERISTIC_BATTERY_LEVEL, permission_read|permission_notify, 0, 100, 1, unit_percentage);
     _batteryLevel->setValue("0");
-    auto callbackChangeBatLevel = std::bind(&HAPPluginMiFloraDevice::changeBatteryLevel, this, std::placeholders::_1, std::placeholders::_2);
+    auto callbackChangeBatLevel = std::bind(&HAPPluginNimbleMiFloraDevice::changeBatteryLevel, this, std::placeholders::_1, std::placeholders::_2);
     _batteryLevel->valueChangeFunctionCall = callbackChangeBatLevel;
     _accessory->addCharacteristics(batteryService, _batteryLevel);
 
@@ -113,7 +114,7 @@ HAPAccessory* HAPPluginMiFloraDevice::initAccessory(){
     // 
     _batteryStatus = new intCharacteristics(HAP_CHARACTERISTIC_STATUS_LOW_BATTERY, permission_read|permission_notify, 0, 1, 1, unit_none);
     _batteryStatus->setValue("0");
-    auto callbackChangeBatStatus = std::bind(&HAPPluginMiFloraDevice::changeBatteryStatus, this, std::placeholders::_1, std::placeholders::_2);
+    auto callbackChangeBatStatus = std::bind(&HAPPluginNimbleMiFloraDevice::changeBatteryStatus, this, std::placeholders::_1, std::placeholders::_2);
     _batteryStatus->valueChangeFunctionCall = callbackChangeBatStatus;
     _accessory->addCharacteristics(batteryService, _batteryStatus);
 
@@ -144,7 +145,7 @@ HAPAccessory* HAPPluginMiFloraDevice::initAccessory(){
     _temperatureValue = new floatCharacteristics(HAP_CHARACTERISTIC_CURRENT_TEMPERATURE, permission_read|permission_notify, -50, 100, 0.1, unit_celsius);
     _temperatureValue->setValue("0.0");
     
-    auto callbackChangeTemp = std::bind(&HAPPluginMiFloraDevice::changeTemp, this, std::placeholders::_1, std::placeholders::_2);
+    auto callbackChangeTemp = std::bind(&HAPPluginNimbleMiFloraDevice::changeTemp, this, std::placeholders::_1, std::placeholders::_2);
     _temperatureValue->valueChangeFunctionCall = callbackChangeTemp;
     _accessory->addCharacteristics(temperatureService, _temperatureValue);
 
@@ -156,7 +157,7 @@ HAPAccessory* HAPPluginMiFloraDevice::initAccessory(){
     _lastUpdate->setDescription("LastUpdate");
     _lastUpdate->setValue("Never");
 
-    auto callbackChangeLastUpdate = std::bind(&HAPPluginMiFloraDevice::changeLastUpdate, this, std::placeholders::_1, std::placeholders::_2);
+    auto callbackChangeLastUpdate = std::bind(&HAPPluginNimbleMiFloraDevice::changeLastUpdate, this, std::placeholders::_1, std::placeholders::_2);
     _lastUpdate->valueChangeFunctionCall = callbackChangeLastUpdate;
     _accessory->addCharacteristics(temperatureService, _lastUpdate);
 
@@ -179,7 +180,7 @@ HAPAccessory* HAPPluginMiFloraDevice::initAccessory(){
     _humidityValue = new floatCharacteristics(HAP_CHARACTERISTIC_CURRENT_RELATIVE_HUMIDITY, permission_read|permission_notify, 0, 100, 0.1, unit_percentage);
     _humidityValue->setValue("0.0");
 
-    auto callbackChangeHum = std::bind(&HAPPluginMiFloraDevice::changeHum, this, std::placeholders::_1, std::placeholders::_2);
+    auto callbackChangeHum = std::bind(&HAPPluginNimbleMiFloraDevice::changeHum, this, std::placeholders::_1, std::placeholders::_2);
     _humidityValue->valueChangeFunctionCall = callbackChangeHum;
     _accessory->addCharacteristics(humidityService, _humidityValue);
 
@@ -196,7 +197,7 @@ HAPAccessory* HAPPluginMiFloraDevice::initAccessory(){
     _lightValue = new floatCharacteristics(HAP_CHARACTERISTIC_CURRENT_AMBIENT_LIGHT_LEVEL, permission_read|permission_notify, 0.0, 100000, 0.1, unit_lux);
     _lightValue->setValue("0.0");
 
-    auto callbackChangeLight = std::bind(&HAPPluginMiFloraDevice::changeLight, this, std::placeholders::_1, std::placeholders::_2);
+    auto callbackChangeLight = std::bind(&HAPPluginNimbleMiFloraDevice::changeLight, this, std::placeholders::_1, std::placeholders::_2);
     _lightValue->valueChangeFunctionCall = callbackChangeLight;
     _accessory->addCharacteristics(lightService, _lightValue);
 
@@ -215,7 +216,7 @@ HAPAccessory* HAPPluginMiFloraDevice::initAccessory(){
     _fertilityValue->setDescription("Fertility");
 
 
-    auto callbackChangeFertility = std::bind(&HAPPluginMiFloraDevice::changeFertility, this, std::placeholders::_1, std::placeholders::_2);
+    auto callbackChangeFertility = std::bind(&HAPPluginNimbleMiFloraDevice::changeFertility, this, std::placeholders::_1, std::placeholders::_2);
     _fertilityValue->valueChangeFunctionCall = callbackChangeFertility;
     _accessory->addCharacteristics(fertilityService, _fertilityValue);
 
@@ -230,7 +231,7 @@ HAPAccessory* HAPPluginMiFloraDevice::initAccessory(){
     deviceAdd = deviceAdd.substring(6);
 
     _fakegato.registerFakeGatoService(_accessory, "MiFlora " + deviceAdd);
-	auto callbackAddEntry = std::bind(&HAPPluginMiFloraDevice::fakeGatoCallback, this);
+	auto callbackAddEntry = std::bind(&HAPPluginNimbleMiFloraDevice::fakeGatoCallback, this);
 	// _fakegato.registerCallback(callbackAddEntry);
 	_fakegatoFactory->registerFakeGato(&_fakegato,  "MiFlora " + deviceAdd, callbackAddEntry);
 
@@ -239,7 +240,7 @@ HAPAccessory* HAPPluginMiFloraDevice::initAccessory(){
 }
 
 
-void HAPPluginMiFloraDevice::setValue(floraData data){
+void HAPPluginNimbleMiFloraDevice::setValue(floraData data){
     LogD(HAPServer::timeString() + " " + "MiFloraDevice" + "->" + String(__FUNCTION__) + " [   ] " + "Set values ", true);
 
     _temperatureValue->setValue(String(data.temperature));
@@ -294,50 +295,50 @@ void HAPPluginMiFloraDevice::setValue(floraData data){
 }
 
 
-void HAPPluginMiFloraDevice::setEventManager(EventManager* eventManager){
+void HAPPluginNimbleMiFloraDevice::setEventManager(EventManager* eventManager){
     _eventManager = eventManager;
 }
 
 
-void HAPPluginMiFloraDevice::setFakeGatoFactory(HAPFakeGatoFactory* fakegatoFactory){
+void HAPPluginNimbleMiFloraDevice::setFakeGatoFactory(HAPFakeGatoFactory* fakegatoFactory){
     _fakegatoFactory = fakegatoFactory;
 }   
 
 
-void HAPPluginMiFloraDevice::changeTemp(float oldValue, float newValue) {
+void HAPPluginNimbleMiFloraDevice::changeTemp(float oldValue, float newValue) {
 	Serial.printf("[MiFlora:%s] New temperature: %f\n", _deviceAddress.c_str(), newValue);
 }
 
-void HAPPluginMiFloraDevice::changeHum(float oldValue, float newValue) {
+void HAPPluginNimbleMiFloraDevice::changeHum(float oldValue, float newValue) {
 	Serial.printf("[MiFlora:%s] New humidity: %f\n", _deviceAddress.c_str(), newValue);
 }
 
-void HAPPluginMiFloraDevice::changeLight(float oldValue, float newValue) {
+void HAPPluginNimbleMiFloraDevice::changeLight(float oldValue, float newValue) {
 	Serial.printf("[MiFlora:%s] New light: %f\n", _deviceAddress.c_str(), newValue);
 }
 
-void HAPPluginMiFloraDevice::changeBatteryLevel(float oldValue, float newValue) {
+void HAPPluginNimbleMiFloraDevice::changeBatteryLevel(float oldValue, float newValue) {
 	Serial.printf("[MiFlora:%s] New battery Level: %f\n", _deviceAddress.c_str(), newValue);
 }
 
-void HAPPluginMiFloraDevice::changeBatteryStatus(float oldValue, float newValue) {
+void HAPPluginNimbleMiFloraDevice::changeBatteryStatus(float oldValue, float newValue) {
 	Serial.printf("[MiFlora:%s] New battery status: %f\n", _deviceAddress.c_str(), newValue);
 }
 
-void HAPPluginMiFloraDevice::changeFertility(float oldValue, float newValue) {
+void HAPPluginNimbleMiFloraDevice::changeFertility(float oldValue, float newValue) {
 	Serial.printf("[MiFlora:%s] New fertility: %f\n", _deviceAddress.c_str(), newValue);
 }
 
-void HAPPluginMiFloraDevice::changeLastUpdate(String oldValue, String newValue){
+void HAPPluginNimbleMiFloraDevice::changeLastUpdate(String oldValue, String newValue){
     Serial.printf("[MiFlora:%s] New LastUpdate: %s\n", _deviceAddress.c_str(), newValue.c_str());
 }
 
-void HAPPluginMiFloraDevice::identify( bool oldValue, bool newValue) {
+void HAPPluginNimbleMiFloraDevice::identify( bool oldValue, bool newValue) {
     printf("Start Identify MiFlora with address %s\n", _deviceAddress.c_str());
 }
 
 
-bool HAPPluginMiFloraDevice::fakeGatoCallback(){
+bool HAPPluginNimbleMiFloraDevice::fakeGatoCallback(){
     // LogD(HAPServer::timeString() + " " + "HAPPluginPCA301Device" + "->" + String(__FUNCTION__) + " [   ] " + "fakeGatoCallback()", true);
 
     // Serial.println("power: " + _curPowerValue->value());    

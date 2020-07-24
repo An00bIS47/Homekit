@@ -1,17 +1,17 @@
 //
-// HAPPluginMiFloraDevice.hpp
+// HAPPluginNimbleMiFloraDevice.hpp
 // Homekit
 //
 //  Created on: 22.09.2019
 //      Author: michael
 //
 
-#ifndef HAPPLUGINPMIFLORADEVICE_HPP_
-#define HAPPLUGINPMIFLORADEVICE_HPP_
+#ifndef HAPPLUGINNIMBLEMIFLORADEVICE_HPP_
+#define HAPPLUGINNIMBLEMIFLORADEVICE_HPP_
 
 #include <Arduino.h>
 #include <MD5Builder.h>
-#include <BLEAddress.h>
+#include "NimBLEAddress.h"
 
 #include "HAPAccessory.hpp"
 #include "HAPService.hpp"
@@ -48,11 +48,11 @@ typedef struct floraHistory {
 } floraHistory;
 #endif
 
-class HAPPluginMiFloraDevice {
+class HAPPluginNimbleMiFloraDevice {
 
 public:
-    HAPPluginMiFloraDevice(const std::string& address);
-    HAPPluginMiFloraDevice(BLEAddress address);
+    HAPPluginNimbleMiFloraDevice(const std::string& address);
+    HAPPluginNimbleMiFloraDevice(NimBLEAddress address);
 
 
     HAPAccessory* initAccessory();

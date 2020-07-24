@@ -65,6 +65,8 @@ static heap_trace_record_t trace_record[HAP_DEBUG_HEAP_NUM_RECORDS]; // This buf
 #endif
 
 
+
+
 //
 // init static variables
 //
@@ -495,6 +497,8 @@ bool HAPServer::begin(bool resume) {
     	//Serial.println(*it);
     	auto plugin = factory.getPlugin(*it);
 		
+		LogD("Setup plugin " + plugin->name(), true);
+
 		plugin->setAccessorySet(_accessorySet);
 		plugin->setFakeGatoFactory(&_fakeGatoFactory);
 		plugin->addEventListener(&_eventManager);

@@ -19,9 +19,6 @@
 [submodule "components/Adafruit_Sensor"]
 	path = components/Adafruit_Sensor
 	url = https://github.com/adafruit/Adafruit_Sensor.git
-[submodule "components/NeoPixelBus"]
-	path = components/NeoPixelBus
-	url = https://github.com/Makuna/NeoPixelBus.git
 [submodule "components/Adafruit_NeoPixel"]
 	path = components/Adafruit_NeoPixel
 	url = https://github.com/adafruit/Adafruit_NeoPixel.git
@@ -40,21 +37,12 @@
 [submodule "components/esp8266-oled-ssd1306"]
 	path = components/esp8266-oled-ssd1306
 	url = https://github.com/ThingPulse/esp8266-oled-ssd1306.git
-[submodule "components/Adafruit_Neopixel"]
-	path = components/Adafruit_Neopixel
-	url = https://github.com/adafruit/Adafruit_NeoPixel.git
 [submodule "components/ArduinoStreamUtils"]
 	path = components/ArduinoStreamUtils
 	url = https://github.com/bblanchon/ArduinoStreamUtils.git
 [submodule "components/RF24"]
 	path = components/RF24
 	url = https://github.com/nhatuan84/RF24.git
-[submodule "components/Arduino-IRremote"]
-	path = components/Arduino-IRremote
-	url = https://github.com/z3t0/Arduino-IRremote.git
 [submodule "components/IRremote8266"]
 	path = components/IRremote8266
 	url = https://github.com/crankyoldgit/IRremoteESP8266.git
-[submodule "components/FastLED"]
-	path = components/FastLED
-	url = https://github.com/FastLED/FastLED.git

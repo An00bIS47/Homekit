@@ -1,5 +1,5 @@
 //
-// HAPPluginMiFlora2.hpp
+// HAPPluginNimbleMiFlora.hpp
 // Homekit
 //
 //  Created on: 12.07.2019
@@ -7,34 +7,28 @@
 //
 // used code from https://github.com/sidddy/flora
 
-#ifndef HAPPLUGINMIFLORA2_HPP_
-#define HAPPLUGINMIFLORA2_HPP_
+#ifndef HAPPLUGINNIMBLEMIFLORA_HPP_
+#define HAPPLUGINNIMBLEMIFLORA_HPP_
 
 #include <Arduino.h>
-#include <BLEDevice.h>
 #include "esp_system.h"
 #include <vector>
+#include <NimBLEDevice.h>
 
 #include "HAPPlugins.hpp"
 #include "HAPLogger.hpp"
 #include "HAPAccessory.hpp"
 #include "HAPGlobals.hpp"
 
-#include "HAPPluginMiFloraDevice.hpp"
 
-#define HAP_MIFLORA_INTERVAL    				300000	// every 300 seconds
-#define HAP_MIFLORA_RETRY                   	3
-#define HAP_MIFLORA_DISABLE_BT_MODE_CLASSIC		1		// disable BLE classic mode
-
-#define HAP_PLUGIN_MIFLORA2_DEBUG               1
+#include "HAPPluginNimbleMiFloraDevice.hpp"
 
 
 
-
-class HAPPluginMiFlora2: public HAPPlugin {
+class HAPPluginNimbleMiFlora: public HAPPlugin {
 public:
 
-	HAPPluginMiFlora2();
+	HAPPluginNimbleMiFlora();
 	HAPAccessory* initAccessory();
 	bool begin();
 	
@@ -63,9 +57,9 @@ private:
 
     static std::vector<BLEAddress> _supportedDevices;
 
-	static std::vector<HAPPluginMiFloraDevice*>	_devices;
+	static std::vector<HAPPluginNimbleMiFloraDevice*>	_devices;
 	static bool containsDevice(std::string address);
-	static HAPPluginMiFloraDevice* getDevice(std::string address);
+	static HAPPluginNimbleMiFloraDevice* getDevice(std::string address);
 
 	HAPAccessory*		_accessory;
     static BLEClient*   _floraClient;
@@ -112,5 +106,5 @@ private:
 };
 
 
-REGISTER_PLUGIN(HAPPluginMiFlora2)
-#endif
+REGISTER_PLUGIN(HAPPluginNimbleMiFlora)
+#endif /* HAPPLUGINNIMBLEMIFLORA_HPP_ */

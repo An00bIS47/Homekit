@@ -1,5 +1,5 @@
 //
-// HAPPluginMiFlora2.cpp
+// HAPPluginNimbleMiFlora.cpp
 // Homekit
 //
 //  Created on: 01.08.2019
@@ -7,39 +7,43 @@
 //
 
 #include "HAPServer.hpp"
-#include "HAPPluginMiFlora2.hpp"
-#include "HAPPluginMiFloraScanner.hpp"
+#include "HAPPluginNimbleMiFlora.hpp"
+#include "HAPPluginNimbleMiFloraScanner.hpp"
 #include "HAPLogger.hpp"
+
+
 
 #define VERSION_MAJOR       1
 #define VERSION_MINOR       3
 #define VERSION_REVISION    1
 #define VERSION_BUILD       2
 
+#define HAP_MIFLORA_INTERVAL    120000
+#define HAP_MIFLORA_RETRY       5
 
-BLEUUID HAPPluginMiFlora2::_serviceUUID                 = BLEUUID::fromString("00001204-0000-1000-8000-00805f9b34fb");
+BLEUUID HAPPluginNimbleMiFlora::_serviceUUID                 = BLEUUID::fromString("00001204-0000-1000-8000-00805f9b34fb");
 
-BLEUUID HAPPluginMiFlora2::_uuid_write_mode             = BLEUUID::fromString("00001a00-0000-1000-8000-00805f9b34fb");
-BLEUUID HAPPluginMiFlora2::_uuid_sensor_data            = BLEUUID::fromString("00001a01-0000-1000-8000-00805f9b34fb");
-BLEUUID HAPPluginMiFlora2::_uuid_version_battery        = BLEUUID::fromString("00001a02-0000-1000-8000-00805f9b34fb");
+BLEUUID HAPPluginNimbleMiFlora::_uuid_write_mode             = BLEUUID::fromString("00001a00-0000-1000-8000-00805f9b34fb");
+BLEUUID HAPPluginNimbleMiFlora::_uuid_sensor_data            = BLEUUID::fromString("00001a01-0000-1000-8000-00805f9b34fb");
+BLEUUID HAPPluginNimbleMiFlora::_uuid_version_battery        = BLEUUID::fromString("00001a02-0000-1000-8000-00805f9b34fb");
 
 #if HAP_PLUGIN_MIFLORA2_FETCH_HISTORY    
-BLEUUID HAPPluginMiFlora2::_serviceHistoryUUID          = BLEUUID::fromString("00001206-0000-1000-8000-00805f9b34fb");
+BLEUUID HAPPluginNimbleMiFlora::_serviceHistoryUUID          = BLEUUID::fromString("00001206-0000-1000-8000-00805f9b34fb");
 
-BLEUUID HAPPluginMiFlora2::_uuid_write_history_mode     = BLEUUID::fromString("00001a10-0000-1000-8000-00805f9b34fb");
-BLEUUID HAPPluginMiFlora2::_uuid_history_read           = BLEUUID::fromString("00001a11-0000-1000-8000-00805f9b34fb");
-BLEUUID HAPPluginMiFlora2::_uuid_device_time            = BLEUUID::fromString("00001a12-0000-1000-8000-00805f9b34fb");
+BLEUUID HAPPluginNimbleMiFlora::_uuid_write_history_mode     = BLEUUID::fromString("00001a10-0000-1000-8000-00805f9b34fb");
+BLEUUID HAPPluginNimbleMiFlora::_uuid_history_read           = BLEUUID::fromString("00001a11-0000-1000-8000-00805f9b34fb");
+BLEUUID HAPPluginNimbleMiFlora::_uuid_device_time            = BLEUUID::fromString("00001a12-0000-1000-8000-00805f9b34fb");
 #endif
 
-std::vector<BLEAddress> HAPPluginMiFlora2::_supportedDevices;
-std::vector<HAPPluginMiFloraDevice*> HAPPluginMiFlora2::_devices;
-BLEClient* HAPPluginMiFlora2::_floraClient = nullptr;
+std::vector<BLEAddress> HAPPluginNimbleMiFlora::_supportedDevices;
+std::vector<HAPPluginNimbleMiFloraDevice*> HAPPluginNimbleMiFlora::_devices;
+BLEClient* HAPPluginNimbleMiFlora::_floraClient = nullptr;
 
 
-HAPPluginMiFlora2::HAPPluginMiFlora2(){
+HAPPluginNimbleMiFlora::HAPPluginNimbleMiFlora(){
     _type = HAP_PLUGIN_TYPE_ACCESSORY;
-    _name = "MiFlora2";
-    _isEnabled = HAP_PLUGIN_USE_MIFLORA2;
+    _name = "NimbleMiFlora";
+    _isEnabled = HAP_PLUGIN_USE_NIMBLE_MIFLORA;
     _interval = HAP_MIFLORA_INTERVAL;
     _previousMillis = 0;    
 
@@ -50,7 +54,7 @@ HAPPluginMiFlora2::HAPPluginMiFlora2(){
     _version.build      = VERSION_BUILD;
 }
 
-bool HAPPluginMiFlora2::begin(){
+bool HAPPluginNimbleMiFlora::begin(){
 
 #if HAP_MIFLORA_DISABLE_BT_MODE_CLASSIC
     esp_bt_controller_mem_release(ESP_BT_MODE_CLASSIC_BT);
@@ -67,7 +71,7 @@ bool HAPPluginMiFlora2::begin(){
 }
 
 
-void HAPPluginMiFlora2::handleImpl(bool forced){
+void HAPPluginNimbleMiFlora::handleImpl(bool forced){
 
     LogD("Handle " + String(__PRETTY_FUNCTION__) + " - interval: " + String(interval()), true);        
 
@@ -79,17 +83,17 @@ void HAPPluginMiFlora2::handleImpl(bool forced){
 	free(deviceData);
 }
 
-HAPAccessory* HAPPluginMiFlora2::initAccessory(){
+HAPAccessory* HAPPluginNimbleMiFlora::initAccessory(){
 	
 
 	return nullptr;
 }
 
-void HAPPluginMiFlora2::identify( bool oldValue, bool newValue) {
+void HAPPluginNimbleMiFlora::identify( bool oldValue, bool newValue) {
     printf("Start Identify MiFlora2 from member\n");
 }
 
-bool HAPPluginMiFlora2::containsDevice(std::string address){
+bool HAPPluginNimbleMiFlora::containsDevice(std::string address){
     for (auto& device : _devices){
         if (device->address() == address) {
             return true;
@@ -99,7 +103,7 @@ bool HAPPluginMiFlora2::containsDevice(std::string address){
 }
 
 
-HAPPluginMiFloraDevice* HAPPluginMiFlora2::getDevice(std::string address){
+HAPPluginNimbleMiFloraDevice* HAPPluginNimbleMiFlora::getDevice(std::string address){
     for (auto& device : _devices){
         if (device->address() == address) {
             return device;
@@ -108,17 +112,17 @@ HAPPluginMiFloraDevice* HAPPluginMiFlora2::getDevice(std::string address){
     return nullptr;
 }
 
-HAPConfigValidationResult HAPPluginMiFlora2::validateConfig(JsonObject object){
+HAPConfigValidationResult HAPPluginNimbleMiFlora::validateConfig(JsonObject object){
 
     return HAPPlugin::validateConfig(object);
 }
 
-JsonObject HAPPluginMiFlora2::getConfigImpl(){
+JsonObject HAPPluginNimbleMiFlora::getConfigImpl(){
     DynamicJsonDocument doc(1);
 	return doc.as<JsonObject>();
 }
 
-void HAPPluginMiFlora2::setConfigImpl(JsonObject root){
+void HAPPluginNimbleMiFlora::setConfigImpl(JsonObject root){
 
 }
 
@@ -128,7 +132,7 @@ void HAPPluginMiFlora2::setConfigImpl(JsonObject root){
  *   
  */
 
-BLEClient* HAPPluginMiFlora2::getFloraClient(BLEAddress floraAddress) {	
+BLEClient* HAPPluginNimbleMiFlora::getFloraClient(BLEAddress floraAddress) {	
 
 	if (!_floraClient->connect(floraAddress)) {
 		LogD("[MiFlora:" + String(floraAddress.toString().c_str()) + "] Connection failed, skipping", true);
@@ -140,7 +144,7 @@ BLEClient* HAPPluginMiFlora2::getFloraClient(BLEAddress floraAddress) {
 }
 
 
-BLERemoteService* HAPPluginMiFlora2::getFloraService(BLEClient* floraClient, BLEUUID uuid) {
+BLERemoteService* HAPPluginNimbleMiFlora::getFloraService(BLEClient* floraClient, BLEUUID uuid) {
 	BLERemoteService* floraService = nullptr;
 
 	try {
@@ -159,7 +163,7 @@ BLERemoteService* HAPPluginMiFlora2::getFloraService(BLEClient* floraClient, BLE
 	return floraService;
 }
 
-bool HAPPluginMiFlora2::forceFloraServiceDataMode(BLERemoteService* floraService, BLEUUID uuid, uint8_t* data, size_t dataLength) {
+bool HAPPluginNimbleMiFlora::forceFloraServiceDataMode(BLERemoteService* floraService, BLEUUID uuid, uint8_t* data, size_t dataLength) {
 	BLERemoteCharacteristic* floraCharacteristic;
 	
 	// get device mode characteristic, needs to be changed to read data
@@ -184,7 +188,7 @@ bool HAPPluginMiFlora2::forceFloraServiceDataMode(BLERemoteService* floraService
 	return true;
 }
 
-bool HAPPluginMiFlora2::readFloraDataCharacteristic(BLERemoteService* floraService, struct floraData* retData) {
+bool HAPPluginNimbleMiFlora::readFloraDataCharacteristic(BLERemoteService* floraService, struct floraData* retData) {
 	BLERemoteCharacteristic* floraCharacteristic = nullptr;
 
 	// get the main device data characteristic
@@ -261,7 +265,7 @@ bool HAPPluginMiFlora2::readFloraDataCharacteristic(BLERemoteService* floraServi
 }
 
 
-bool HAPPluginMiFlora2::readFloraBatteryCharacteristic(BLERemoteService* floraService, struct floraData* retData) {
+bool HAPPluginNimbleMiFlora::readFloraBatteryCharacteristic(BLERemoteService* floraService, struct floraData* retData) {
 	BLERemoteCharacteristic* floraCharacteristic = nullptr;
 
 	// get the device battery characteristic
@@ -325,7 +329,7 @@ bool HAPPluginMiFlora2::readFloraBatteryCharacteristic(BLERemoteService* floraSe
 }
 
 #if HAP_PLUGIN_MIFLORA2_FETCH_HISTORY 
-bool HAPPluginMiFlora2::readFloraDeviceTimeCharacteristic(BLERemoteService* floraService, uint32_t* deviceTime) {
+bool HAPPluginNimbleMiFlora::readFloraDeviceTimeCharacteristic(BLERemoteService* floraService, uint32_t* deviceTime) {
 	BLERemoteCharacteristic* floraCharacteristic = nullptr;
 
 	// get the device device time characteristic
@@ -364,7 +368,7 @@ bool HAPPluginMiFlora2::readFloraDeviceTimeCharacteristic(BLERemoteService* flor
 	return true;
 }
 
-bool HAPPluginMiFlora2::readFloraHistoryEntryCountCharacteristic(BLERemoteService* floraService, uint16_t* entryCount) {
+bool HAPPluginNimbleMiFlora::readFloraHistoryEntryCountCharacteristic(BLERemoteService* floraService, uint16_t* entryCount) {
 	BLERemoteCharacteristic* floraCharacteristic = nullptr;
 
 	// get the device device time characteristic
@@ -405,14 +409,14 @@ bool HAPPluginMiFlora2::readFloraHistoryEntryCountCharacteristic(BLERemoteServic
 }
 
 
-void HAPPluginMiFlora2::entryAddress(uint8_t *address, uint16_t entry){
+void HAPPluginNimbleMiFlora::entryAddress(uint8_t *address, uint16_t entry){
 	address[0] = 0xA1;
     address[1] = entry;
     address[2] = entry << 8;
 }
 
 
-bool HAPPluginMiFlora2::readFloraHistoryEntryCharacteristic(BLERemoteService* floraService, struct floraHistory* history) {
+bool HAPPluginNimbleMiFlora::readFloraHistoryEntryCharacteristic(BLERemoteService* floraService, struct floraHistory* history) {
 	BLERemoteCharacteristic* floraCharacteristic = nullptr;
 
 	// get the device device time characteristic
@@ -487,7 +491,7 @@ bool HAPPluginMiFlora2::readFloraHistoryEntryCharacteristic(BLERemoteService* fl
 }
 
 
-bool HAPPluginMiFlora2::getEntryCount(BLERemoteService* floraService, uint16_t *entryCount){
+bool HAPPluginNimbleMiFlora::getEntryCount(BLERemoteService* floraService, uint16_t *entryCount){
     // set device in data mode
 	// write the magic data
 	uint8_t buf[3] = {0xA0, 0x00, 0x00};
@@ -505,7 +509,7 @@ bool HAPPluginMiFlora2::getEntryCount(BLERemoteService* floraService, uint16_t *
     return entryCountSuccess;
 }
 
-bool HAPPluginMiFlora2::processFloraHistoryService(BLERemoteService* floraService, struct floraHistory* history, uint16_t entryCount) {
+bool HAPPluginNimbleMiFlora::processFloraHistoryService(BLERemoteService* floraService, struct floraHistory* history, uint16_t entryCount) {
 	
     uint32_t deviceTime = 0;
 	bool deviceTimeSuccess = readFloraDeviceTimeCharacteristic(floraService, &deviceTime);
@@ -554,7 +558,7 @@ bool HAPPluginMiFlora2::processFloraHistoryService(BLERemoteService* floraServic
 
 #endif
 
-bool HAPPluginMiFlora2::processFloraService(BLERemoteService* floraService, struct floraData* retData) {
+bool HAPPluginNimbleMiFlora::processFloraService(BLERemoteService* floraService, struct floraData* retData) {
 	
     bool batterySuccess = readFloraBatteryCharacteristic(floraService, retData);
 	
@@ -572,7 +576,7 @@ bool HAPPluginMiFlora2::processFloraService(BLERemoteService* floraService, stru
 }
 
 
-bool HAPPluginMiFlora2::processFloraDevice(BLEAddress floraAddress, int tryCount, struct floraData* retData) {
+bool HAPPluginNimbleMiFlora::processFloraDevice(BLEAddress floraAddress, int tryCount, struct floraData* retData) {
 	Serial.print("Processing Flora device at ");
 	Serial.print(floraAddress.toString().c_str());
 	Serial.print(" (try ");
@@ -632,21 +636,21 @@ bool HAPPluginMiFlora2::processFloraDevice(BLEAddress floraAddress, int tryCount
 }
 
 
-void HAPPluginMiFlora2::processDevices(struct floraData* deviceData){
+void HAPPluginNimbleMiFlora::processDevices(struct floraData* deviceData){
 	// check if battery status should be read - based on boot count
     // process devices    
 
 
     for (int i = 0; i < _supportedDevices.size(); i++) {
 
-        HAPPluginMiFloraDevice* newDevice = nullptr;        
+        HAPPluginNimbleMiFloraDevice* newDevice = nullptr;        
         BLEAddress deviceAddress = _supportedDevices[i];
     
         if (!containsDevice(deviceAddress.toString())){
             // not in devices list -> initialize and add to accessorySet
             LogI(HAPServer::timeString() + " " + "MiFlora2" + "->" + String(__FUNCTION__) + " [   ] " + "Add MiFlora device to devices list: " + String(deviceAddress.toString().c_str()), true);
             
-            newDevice = new HAPPluginMiFloraDevice(deviceAddress.toString());
+            newDevice = new HAPPluginNimbleMiFloraDevice(deviceAddress.toString());
 
             newDevice->setFakeGatoFactory(_fakeGatoFactory);
             newDevice->setEventManager(_eventManager);

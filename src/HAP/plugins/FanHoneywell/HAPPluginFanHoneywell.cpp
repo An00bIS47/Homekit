@@ -17,7 +17,8 @@
 #define VERSION_REVISION    1
 #define VERSION_BUILD       1
 
-// #define DELAY_BETWEEN_BUTTON_PRESS 150  // in ms
+
+#define HAP_PLUGIN_HONEYWELL_DELAY_SEND 	300  // in m
 
 // Button 1: Wind Type 
 // 3 Types: 
@@ -183,7 +184,7 @@ void HAPPluginFanHoneywell::changeRotationSpeed(float oldValue, float newValue){
         HAPPluginIR::getIRSend()->sendRaw(rawDataSpeed, 23, 38); 
 
         if (numberOfPresses > 1) {
-            delay(DELAY_BETWEEN_BUTTON_PRESS);
+            delay(HAP_PLUGIN_HONEYWELL_DELAY_SEND);
         }         
     }
 	
@@ -204,10 +205,6 @@ void HAPPluginFanHoneywell::handleImpl(bool forced){
 }
 
 bool HAPPluginFanHoneywell::begin(){
-
-    // _irsend = new IRsend(_gpio);
-    // _irsend->begin();  
-
     
     HAPPluginIR::setupIRSend();
     return true;

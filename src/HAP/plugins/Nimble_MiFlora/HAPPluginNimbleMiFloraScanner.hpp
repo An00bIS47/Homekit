@@ -1,5 +1,5 @@
 //
-// HAPPluginMiFlora.hpp
+// HAPPluginNimbleMiFloraScanner.hpp
 // Homekit
 //
 //  Created on: 12.07.2019
@@ -7,11 +7,11 @@
 //
 // used code from https://github.com/sidddy/flora
 
-#ifndef HAPPLUGINMIFLORADEVICESSCANNER_HPP_
-#define HAPPLUGINMIFLORADEVICESSCANNER_HPP_
+#ifndef HAPPLUGINNIMBLEMIFLORADSCANNER_HPP_
+#define HAPPLUGINNIMBLEMIFLORADSCANNER_HPP_
 
 #include <Arduino.h>
-#include <BLEDevice.h>
+#include <NimBLEDevice.h>
 
 #define MAX_DEVICES	1
 // Max duration of BLE scan (in seconds)
@@ -22,7 +22,7 @@ static BLEUUID rootServiceDataUUID((uint16_t) 0xfe95);
 
 
 
-class HAPPluginMiFloraDevicesScanner {
+class HAPPluginNimbleMiFloraDevicesScanner {
 
 public:
     // Scan BLE and return true if flora devices are found
@@ -78,27 +78,27 @@ private:
 
 };
 
-inline bool HAPPluginMiFloraDevicesScanner::scan() {
+inline bool HAPPluginNimbleMiFloraDevicesScanner::scan() {
     Serial.println("Scan BLE, looking for Flora Devices");
     clearDevices();
 
     // detect and register Flora devices during BLE scan
     class FloraDevicesBLEDetector: public BLEAdvertisedDeviceCallbacks {
     public:
-        FloraDevicesBLEDetector(HAPPluginMiFloraDevicesScanner &floraScanner) : _floraScanner(floraScanner) {}
+        FloraDevicesBLEDetector(HAPPluginNimbleMiFloraDevicesScanner &floraScanner) : _floraScanner(floraScanner) {}
       
-        void onResult(BLEAdvertisedDevice advertisedDevice)
+        void onResult(BLEAdvertisedDevice* advertisedDevice)
         {
-            if (advertisedDevice.haveServiceUUID()) {
-                BLEUUID service = advertisedDevice.getServiceUUID();
+            if (advertisedDevice->haveServiceUUID()) {
+                BLEUUID service = advertisedDevice->getServiceUUID();
                 if (service.equals(rootServiceDataUUID)) {
-                    _floraScanner.registerDevice(advertisedDevice);
+                    _floraScanner.registerDevice(*advertisedDevice);
                 }                    
             }
         }
       
     private:
-        HAPPluginMiFloraDevicesScanner& _floraScanner;
+        HAPPluginNimbleMiFloraDevicesScanner& _floraScanner;
     };
 
     _scan = BLEDevice::getScan();

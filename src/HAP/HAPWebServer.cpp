@@ -22,9 +22,8 @@
 #if HAP_WEBSERVER_USE_SSL
 
 
-
 // Server Cert if not using keystore
-#if HAP_USE_KEYSTORE == 0
+#if HAP_KEYSTORE_ENABLED == 0
 
 #if HAP_BOARD_HELTEC == 1
 extern const unsigned char server_cert_der_start[] asm("_binary_esp32_AF5FA4_cer_start");
@@ -41,7 +40,7 @@ extern const unsigned char server_cert_der_start[] asm("_binary_esp32_CAFEEC_cer
 extern const unsigned char server_cert_der_end[] asm("_binary_esp32_CAFEEC_cer_end");
 #endif
 
-#endif 
+#endif /* HAP_USE_KEYSTORE */
 
 
 // Private Key
@@ -73,9 +72,13 @@ extern const unsigned char server_privateKey_der_end[] asm("_binary_esp32_CAFEEC
 #endif
 
 #if HAP_BOARD_SPARKFUN2 == 1
+#if HAP_USING_PLATFORMIO == 0
 extern const unsigned char server_privateKey_der_start[] asm("_binary_esp32_CB3DC4_privatekey_start");
 extern const unsigned char server_privateKey_der_end[] asm("_binary_esp32_CB3DC4_privatekey_end");
-
+#else
+extern const unsigned char server_privateKey_der_start[] asm("_binary_certs_esp32_CB3DC4_esp32_CB3DC4_privatekey_start");
+extern const unsigned char server_privateKey_der_end[] asm("_binary_certs_esp32_CB3DC4_esp32_CB3DC4_privatekey_end");
+#endif
 // extern const unsigned char server_publicKey_der_start[] asm("_binary_esp32_CB3DC4_publickey_start");
 // extern const unsigned char server_publicKey_der_end[] asm("_binary_esp32_CB3DC4_publickey_end");
 #endif
@@ -145,12 +148,12 @@ bool HAPWebServer::begin()
             (unsigned char *)server_cert_der_start, server_cert_der_end - server_cert_der_start,
             (unsigned char *)server_privateKey_der_start, server_privateKey_der_end - server_privateKey_der_start
         );
-#endif
+#endif /* HAP_KEYSTORE_ENABLED */
     
     _secureServer = new HTTPSServer(&cert);
 #else
     _secureServer = new HTTPServer();
-#endif
+#endif /* HAP_WEBSERVER_USE_SSL */
 
     // For every resource available on the server, we need to create a ResourceNode
     // The ResourceNode links URL and HTTP method to a handler function
@@ -371,9 +374,6 @@ void HAPWebServer::rootKeyProcessor(const String& key, HTTPResponse * res){
         HAPSVG::drawQRCode(res, &qrCode);
 
         res->print("</div><p>Scan this code with your iPhone to pair this device</p></div></div>");
-
-
-
 
         // Main frame
 
@@ -1150,8 +1150,8 @@ void HAPWebServer::handleApiReset(HTTPRequest *req, HTTPResponse *res)
     res->println("{ \"restart\": \"in 3 sec\" }");
     res->print("");
     
-    delay(3000);
-    ESP.restart();
+    struct HAPEvent event = HAPEvent(nullptr, 0, 0, "");							
+	_eventManager->queueEvent( EventManager::kEventRebootNow, event);
 }
 
 // ===========================================================================================================
