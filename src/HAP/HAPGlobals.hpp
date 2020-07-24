@@ -395,7 +395,7 @@
 #endif
 
 #ifndef HAP_PLUGIN_USE_MIFLORA2
-#define HAP_PLUGIN_USE_MIFLORA2			0
+#define HAP_PLUGIN_USE_MIFLORA2			0   // deprecated !!!
 #endif
 
 #ifndef HAP_PLUGIN_USE_SSD1331

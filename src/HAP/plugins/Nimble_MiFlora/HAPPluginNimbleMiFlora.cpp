@@ -18,7 +18,7 @@
 #define VERSION_REVISION    1
 #define VERSION_BUILD       2
 
-#define HAP_MIFLORA_INTERVAL    30000
+#define HAP_MIFLORA_INTERVAL    120000
 #define HAP_MIFLORA_RETRY       5
 
 BLEUUID HAPPluginNimbleMiFlora::_serviceUUID                 = BLEUUID::fromString("00001204-0000-1000-8000-00805f9b34fb");
