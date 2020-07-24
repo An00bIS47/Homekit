@@ -363,11 +363,11 @@
  ********************************************************************/
 
 #ifndef HAP_PLUGIN_USE_NIMBLE_MIFLORA
-#define HAP_PLUGIN_USE_NIMBLE_MIFLORA 0
+#define HAP_PLUGIN_USE_NIMBLE_MIFLORA 	1		// https://github.com/h2zero/esp-nimble-cpp
 #endif
 
 #ifndef HAP_PLUGIN_USE_IR
-#define HAP_PLUGIN_USE_IR	0
+#define HAP_PLUGIN_USE_IR				0
 #endif
 
 #ifndef HAP_PLUGIN_USE_FAN_HONEYWELL
@@ -375,59 +375,59 @@
 #endif
 
 #ifndef HAP_PLUGIN_USE_RF24
-#define HAP_PLUGIN_USE_RF24			0
+#define HAP_PLUGIN_USE_RF24				0
 #endif
 
 #ifndef HAP_PLUGIN_USE_SSD1306
-#define HAP_PLUGIN_USE_SSD1306		0
+#define HAP_PLUGIN_USE_SSD1306			0
 #endif
 
 #ifndef HAP_PLUGIN_USE_LED
-#define HAP_PLUGIN_USE_LED			0
+#define HAP_PLUGIN_USE_LED				0
 #endif
 
 #ifndef HAP_PLUGIN_USE_SWITCH
-#define HAP_PLUGIN_USE_SWITCH		0
+#define HAP_PLUGIN_USE_SWITCH			0
 #endif
 
 #ifndef HAP_PLUGIN_USE_MIFLORA
-#define HAP_PLUGIN_USE_MIFLORA		0	// deprecated !!!
+#define HAP_PLUGIN_USE_MIFLORA			0	// deprecated !!!
 #endif
 
 #ifndef HAP_PLUGIN_USE_MIFLORA2
-#define HAP_PLUGIN_USE_MIFLORA2		0
+#define HAP_PLUGIN_USE_MIFLORA2			0
 #endif
 
 #ifndef HAP_PLUGIN_USE_SSD1331
-#define HAP_PLUGIN_USE_SSD1331		0
+#define HAP_PLUGIN_USE_SSD1331			0
 #endif
 
 #ifndef HAP_PLUGIN_USE_PCA301
-#define HAP_PLUGIN_USE_PCA301		0
+#define HAP_PLUGIN_USE_PCA301			0
 #endif
 
 #ifndef HAP_PLUGIN_USE_NEOPIXEL
-#define HAP_PLUGIN_USE_NEOPIXEL		0
+#define HAP_PLUGIN_USE_NEOPIXEL			0
 #endif
 
 #ifndef HAP_PLUGIN_USE_INFLUXDB
-#define HAP_PLUGIN_USE_INFLUXDB		0
+#define HAP_PLUGIN_USE_INFLUXDB			0
 #endif
 
 #ifndef HAP_PLUGIN_USE_HYGROMETER
-#define HAP_PLUGIN_USE_HYGROMETER	0
+#define HAP_PLUGIN_USE_HYGROMETER		0
 #endif
 
 #ifndef HAP_PLUGIN_USE_RCSWITCH
-#define HAP_PLUGIN_USE_RCSWITCH		0
+#define HAP_PLUGIN_USE_RCSWITCH			0
 #endif
 
 #ifndef HAP_PLUGIN_USE_DHT
-#define HAP_PLUGIN_USE_DHT			0
+#define HAP_PLUGIN_USE_DHT				0
 #endif
 
 #ifndef HAP_PLUGIN_USE_BME280
-#define HAP_PLUGIN_USE_BME280		0	// < last digit of feature number
+#define HAP_PLUGIN_USE_BME280			0	// < last digit of feature number
 #endif
 
 /**

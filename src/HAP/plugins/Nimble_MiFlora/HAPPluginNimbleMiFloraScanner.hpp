@@ -89,10 +89,10 @@ inline bool HAPPluginNimbleMiFloraDevicesScanner::scan() {
       
         void onResult(BLEAdvertisedDevice* advertisedDevice)
         {
-            if (advertisedDevice.haveServiceUUID()) {
+            if (advertisedDevice->haveServiceUUID()) {
                 BLEUUID service = advertisedDevice->getServiceUUID();
                 if (service.equals(rootServiceDataUUID)) {
-                    _floraScanner.registerDevice(advertisedDevice);
+                    _floraScanner.registerDevice(*advertisedDevice);
                 }                    
             }
         }
