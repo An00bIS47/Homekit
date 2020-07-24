@@ -16,7 +16,7 @@
 #include <IRremoteESP8266.h>
 #include <IRsend.h>
 
-#define HAP_PLUGIN_IR_ENABLE_RECV 1
+#define HAP_PLUGIN_IR_ENABLE_RECV 	0		// Not yet working :(
 
 #if HAP_PLUGIN_IR_ENABLE_RECV 
 #include <IRrecv.h>

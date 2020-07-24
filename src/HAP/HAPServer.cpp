@@ -497,6 +497,8 @@ bool HAPServer::begin(bool resume) {
     	//Serial.println(*it);
     	auto plugin = factory.getPlugin(*it);
 		
+		LogD("Setup plugin " + plugin->name(), true);
+
 		plugin->setAccessorySet(_accessorySet);
 		plugin->setFakeGatoFactory(&_fakeGatoFactory);
 		plugin->addEventListener(&_eventManager);

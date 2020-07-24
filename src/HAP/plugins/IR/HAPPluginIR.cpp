@@ -42,6 +42,8 @@ HAPPluginIR::HAPPluginIR(){
 
 }
 
+
+// ToDo: Get it to working!
 #if HAP_PLUGIN_IR_ENABLE_RECV 
 bool HAPPluginIR::receiveIRSignal(){    
 
@@ -116,12 +118,14 @@ bool HAPPluginIR::receiveIRSignal(){
 #endif
 
 void HAPPluginIR::handleImpl(bool forced){
-    LogD(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Handle plguin [" + String(_interval) + "]", true);
+    
 #if HAP_PLUGIN_IR_ENABLE_RECV     
+    LogD(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Handle plguin [" + String(_interval) + "]", true);
     if (_isOn) {
         receiveIRSignal();   
     }    
 #endif     
+
 }
 
 #if HAP_PLUGIN_IR_ENABLE_RECV 
