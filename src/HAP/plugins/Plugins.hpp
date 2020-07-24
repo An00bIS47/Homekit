@@ -78,5 +78,9 @@
 #include "HAPPluginIR.hpp"
 #endif
 
+#if HAP_PLUGIN_USE_NIMBLE_MIFLORA
+#include "HAPPluginNimbleMiFlora.hpp"
+#endif
+
 
 #endif /* PLUGINS_HPP_ */  

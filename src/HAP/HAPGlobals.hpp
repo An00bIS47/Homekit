@@ -362,6 +362,10 @@
  *     add them as well on top of the define bellow !!!
  ********************************************************************/
 
+#ifndef HAP_PLUGIN_USE_NIMBLE_MIFLORA
+#define HAP_PLUGIN_USE_NIMBLE_MIFLORA 0
+#endif
+
 #ifndef HAP_PLUGIN_USE_IR
 #define HAP_PLUGIN_USE_IR	0
 #endif
@@ -440,6 +444,7 @@
  * !!! Add new plugins on top here !!!     
  ********************************************************************/
 #define HAP_PLUGIN_FEATURE_NUMBER \
+STR(HAP_PLUGIN_USE_NIMBLE_MIFLORA) \
 STR(HAP_PLUGIN_USE_IR) \
 STR(HAP_PLUGIN_USE_FAN_HONEYWELL) \
 STR(HAP_PLUGIN_USE_RF24) \

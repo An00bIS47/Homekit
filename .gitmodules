@@ -58,3 +58,6 @@
 [submodule "components/FastLED"]
 	path = components/FastLED
 	url = https://github.com/FastLED/FastLED.git
+[submodule "components/NimBLE-Arduino"]
+	path = components/NimBLE-Arduino
+	url = https://github.com/h2zero/NimBLE-Arduino.git
