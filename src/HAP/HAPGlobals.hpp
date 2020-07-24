@@ -38,8 +38,8 @@
  * Version
  ********************************************************************/
 #define HOMEKIT_VERSION_MAJOR 		0
-#define HOMEKIT_VERSION_MINOR 		5
-#define HOMEKIT_VERSION_REVISION 	4
+#define HOMEKIT_VERSION_MINOR 		6
+#define HOMEKIT_VERSION_REVISION 	0
 
 
 /**
@@ -90,7 +90,7 @@
 #endif
 
 #ifndef HAP_DEBUG_RF24
-#define HAP_DEBUG_RF24				1
+#define HAP_DEBUG_RF24				0
 #endif
 
 #ifndef HAP_DEBUG_WEBSERVER
@@ -426,10 +426,12 @@
  * Plugin Logic
  *    
  ********************************************************************/
+// Enable IR if Honeywell is enabled
 #if HAP_PLUGIN_USE_FAN_HONEYWELL
 #undef HAP_PLUGIN_USE_IR
 #define HAP_PLUGIN_USE_IR 1
 #endif
+
 
 /**
  * Plugins
