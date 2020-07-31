@@ -91,14 +91,6 @@ HAPAccessory* HAPPluginNimbleMiFloraDevice::initAccessory(){
     _accessory->addService(batteryService);
 
 
-    // stringCharacteristics *batteryServiceName = new stringCharacteristics(charType_serviceName, permission_read, 0);
-    // batteryServiceName->setValue("Battery");
-    // _accessory->addCharacteristics(batteryService, batteryServiceName);
-
-    // stringCharacteristics *batteryStatusServiceName = new stringCharacteristics(charType_serviceName, permission_read, 0);
-    // batteryStatusServiceName->setValue("Battery Status");
-    // _accessory->addCharacteristics(batteryService, batteryStatusServiceName);
-
     // 
     // Battery level
     // 
@@ -108,7 +100,6 @@ HAPAccessory* HAPPluginNimbleMiFloraDevice::initAccessory(){
     _batteryLevel->valueChangeFunctionCall = callbackChangeBatLevel;
     _accessory->addCharacteristics(batteryService, _batteryLevel);
 
-
     // 
     // Battery status
     // 
@@ -117,8 +108,6 @@ HAPAccessory* HAPPluginNimbleMiFloraDevice::initAccessory(){
     auto callbackChangeBatStatus = std::bind(&HAPPluginNimbleMiFloraDevice::changeBatteryStatus, this, std::placeholders::_1, std::placeholders::_2);
     _batteryStatus->valueChangeFunctionCall = callbackChangeBatStatus;
     _accessory->addCharacteristics(batteryService, _batteryStatus);
-
-
 
     // 
     // Charging State
@@ -166,12 +155,12 @@ HAPAccessory* HAPPluginNimbleMiFloraDevice::initAccessory(){
     //
     // Humidity service
     //
-    HAPService* humidityService = new HAPService(HAP_SERVICE_HUMIDITY_SENSOR);
-    _accessory->addService(humidityService);
+    // HAPService* humidityService = new HAPService(HAP_SERVICE_HUMIDITY_SENSOR);
+    // _accessory->addService(humidityService);
 
-    stringCharacteristics *humServiceName = new stringCharacteristics(HAP_CHARACTERISTIC_NAME, permission_read, 32);
-    humServiceName->setValue("Moisture Sensor");
-    _accessory->addCharacteristics(humidityService, humServiceName);
+    // stringCharacteristics *humServiceName = new stringCharacteristics(HAP_CHARACTERISTIC_NAME, permission_read, 32);
+    // humServiceName->setValue("Moisture Sensor");
+    // _accessory->addCharacteristics(humidityService, humServiceName);
 
 
     //
@@ -182,34 +171,34 @@ HAPAccessory* HAPPluginNimbleMiFloraDevice::initAccessory(){
 
     auto callbackChangeHum = std::bind(&HAPPluginNimbleMiFloraDevice::changeHum, this, std::placeholders::_1, std::placeholders::_2);
     _humidityValue->valueChangeFunctionCall = callbackChangeHum;
-    _accessory->addCharacteristics(humidityService, _humidityValue);
+    _accessory->addCharacteristics(temperatureService, _humidityValue);
 
     //
     // AmbientLight == light
     //
-    HAPService* lightService = new HAPService(HAP_SERVICE_LIGHT_SENSOR);
-    _accessory->addService(lightService);
+    // HAPService* lightService = new HAPService(HAP_SERVICE_LIGHT_SENSOR);
+    // _accessory->addService(lightService);
 
-    stringCharacteristics *lightServiceName = new stringCharacteristics(HAP_CHARACTERISTIC_NAME, permission_read, 32);
-    lightServiceName->setValue("Light Sensor");
-    _accessory->addCharacteristics(lightService, lightServiceName);
+    // stringCharacteristics *lightServiceName = new stringCharacteristics(HAP_CHARACTERISTIC_NAME, permission_read, 32);
+    // lightServiceName->setValue("Light Sensor");
+    // _accessory->addCharacteristics(lightService, lightServiceName);
 
     _lightValue = new floatCharacteristics(HAP_CHARACTERISTIC_CURRENT_AMBIENT_LIGHT_LEVEL, permission_read|permission_notify, 0.0, 100000, 0.1, unit_lux);
     _lightValue->setValue("0.0");
 
     auto callbackChangeLight = std::bind(&HAPPluginNimbleMiFloraDevice::changeLight, this, std::placeholders::_1, std::placeholders::_2);
     _lightValue->valueChangeFunctionCall = callbackChangeLight;
-    _accessory->addCharacteristics(lightService, _lightValue);
+    _accessory->addCharacteristics(temperatureService, _lightValue);
 
     //
     // Fertility Sensor (Custom)
     //
-    HAPService* fertilityService = new HAPService(HAP_CUSTOM_SERVICE_FERTILITY);
-    _accessory->addService(fertilityService);
+    // HAPService* fertilityService = new HAPService(HAP_CUSTOM_SERVICE_FERTILITY);
+    // _accessory->addService(fertilityService);
 
-    stringCharacteristics *fertilityServiceName = new stringCharacteristics(HAP_CHARACTERISTIC_NAME, permission_read, 32);
-    fertilityServiceName->setValue("Fertility Sensor");    
-    _accessory->addCharacteristics(fertilityService, fertilityServiceName);
+    // stringCharacteristics *fertilityServiceName = new stringCharacteristics(HAP_CHARACTERISTIC_NAME, permission_read, 32);
+    // fertilityServiceName->setValue("Fertility Sensor");    
+    // _accessory->addCharacteristics(fertilityService, fertilityServiceName);
 
     _fertilityValue = new floatCharacteristics(HAP_CUSTOM_CHARACTERISTICS_FERTITLITY, permission_read|permission_notify, 0.0, 10000, 0.1, unit_none);
     _fertilityValue->setValue("0.0");
@@ -218,7 +207,7 @@ HAPAccessory* HAPPluginNimbleMiFloraDevice::initAccessory(){
 
     auto callbackChangeFertility = std::bind(&HAPPluginNimbleMiFloraDevice::changeFertility, this, std::placeholders::_1, std::placeholders::_2);
     _fertilityValue->valueChangeFunctionCall = callbackChangeFertility;
-    _accessory->addCharacteristics(fertilityService, _fertilityValue);
+    _accessory->addCharacteristics(temperatureService, _fertilityValue);
 
 
 

@@ -11,8 +11,6 @@
 #include "HAPPluginNimbleMiFloraScanner.hpp"
 #include "HAPLogger.hpp"
 
-
-
 #define VERSION_MAJOR       1
 #define VERSION_MINOR       3
 #define VERSION_REVISION    1
@@ -55,10 +53,6 @@ HAPPluginNimbleMiFlora::HAPPluginNimbleMiFlora(){
 }
 
 bool HAPPluginNimbleMiFlora::begin(){
-
-#if HAP_MIFLORA_DISABLE_BT_MODE_CLASSIC
-    esp_bt_controller_mem_release(ESP_BT_MODE_CLASSIC_BT);
-#endif
 
     BLEDevice::init("");
     BLEDevice::setPower(ESP_PWR_LVL_P7);    

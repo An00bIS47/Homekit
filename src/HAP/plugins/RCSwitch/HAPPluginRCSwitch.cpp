@@ -40,11 +40,6 @@ HAPPluginRCSwitch::HAPPluginRCSwitch(){
 }
 
 
-// HAPPluginRCSwitch::HAPPluginRCSwitch(String name_){
-//     _name            = name_;
-// }
-
-
 bool HAPPluginRCSwitch::begin(){
 
     // Transmitter is connected to Arduino Pin #10  

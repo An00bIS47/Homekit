@@ -831,13 +831,14 @@ void HAPWebServer::handleApi(HTTPRequest *req, HTTPResponse *res)
         handleApiKeystorePost(req, res);
         return;
     } 
+#if HAP_WEBSERVER_USE_SSL    
     else if ( (strcmp(params->getPathParameter(0).c_str(), "csr") == 0) && (strcmp(req->getMethod().c_str(), "GET") == 0) )
     {
         //req->discardRequestBody();
         handleApiCSRGet(req, res);
         return;
     } 
-    
+#endif    
     handle404(req, res);
     
 }
@@ -986,7 +987,7 @@ void HAPWebServer::handleApiConfigPost(HTTPRequest *req, HTTPResponse *res)
     return;
 }
 
-
+#if HAP_WEBSERVER_USE_SSL
 // ===========================================================================================================
 // /api/csr
 // ===========================================================================================================
@@ -1003,7 +1004,7 @@ void HAPWebServer::handleApiCSRGet(HTTPRequest *req, HTTPResponse *res)
     res->setHeader("Content-Type", "application/json");
     res->printf("{ \"heap\": %d }\n", ESP.getFreeHeap());
 }
-
+#endif
 
 // ===========================================================================================================
 // /api/heap
