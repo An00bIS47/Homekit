@@ -231,6 +231,8 @@ bool HAPServer::begin(bool resume) {
 
 	}
 
+
+#if HAP_WEBSERVER_USE_SSL
 #if HAP_KEYSTORE_ENABLED
 	// 
 	// keystore 
@@ -262,7 +264,7 @@ bool HAPServer::begin(bool resume) {
 	LogI(" OK - Using containerId " + String(_keystore.getContainerId()), true);
 
 #endif
-
+#endif
 
 	// Hostname
 	char* hostname = (char*) malloc(sizeof(char) * strlen(HAP_HOSTNAME_PREFIX) + 8);
@@ -466,8 +468,11 @@ bool HAPServer::begin(bool resume) {
 		_webserver->setConfig(&_config);
 		_webserver->setEventManager(&_eventManager);
 
+#if HAP_WEBSERVER_USE_SSL
+
 #if HAP_KEYSTORE_ENABLED		
 		_webserver->setKeystore(&_keystore);
+#endif
 #endif
 
 		_webserver->begin();
@@ -672,9 +677,12 @@ bool HAPServer::begin(bool resume) {
 
 	free(hostname);
 
+#if HAP_WEBSERVER_USE_SSL
+#if HAP_KEYSTORE_ENABLED
 	// Close Keystore
 	_keystore.end();
-
+#endif
+#endif
 
 	// Handle any events that are in the queue
 	_eventManager.processEvent();	
@@ -3812,7 +3820,7 @@ void HAPServer::handleCharacteristicsPut(HAPClient* hapClient, String body){
 					
 				} else {
 					// char has no event permission
-					LogE("[ERROR] - Resource notify not permitted!", true);
+					LogE("[ERROR] - Resource notify not permitted for characteristic " + String(aid) + "." + String(iid), true);					
 					jsonNewChr["iid"] = iid;
 					jsonNewChr["status"] = String(HAP_STATUS_NO_NOTIFICATION);
 					errorOccured = true;
@@ -3824,7 +3832,7 @@ void HAPServer::handleCharacteristicsPut(HAPClient* hapClient, String body){
 					// Add to jsonCharacteristics array				
 					character->toJson(jsonNewChr);
 				} else {
-					LogE("[ERROR] - Resource not writable!", true);
+					LogE("[ERROR] - Resource not writable for characteristic " + String(aid) + "." + String(iid), true);
 					jsonNewChr["iid"] = iid;
 					jsonNewChr["status"] = String(HAP_STATUS_READONLY_WRITE);
 					errorOccured = true;			    		
@@ -3833,7 +3841,7 @@ void HAPServer::handleCharacteristicsPut(HAPClient* hapClient, String body){
 
 						
 		} else {
-			LogE("[ERROR] - Resource not found!", true);
+			LogE("[ERROR] - Resource not found for characteristic " + String(aid) + "." + String(iid), true);
 			jsonNewChr["iid"] = iid;
 			jsonNewChr["status"] = String(HAP_STATUS_RESOURCE_NOT_FOUND);
 			errorOccured = true;			    		

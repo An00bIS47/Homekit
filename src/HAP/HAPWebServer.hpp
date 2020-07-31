@@ -162,8 +162,10 @@ private:
 	// DELETE /api/pairings
 	static void handleApiPairingsDelete(HTTPRequest *req, HTTPResponse *res);
 
+#if HAP_WEBSERVER_USE_SSL
 	// GET /api/csr
 	static void handleApiCSRGet(HTTPRequest *req, HTTPResponse *res);
+#endif
 
 #if HAP_KEYSTORE_ENABLED
 	// ====================================================================================================

@@ -90,7 +90,7 @@
 #endif
 
 #ifndef HAP_DEBUG_RF24
-#define HAP_DEBUG_RF24				0
+#define HAP_DEBUG_RF24				1
 #endif
 
 #ifndef HAP_DEBUG_WEBSERVER
@@ -315,10 +315,6 @@
 #define EVENTMANAGER_EVENT_QUEUE_SIZE 		HAP_EVENTMANAGER_QUEUE_SIZE
 
 
-
-
-
-
 /**
  * Crypto 
  ********************************************************************/
@@ -432,9 +428,22 @@
 #define HAP_PLUGIN_USE_IR 1
 #endif
 
+#if HAP_PLUGIN_USE_NIMBLE_MIFLORA
+#define HAP_BLE_ENABLED 1
+#endif
+
+#if HAP_BLE_ENABLED
+// disable HTTPS if BLE is enabled
+#undef HAP_WEBSERVER_USE_SSL
+#define HAP_WEBSERVER_USE_SSL 0
+
+// reduce fakegato buffer
+#undef HAP_FAKEGATO_BUFFER_SIZE
+#define HAP_FAKEGATO_BUFFER_SIZE 768
+#endif
 
 /**
- * Plugins
+ * Plugins feature rev calculation
  * !!! Add new plugins on top here !!!     
  ********************************************************************/
 #define HAP_PLUGIN_FEATURE_NUMBER \
