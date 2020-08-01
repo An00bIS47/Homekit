@@ -29,6 +29,7 @@ public:
 	String getValue(int iid);
 
 	void changePower(bool oldValue, bool newValue);
+	void changeEnabled(bool oldValue, bool newValue);
 	void changeBrightness(int oldValue, int newValue);
 
 	void handleImpl(bool forced=false);
@@ -43,6 +44,8 @@ private:
 
 	boolCharacteristics* 	_powerState;
 	intCharacteristics*	 	_brightnessState;
+
+	boolCharacteristics* 	_enabledState;
 
 	uint8_t _gpio;
 	bool _isOn;

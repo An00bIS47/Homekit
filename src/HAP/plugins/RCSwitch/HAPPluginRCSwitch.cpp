@@ -17,10 +17,10 @@
 
 #define VERSION_MAJOR       0
 #define VERSION_MINOR       3
-#define VERSION_REVISION    1
+#define VERSION_REVISION    2
 #define VERSION_BUILD       0
 
-#define RCSWITCH_PIN    27  // GPIO27
+#define RCSWITCH_PIN        27  // GPIO27
 #define HAP_PLUGIN_RCSWITCH_INTERVAL 1000
 
 HAPPluginRCSwitch::HAPPluginRCSwitch(){
@@ -190,14 +190,15 @@ JsonObject HAPPluginRCSwitch::getConfigImpl(){
 }
 
 void HAPPluginRCSwitch::setConfigImpl(JsonObject root){
-#if HAP_DEBUG    
+#if HAP_DEBUG_RCSWITCH   
     int count = 0;
-
 #endif
+
+
     if (root.containsKey("devices")){        
         for (JsonVariant dev : root["devices"].as<JsonArray>()) {
 
-#if HAP_DEBUG                                    
+#if HAP_DEBUG_RCSWITCH
             LogD(" -- device " + String(count) + ": house "     + dev["houseAddress"].as<String>()   , true);                    
             LogD(" -- device " + String(count) + ": device "    + dev["deviceAddress"].as<String>()        , true);            
             LogD(" -- device " + String(count) + ": name "      + dev["name"].as<String>()      , true);                        
@@ -214,10 +215,22 @@ void HAPPluginRCSwitch::setConfigImpl(JsonObject root){
             int index = indexOfDevice(newDevice);
             if ( index == -1 ){
                 _devices.push_back(newDevice);
+                
+                // newDevice->setFakeGatoFactory(_fakeGatoFactory);
+                // newDevice->setEventManager(_eventManager);
+                
+                // auto callbackSend = std::bind(&HAPPluginRCSwitch::sendDeviceCallback, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);        
+                // newDevice->setRCSwitchSendCallback(callbackSend);
+
+                // _accessorySet->addAccessory(newDevice->initAccessory());
+
+                
             } else {
                 _devices[index] = newDevice;
             }         
         }
+
+        
     }
 }
 

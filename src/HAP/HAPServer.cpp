@@ -902,7 +902,7 @@ void HAPServer::handle() {
 
 	// Handle plugins
 	if (!_stopPlugins){			
-		for (auto & plugin : _plugins) {			
+		for (auto& plugin : _plugins) {			
 			if (plugin->isEnabled()) {
 				plugin->handle();					
 			}			
@@ -4038,13 +4038,16 @@ HAPAccessorySet* HAPServer::getAccessorySet(){
 }
 
 void HAPServer::updateConfig(){
-	LogD("Updating configuration ...", false);
+	// ToDo: Rewrite config update handling
+	LogE("Updating configuration ...", false);
 	
-
 	HAPLogger::setLogLevel(_config.config()["homekit"]["loglevel"].as<uint8_t>());    
 
+	// for (auto& plugin : _plugins) {						
+    // 	plugin->setConfig(_config.config()["plugins"][plugin->name()]);
+	// } 
 
-	LogD("OK", true);
+	LogE("OK", true);
 }
 
 void HAPServer::handleEventUpdatedConfig(int eventCode, struct HAPEvent eventParam){

@@ -15,7 +15,13 @@
 #define VERSION_REVISION    1
 #define VERSION_BUILD       1
 
-IRsend* HAPPluginIR::_irsend;
+
+#if USE_IR32
+    IRsend32* HAPPluginIR::_irsend;
+#else
+    IRsend* HAPPluginIR::_irsend;
+#endif
+
 uint8_t HAPPluginIR::_gpioIRSend = HAP_IR_LED_PIN;
 
 HAPPluginIR::HAPPluginIR(){
@@ -237,8 +243,14 @@ void HAPPluginIR::setConfigImpl(JsonObject root){
 }
 
 void HAPPluginIR::setupIRSend(){
+
+#if USE_IR32
+    _irsend = new IRsend32();
+    _irsend->start(_gpioIRSend, "");
+#else
     _irsend = new IRsend(_gpioIRSend);
     _irsend->begin();
+#endif    
 }
 
 

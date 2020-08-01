@@ -22,18 +22,6 @@
 #include "LED/HAPPluginLED.hpp"
 #endif
 
-#if HAP_PLUGIN_USE_SWITCH
-#include "HAPPluginSwitch.hpp"
-#endif
-
-#if HAP_PLUGIN_USE_MIFLORA
-#include "HAPPluginMiFlora.hpp"
-#endif
-
-#if HAP_PLUGIN_USE_MIFLORA2
-#include "HAPPluginMiFlora2.hpp"
-#endif
-
 #if HAP_PLUGIN_USE_BME280
 #include "HAPPluginBME280.hpp"
 #endif
