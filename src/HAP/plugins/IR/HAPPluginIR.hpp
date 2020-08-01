@@ -13,16 +13,30 @@
 #include "HAPPlugins.hpp"
 #include "HAPLogger.hpp"
 #include "HAPAccessory.hpp"
-#include <IRremoteESP8266.h>
-#include <IRsend.h>
+
+#define USE_IR32 0
+
+#if USE_IR32
+	#include <IRSend32.h>
+#else
+	#include <IRremoteESP8266.h>
+	#include <IRsend.h>
+#endif
+
 
 #define HAP_PLUGIN_IR_ENABLE_RECV 	0		// Not yet working :(
 
 #if HAP_PLUGIN_IR_ENABLE_RECV 
-#include <IRrecv.h>
-#include <IRutils.h>
-#include <IRac.h>
-#include <IRtext.h>
+
+#if USE_IR32
+	#include <IRRecv32.h>
+
+#else
+	#include <IRrecv.h>
+	#include <IRutils.h>
+	#include <IRac.h>
+	#include <IRtext.h>
+#endif
 #ifndef HAP_IR_RECV_PIN
 #define HAP_IR_RECV_PIN		A2
 #endif
@@ -69,14 +83,28 @@ public:
 	bool receiveIRSignal();
 #endif
 private:	
+
+
 	
 	static uint8_t _gpioIRSend;	
-	static IRsend* _irsend;
 
-#if HAP_PLUGIN_IR_ENABLE_RECV   	
-	IRrecv* _irrecv;
-	uint8_t _gpioIRRecv;	
+#if USE_IR32
+	static IRSend32* _irsend;
+#else
+	static IRsend* _irsend;
+#endif
+
+
+#if HAP_PLUGIN_IR_ENABLE_RECV   
+
+#if USE_IR32
+	IRrecv32* _irrecv;
+#else
 	decode_results _results;  // Somewhere to store the results
+	IRrecv* _irrecv;
+#endif
+	
+	uint8_t _gpioIRRecv;		
 	bool _isOn;
 	boolCharacteristics* 	_powerState;
 #endif

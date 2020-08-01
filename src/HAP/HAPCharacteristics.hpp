@@ -139,7 +139,7 @@ typedef enum {
 } HAP_CHARACTERISTIC;
 
 
-inline String characteristicsName(int type){
+inline const char* characteristicsName(int type){
     switch(type) {
         case HAP_CHARACTERISTIC_ACCESSORY_FLAGS:                          // 0xA6     ==   166
             return "AccessoryFlags";

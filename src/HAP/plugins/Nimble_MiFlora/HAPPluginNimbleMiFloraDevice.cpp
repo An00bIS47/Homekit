@@ -15,7 +15,7 @@
 #define VERSION_MAJOR       1
 #define VERSION_MINOR       0
 #define VERSION_REVISION    3
-#define VERSION_BUILD       2
+#define VERSION_BUILD       3
 
 HAPPluginNimbleMiFloraDevice::HAPPluginNimbleMiFloraDevice(const std::string& address) : _deviceAddress(address){
     
@@ -209,6 +209,18 @@ HAPAccessory* HAPPluginNimbleMiFloraDevice::initAccessory(){
     _fertilityValue->valueChangeFunctionCall = callbackChangeFertility;
     _accessory->addCharacteristics(temperatureService, _fertilityValue);
 
+    // 
+    // Heartbeat
+	// is bound to temperature service
+    // 
+    uint8_t validValuesHeartbeat[5] = {1,2,3,4,5};
+    _heartbeat = new uint8Characteristics(HAP_CUSTOM_CHARACTERISTICS_HEARTBEAT, permission_read|permission_write, 1, 5, 1, unit_none, 5, validValuesHeartbeat);
+    _heartbeat->setDescription("Heartbeat");
+    _heartbeat->setValue(String(2)); 
+
+    auto callbackChangeHeartbeat = std::bind(&HAPPluginNimbleMiFloraDevice::changeHeartbeat, this, std::placeholders::_1, std::placeholders::_2);
+    _heartbeat->valueChangeFunctionCall = callbackChangeHeartbeat;
+    _accessory->addCharacteristics(temperatureService, _heartbeat);
 
 
     // 
@@ -332,4 +344,16 @@ bool HAPPluginNimbleMiFloraDevice::fakeGatoCallback(){
 
     // Serial.println("power: " + _curPowerValue->value());    
     return _fakegato.addEntry(_temperatureValue->value(), _humidityValue->value(), "0");
+}
+
+
+void HAPPluginNimbleMiFloraDevice::changeHeartbeat(uint8_t oldValue, uint8_t newValue){
+    Serial.printf("[MiFlora:%s] New Heartbeat: %d\n", _deviceAddress.c_str(), newValue);
+
+    if (oldValue != newValue){
+
+        unsigned long newInterval = (newValue * 60) * 1000;
+        _callbackSetInterval(newInterval);
+    }
+
 }

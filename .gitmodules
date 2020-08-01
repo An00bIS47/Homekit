@@ -46,3 +46,6 @@
 [submodule "components/IRremote8266"]
 	path = components/IRremote8266
 	url = https://github.com/crankyoldgit/IRremoteESP8266.git
+[submodule "components/IR32"]
+	path = components/IR32
+	url = https://github.com/lbernstone/IR32.git

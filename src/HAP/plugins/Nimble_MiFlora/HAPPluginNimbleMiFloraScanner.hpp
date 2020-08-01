@@ -13,16 +13,16 @@
 #include <Arduino.h>
 #include <NimBLEDevice.h>
 
-#define MAX_DEVICES	1
+#define MAX_DEVICES	        10
 // Max duration of BLE scan (in seconds)
-#define BLE_SCAN_DURATION 10
+#define BLE_SCAN_DURATION   3
 
 // Root service for Flora Devices
 static BLEUUID rootServiceDataUUID((uint16_t) 0xfe95);
 
 
 
-class HAPPluginNimbleMiFloraDevicesScanner {
+class HAPPluginNimbleMiFloraScanner {
 
 public:
     // Scan BLE and return true if flora devices are found
@@ -78,14 +78,14 @@ private:
 
 };
 
-inline bool HAPPluginNimbleMiFloraDevicesScanner::scan() {
+inline bool HAPPluginNimbleMiFloraScanner::scan() {
     Serial.println("Scan BLE, looking for Flora Devices");
     clearDevices();
 
     // detect and register Flora devices during BLE scan
     class FloraDevicesBLEDetector: public BLEAdvertisedDeviceCallbacks {
     public:
-        FloraDevicesBLEDetector(HAPPluginNimbleMiFloraDevicesScanner &floraScanner) : _floraScanner(floraScanner) {}
+        FloraDevicesBLEDetector(HAPPluginNimbleMiFloraScanner &floraScanner) : _floraScanner(floraScanner) {}
       
         void onResult(BLEAdvertisedDevice* advertisedDevice)
         {
@@ -98,7 +98,7 @@ inline bool HAPPluginNimbleMiFloraDevicesScanner::scan() {
         }
       
     private:
-        HAPPluginNimbleMiFloraDevicesScanner& _floraScanner;
+        HAPPluginNimbleMiFloraScanner& _floraScanner;
     };
 
     _scan = BLEDevice::getScan();

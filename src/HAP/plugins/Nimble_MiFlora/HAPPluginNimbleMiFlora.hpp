@@ -25,6 +25,7 @@
 
 
 
+
 class HAPPluginNimbleMiFlora: public HAPPlugin {
 public:
 
@@ -43,6 +44,8 @@ public:
 	void setConfigImpl(JsonObject root);
 	// void handleEvents(int eventCode, struct HAPEvent eventParam);
 	
+    void setInterval(unsigned long interval);
+    
 	static inline void stopClient(){
 		if (_floraClient) {
 			if (_floraClient->isConnected()){
@@ -53,12 +56,14 @@ public:
 	
     int _deviceCount;
 
+
+
 private:
 
     static std::vector<BLEAddress> _supportedDevices;
 
 	static std::vector<HAPPluginNimbleMiFloraDevice*>	_devices;
-	static bool containsDevice(std::string address);
+	static bool containsDevice(const std::string address);
 	static HAPPluginNimbleMiFloraDevice* getDevice(std::string address);
 
 	HAPAccessory*		_accessory;

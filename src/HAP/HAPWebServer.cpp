@@ -927,6 +927,8 @@ void HAPWebServer::handleApiConfigGet(HTTPRequest *req, HTTPResponse *res)
 
 void HAPWebServer::handleApiConfigPost(HTTPRequest *req, HTTPResponse *res)
 {    
+
+    // ToDo: Rewrite config update handling
     const size_t capacity = HAP_ARDUINOJSON_BUFFER_SIZE;
     DynamicJsonDocument doc(capacity);
 

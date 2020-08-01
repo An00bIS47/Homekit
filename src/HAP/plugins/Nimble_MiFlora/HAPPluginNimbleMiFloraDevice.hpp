@@ -70,19 +70,28 @@ public:
 	void changeHum(float oldValue, float newValue);
 	void changeLight(float oldValue, float newValue);
 
-	void changeLastUpdate(String oldValue, String newValue);
+	void changeLastUpdate(String oldValue, String newValue);	
 
 	void changeBatteryLevel( float oldValue, float newValue);
 	void changeBatteryStatus(float oldValue, float newValue);
 
 	void changeFertility( float oldValue, float newValue);
+
+	void changeHeartbeat(uint8_t oldValue, uint8_t newValue);
 	
 	inline String version(){
 		return _version.toString();
 	}
+
+    inline void setIntervalCallback(std::function<void(unsigned long)> callback){
+        _callbackSetInterval = callback;
+    }
+	
 private:
 
     MD5Builder 				_md5;
+
+	std::function<void(unsigned long)> _callbackSetInterval = NULL;  
 
     inline String md5(String str) {
 		_md5.begin();
@@ -106,7 +115,9 @@ private:
 	intCharacteristics* 	_batteryLevel;
 	intCharacteristics* 	_batteryStatus;	
 
-    std::string             _deviceAddress;  
+    uint8Characteristics*   _heartbeat;
+	
+	std::string             _deviceAddress;  
 
 
 	HAPFakeGatoWeather      _fakegato;
