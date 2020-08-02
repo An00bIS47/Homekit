@@ -13,7 +13,6 @@
 #include <Arduino.h>
 #include "esp_system.h"
 #include <vector>
-#include <NimBLEDevice.h>
 
 #include "HAPPlugins.hpp"
 #include "HAPLogger.hpp"
@@ -44,7 +43,7 @@ public:
 	void setConfigImpl(JsonObject root);
 	// void handleEvents(int eventCode, struct HAPEvent eventParam);
 	
-    void setInterval(unsigned long interval);
+    
     
 	static inline void stopClient(){
 		if (_floraClient) {
@@ -69,43 +68,13 @@ private:
 	HAPAccessory*		_accessory;
     static BLEClient*   _floraClient;
 
-    static BLEUUID      _serviceUUID;
-    static BLEUUID      _uuid_version_battery;
-    static BLEUUID      _uuid_sensor_data;
-    static BLEUUID      _uuid_write_mode;
-    
-#if HAP_PLUGIN_MIFLORA2_FETCH_HISTORY    
-    static BLEUUID      _serviceHistoryUUID;
-
-    static BLEUUID      _uuid_write_history_mode;
-    static BLEUUID      _uuid_history_read;
-    static BLEUUID      _uuid_device_time;
+#if HAP_PLUGIN_MIFLORA_ENABLE_HISTORY 
+	uint32_t			_intervalScan;
+	uint32_t			_previousMillisScan;
+    bool shouldScan();
 #endif
 
-
-    BLEClient* getFloraClient(BLEAddress floraAddress);    
-	BLERemoteService* getFloraService(BLEClient* floraClient, BLEUUID uuid);
-    bool forceFloraServiceDataMode(BLERemoteService* floraService, BLEUUID uuid, uint8_t* data, size_t dataLength);    
-    bool readFloraDataCharacteristic(BLERemoteService* floraService, struct floraData* retData);
-    bool readFloraBatteryCharacteristic(BLERemoteService* floraService, struct floraData* retData);
-
-
-#if HAP_PLUGIN_MIFLORA2_FETCH_HISTORY 
-    
-    void entryAddress(uint8_t *address, uint16_t entry);
-    bool getEntryCount(BLERemoteService* floraService, uint16_t *entryCount);
-
-    bool readFloraDeviceTimeCharacteristic(BLERemoteService* floraService, uint32_t* deviceTime);
-    bool readFloraHistoryEntryCountCharacteristic(BLERemoteService* floraService, uint16_t* entryCount);
-    bool readFloraHistoryEntryCharacteristic(BLERemoteService* floraService, struct floraHistory* history);
-
-    bool processFloraHistoryService(BLERemoteService* floraService, struct floraHistory* history, uint16_t entryCount);
-#endif
-
-
-    bool processFloraService(BLERemoteService* floraService, struct floraData* retData);
-    bool processFloraDevice(BLEAddress floraAddress, int tryCount, struct floraData* retData);
-    void processDevices(struct floraData* deviceData);
+    void processDevices();
 
 
 };

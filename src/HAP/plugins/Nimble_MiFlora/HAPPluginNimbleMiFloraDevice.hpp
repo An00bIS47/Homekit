@@ -11,7 +11,7 @@
 
 #include <Arduino.h>
 #include <MD5Builder.h>
-#include "NimBLEAddress.h"
+#include <NimBLEDevice.h>
 
 #include "HAPAccessory.hpp"
 #include "HAPService.hpp"
@@ -23,42 +23,43 @@
 #include "HAPVersion.hpp"
 #include "HAPGlobals.hpp"
 
-#define HAP_PLUGIN_MIFLORA2_FETCH_HISTORY       0
 
 
-typedef struct floraData {
-	float 	temperature;
-	int 	moisture;
-	int 	light;
-	int 	conductivity;
-	int 	battery;
-	char 	firmware[6];
-	bool 	success;
-} floraData;
+
+struct floraDeviceData {
+	float 		temperature;
+	int 		moisture;
+	int 		light;
+	int 		conductivity;
+	int 		battery;
+	char 		firmware[6];
+	uint32_t	deviceTime;	
+	bool 		success;
+};
 
 
-#if HAP_PLUGIN_MIFLORA2_FETCH_HISTORY
-typedef struct floraHistory {
+#if HAP_PLUGIN_MIFLORA_ENABLE_HISTORY
+struct floraHistory {
 	uint32_t 	timestamp;
 	float 		temperature;	
 	int 		moisture;
 	int 		light;
 	int 		conductivity;
 	bool 		success;
-} floraHistory;
+};
 #endif
 
 class HAPPluginNimbleMiFloraDevice {
 
 public:
-    HAPPluginNimbleMiFloraDevice(const std::string& address);
-    HAPPluginNimbleMiFloraDevice(NimBLEAddress address);
+    HAPPluginNimbleMiFloraDevice(BLEClient* bleClient, const std::string& address);
+    HAPPluginNimbleMiFloraDevice(BLEClient* bleClient, BLEAddress address);
 
 
     HAPAccessory* initAccessory();
 	bool begin();
 	
-	void setValue(floraData data);	
+	void setDeviceData(floraDeviceData data);	
 	void setEventManager(EventManager* eventManager);
     void setFakeGatoFactory(HAPFakeGatoFactory* fakegatoFactory);	
 
@@ -83,15 +84,14 @@ public:
 		return _version.toString();
 	}
 
-    inline void setIntervalCallback(std::function<void(unsigned long)> callback){
-        _callbackSetInterval = callback;
-    }
+	bool processFloraDevice();
 	
 private:
 
+	struct floraDeviceData 	_deviceData;
+
     MD5Builder 				_md5;
 
-	std::function<void(unsigned long)> _callbackSetInterval = NULL;  
 
     inline String md5(String str) {
 		_md5.begin();
@@ -125,6 +125,69 @@ private:
 	EventManager*			_eventManager;
 
 	bool fakeGatoCallback();  
+	String					_name;
+
+
+	BLEClient*   			_floraClient;
+
+    static BLEUUID      	_serviceUUID;
+    static BLEUUID     	 	_uuid_version_battery;
+    static BLEUUID      	_uuid_sensor_data;
+    static BLEUUID      	_uuid_write_mode;
+    
+
+    BLEClient* getFloraClient(BLEAddress floraAddress);    
+	BLERemoteService* getFloraService(BLEUUID uuid);
+    
+	bool forceFloraServiceDataMode(BLERemoteService* floraService, BLEUUID uuid, uint8_t* data, size_t dataLength); 
+
+
+    bool readFloraDataCharacteristic(BLERemoteService* floraService);
+    bool readFloraBatteryCharacteristic(BLERemoteService* floraService);
+
+	uint32_t _previousMillis;
+	uint32_t _interval;
+
+#if HAP_PLUGIN_MIFLORA_ENABLE_HISTORY 
+
+    static BLEUUID      _serviceHistoryUUID;
+
+    static BLEUUID      _uuid_write_history_mode;
+    static BLEUUID      _uuid_history_read;
+    static BLEUUID      _uuid_device_time;
+
+	bool 				_hasFetchedHistory;
+
+    void calculateEntryAddress(uint8_t *address, const uint16_t entry);
+    bool getEntryCount(BLERemoteService* floraService, uint16_t *entryCount);
+    
+	bool readFloraDeviceTimeCharacteristic(BLERemoteService* floraService);
+    bool readFloraHistoryEntryCountCharacteristic(BLERemoteService* floraService, uint16_t* entryCount);
+    bool readFloraHistoryEntryCharacteristic(BLERemoteService* floraService, struct floraHistory* history);
+
+    bool processFloraHistoryService(BLERemoteService* floraService, struct floraHistory* history, uint16_t entryCount);        
+#endif
+
+    bool processFloraService(BLERemoteService* floraService);
+    bool blinkLED();
+
+	inline bool shouldHandle(){
+
+		
+		unsigned long currentMillis = millis(); // grab current time
+
+		if ((unsigned long)(currentMillis - _previousMillis) >= _interval) {
+
+			// save the last time you blinked the LED
+			_previousMillis = currentMillis;
+
+			//LogD("Handle plugin: " + String(_name), true);			
+			return true;			
+		}
+		
+
+		return false;
+	}
     
 };
 

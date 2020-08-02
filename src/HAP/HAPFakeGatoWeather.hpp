@@ -45,7 +45,7 @@ public:
     void getSignature(uint8_t* signature);
 
     
-
+    bool addEntry(uint32_t timestamp, String stringTemperature, String stringHumidity, String stringPressure);
     bool addEntry(String stringTemperature, String stringHumidity, String stringPressure = "0");    
     bool addEntry(HAPFakeGatoWeatherData data);
     void getData(const size_t count, uint8_t *data, size_t *length, uint16_t offset);
