@@ -11,11 +11,6 @@
 #include "HAPServer.hpp"
 #include "HAPCustomCharacteristics+Services.hpp"
 
-#define VERSION_MAJOR       1
-#define VERSION_MINOR       0
-#define VERSION_REVISION    3
-#define VERSION_BUILD       3
-
 #ifndef HAP_PLUGIN_MIFLORA_INTERVAL
 #define HAP_PLUGIN_MIFLORA_INTERVAL		    120000
 #endif
@@ -37,11 +32,6 @@ BLEUUID HAPPluginNimbleMiFloraDevice::_uuid_device_time            = BLEUUID::fr
 
 
 HAPPluginNimbleMiFloraDevice::HAPPluginNimbleMiFloraDevice(BLEClient* bleClient, const std::string& address) : _deviceAddress(address){
-    
-    _version.major      = VERSION_MAJOR;
-    _version.minor      = VERSION_MINOR;
-    _version.revision   = VERSION_REVISION;
-    _version.build      = VERSION_BUILD;
 
     _accessory          = nullptr;
     _eventManager       = nullptr;  
@@ -71,12 +61,7 @@ HAPPluginNimbleMiFloraDevice::HAPPluginNimbleMiFloraDevice(BLEClient* bleClient,
 #endif  
 }
 
-HAPPluginNimbleMiFloraDevice::HAPPluginNimbleMiFloraDevice(BLEClient* bleClient, BLEAddress address) : _deviceAddress(address.toString()){
-    
-    _version.major      = VERSION_MAJOR;
-    _version.minor      = VERSION_MINOR;
-    _version.revision   = VERSION_REVISION;
-    _version.build      = VERSION_BUILD;
+HAPPluginNimbleMiFloraDevice::HAPPluginNimbleMiFloraDevice(BLEClient* bleClient, BLEAddress address) : _deviceAddress(address.toString()){    
 
     _accessory          = nullptr;
     _eventManager       = nullptr;  
@@ -123,7 +108,7 @@ HAPAccessory* HAPPluginNimbleMiFloraDevice::initAccessory(){
     _accessory = new HAPAccessory();
     //HAPAccessory::addInfoServiceToAccessory(_accessory, "Builtin LED", "ACME", "LED", "123123123", &identify);
     auto callbackIdentify = std::bind(&HAPPluginNimbleMiFloraDevice::identify, this, std::placeholders::_1, std::placeholders::_2);
-    _accessory->addInfoService("MiFlora", "Xioami", "Flower Care", sn, callbackIdentify, version());
+    _accessory->addInfoService("MiFlora", "Xioami", "Flower Care", sn, callbackIdentify, "");
 
     //
     // Battery service
@@ -889,9 +874,11 @@ bool HAPPluginNimbleMiFloraDevice::processFloraHistoryService(BLERemoteService* 
         if (errorOccured){
             i--;
             errorCounter++;
+            errorOccured = false;
         }
 
         if (errorCounter >= 5){
+            errorOccured = true;
             break;
         }
        
