@@ -79,10 +79,6 @@ public:
 	void changeFertility( float oldValue, float newValue);
 
 	void changeHeartbeat(uint8_t oldValue, uint8_t newValue);
-	
-	inline String version(){
-		return _version.toString();
-	}
 
 	bool processFloraDevice();
 	
@@ -99,8 +95,6 @@ private:
 		_md5.calculate();
 		return _md5.toString();
 	}
-
-	HAPVersion 				_version;
 
 	HAPAccessory*		    _accessory;
 		
