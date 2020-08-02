@@ -97,6 +97,10 @@
 #define HAP_DEBUG_WEBSERVER 		0
 #endif
 
+#ifndef HAP_DEBUG_MIFLORA
+#define HAP_DEBUG_MIFLORA			1
+#endif
+
 /**
  * WiFi
  ********************************************************************/
@@ -590,5 +594,17 @@ STR(HAP_PLUGIN_USE_BME280)
 #define HAP_PAIRINGS_LTPK_LENGTH 	ED25519_PUBLIC_KEY_LENGTH
 #define HAP_PAIRINGS_LTSK_LENGTH 	ED25519_PRIVATE_KEY_LENGTH
 
+
+
+/**
+ * Plugin configuration
+ ********************************************************************/
+#define HAP_PLUGIN_MIFLORA_MAX_DEVICES     			10
+#define HAP_PLUGIN_MIFLORA_SCAN_DURATION    		3       // Max duration of BLE scan (in seconds)
+#define HAP_PLUGIN_MIFLORA_RETRY       				5
+#define HAP_PLUGIN_MIFLORA_ENABLE_SCANNER 			1
+
+#define HAP_PLUGIN_MIFLORA_ENABLE_HISTORY			1
+#define HAP_PLUGIN_MIFLORA_HISTORY_BATCH_SIZE		8
 
 #endif /* HAPGLOBALS_HPP_ */

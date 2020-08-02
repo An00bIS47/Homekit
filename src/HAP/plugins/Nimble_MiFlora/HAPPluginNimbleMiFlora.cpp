@@ -10,34 +10,29 @@
 #include "HAPPluginNimbleMiFlora.hpp"
 #include "HAPLogger.hpp"
 
+
 #define VERSION_MAJOR       1
 #define VERSION_MINOR       3
 #define VERSION_REVISION    1
 #define VERSION_BUILD       4
 
-#define HAP_MIFLORA_INTERVAL    120000
-#define HAP_MIFLORA_RETRY       5
 
-#define HAP_PLUGIN_MIFLORA_USE_SCANNER 1
 
-#if HAP_PLUGIN_MIFLORA_USE_SCANNER
+#if HAP_PLUGIN_MIFLORA_ENABLE_SCANNER
+
+#ifndef HAP_PLUGIN_MIFLORA_SCAN_INTERVAL
+#define HAP_PLUGIN_MIFLORA_SCAN_INTERVAL    300000
+#endif
+
+#ifndef HAP_PLUGIN_MIFLORA_INTERVAL
+#define HAP_PLUGIN_MIFLORA_INTERVAL			1000
+#endif
+
 #include "HAPPluginNimbleMiFloraScanner.hpp"
 #endif
 
 
-BLEUUID HAPPluginNimbleMiFlora::_serviceUUID                 = BLEUUID::fromString("00001204-0000-1000-8000-00805f9b34fb");
 
-BLEUUID HAPPluginNimbleMiFlora::_uuid_write_mode             = BLEUUID::fromString("00001a00-0000-1000-8000-00805f9b34fb");
-BLEUUID HAPPluginNimbleMiFlora::_uuid_sensor_data            = BLEUUID::fromString("00001a01-0000-1000-8000-00805f9b34fb");
-BLEUUID HAPPluginNimbleMiFlora::_uuid_version_battery        = BLEUUID::fromString("00001a02-0000-1000-8000-00805f9b34fb");
-
-#if HAP_PLUGIN_MIFLORA2_FETCH_HISTORY    
-BLEUUID HAPPluginNimbleMiFlora::_serviceHistoryUUID          = BLEUUID::fromString("00001206-0000-1000-8000-00805f9b34fb");
-
-BLEUUID HAPPluginNimbleMiFlora::_uuid_write_history_mode     = BLEUUID::fromString("00001a10-0000-1000-8000-00805f9b34fb");
-BLEUUID HAPPluginNimbleMiFlora::_uuid_history_read           = BLEUUID::fromString("00001a11-0000-1000-8000-00805f9b34fb");
-BLEUUID HAPPluginNimbleMiFlora::_uuid_device_time            = BLEUUID::fromString("00001a12-0000-1000-8000-00805f9b34fb");
-#endif
 
 std::vector<BLEAddress> HAPPluginNimbleMiFlora::_supportedDevices;
 std::vector<HAPPluginNimbleMiFloraDevice*> HAPPluginNimbleMiFlora::_devices;
@@ -48,14 +43,18 @@ HAPPluginNimbleMiFlora::HAPPluginNimbleMiFlora(){
     _type = HAP_PLUGIN_TYPE_ACCESSORY;
     _name = "MiFlora";
     _isEnabled = HAP_PLUGIN_USE_NIMBLE_MIFLORA;
-    _interval = HAP_MIFLORA_INTERVAL;
-    _previousMillis = 0;    
-
+    _interval = HAP_PLUGIN_MIFLORA_INTERVAL;
+    _previousMillis = HAP_PLUGIN_MIFLORA_INTERVAL;    	
 
     _version.major      = VERSION_MAJOR;
     _version.minor      = VERSION_MINOR;
     _version.revision   = VERSION_REVISION;
     _version.build      = VERSION_BUILD;
+
+#if HAP_PLUGIN_MIFLORA_ENABLE_SCANNER
+	_intervalScan   	= HAP_PLUGIN_MIFLORA_SCAN_INTERVAL;
+	_previousMillisScan	= 0;
+#endif	
 }
 
 bool HAPPluginNimbleMiFlora::begin(){
@@ -64,37 +63,41 @@ bool HAPPluginNimbleMiFlora::begin(){
     BLEDevice::setPower(ESP_PWR_LVL_P7);    
     _floraClient = BLEDevice::createClient();
 
-#if HAP_PLUGIN_MIFLORA_USE_SCANNER
+#if HAP_PLUGIN_MIFLORA_ENABLE_SCANNER
 
 #else
     _supportedDevices.push_back(BLEAddress("C4:7C:8D:66:57:28"));
 #endif
 
+	_previousMillisScan = (HAP_PLUGIN_MIFLORA_SCAN_INTERVAL - 1000);
     return true;
 }
 
 
-void HAPPluginNimbleMiFlora::handleImpl(bool forced){
-
-    LogD(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Handle plguin [" + String(_interval) + "]", true);
+void HAPPluginNimbleMiFlora::handleImpl(bool forced){    
 	
-#if HAP_PLUGIN_MIFLORA_USE_SCANNER
-	HAPPluginNimbleMiFloraScanner floraScanner;
-  	if (floraScanner.scan()) {
+#if HAP_PLUGIN_MIFLORA_ENABLE_SCANNER
 
-		for (int i = 0; i < floraScanner.getDeviceCount(); i++){
-			if (!containsDevice(floraScanner.getDeviceAddress(i))){
-				LogD(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Found device [" + String(floraScanner.getDeviceAddress(i).c_str()) + "]: Add to supported list", true);
-				_supportedDevices.push_back(BLEAddress(floraScanner.getDeviceAddress(i)));
+	if (shouldScan()) {
+
+		LogD(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Handle scanning for new devices [" + String(_intervalScan) + "]", true);
+
+		HAPPluginNimbleMiFloraScanner floraScanner;
+		if (floraScanner.scan()) {
+
+			for (int i = 0; i < floraScanner.getDeviceCount(); i++){
+				if (!containsDevice(floraScanner.getDeviceAddress(i))){
+					LogD(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Found device [" + String(floraScanner.getDeviceAddress(i).c_str()) + "]: Add to supported list", true);
+					_supportedDevices.push_back(BLEAddress(floraScanner.getDeviceAddress(i)));
+				}
 			}
 		}
-  	}
+	}
 
 #endif
-
-    struct floraData* deviceData = (struct floraData*)malloc(_supportedDevices.size() * sizeof(struct floraData));	
-    processDevices(deviceData);
-	free(deviceData);	
+    
+    processDevices();
+	
 }
 
 HAPAccessory* HAPPluginNimbleMiFlora::initAccessory(){
@@ -128,529 +131,48 @@ HAPPluginNimbleMiFloraDevice* HAPPluginNimbleMiFlora::getDevice(std::string addr
 
 HAPConfigValidationResult HAPPluginNimbleMiFlora::validateConfig(JsonObject object){
 
-    return HAPPlugin::validateConfig(object);
+	HAPConfigValidationResult result;
+    
+    result = HAPPlugin::validateConfig(object);
+    if (result.valid == false) {
+        return result;
+    }
+    result.valid = false;
+    
+    // plugin._name.username
+    if (object.containsKey("intervalScan") && !object["intervalScan"].is<uint32_t>()) {
+        result.reason = "plugins." + _name + ".intervalScan is not an integer";
+        return result;
+    }
+
+    result.valid = true;
+    return result;
 }
 
 JsonObject HAPPluginNimbleMiFlora::getConfigImpl(){
-    DynamicJsonDocument doc(1);
+    DynamicJsonDocument doc(128);
+#if HAP_PLUGIN_MIFLORA_ENABLE_HISTORY 
+	doc["intervalScan"] = _intervalScan;
+#endif
 	return doc.as<JsonObject>();
 }
 
 void HAPPluginNimbleMiFlora::setConfigImpl(JsonObject root){
 
+#if HAP_PLUGIN_MIFLORA_ENABLE_HISTORY 	
+    if (root.containsKey("intervalScan")){
+        // LogD(" -- password: " + String(root["password"]), true);
+        _intervalScan = root["intervalScan"].as<uint32_t>();
+    }	
+#endif	
+
 }
 
 
-/**************************************************************************************************************
- *  Bluetooth implementation
- *   
- */
 
-BLEClient* HAPPluginNimbleMiFlora::getFloraClient(BLEAddress floraAddress) {	
 
-	if (!_floraClient->connect(floraAddress)) {
-		LogD(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Connection failed, skipping [" + String(floraAddress.toString().c_str()) + "]", true);
-		return nullptr;
-	}
 
-	LogV(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Connection successful [" + String(floraAddress.toString().c_str()) + "]", true);
-	return _floraClient;
-}
-
-
-BLERemoteService* HAPPluginNimbleMiFlora::getFloraService(BLEClient* floraClient, BLEUUID uuid) {
-	BLERemoteService* floraService = nullptr;
-
-	try {
-		floraService = floraClient->getService(uuid);
-	}
-	catch (...) {
-		// something went wrong
-	}
-	if (floraService == nullptr) {
-		LogW(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Failed to find data service [" + String(floraClient->getPeerAddress().toString().c_str()) + "]", true);
-	}
-	else {
-		LogV(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Found data service [" + String(floraClient->getPeerAddress().toString().c_str()) + "]", true);
-	}
-
-	return floraService;
-}
-
-bool HAPPluginNimbleMiFlora::forceFloraServiceDataMode(BLERemoteService* floraService, BLEUUID uuid, uint8_t* data, size_t dataLength) {
-	BLERemoteCharacteristic* floraCharacteristic;
-	
-	// get device mode characteristic, needs to be changed to read data	
-	LogV(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Force device in data mode", true);
-	floraCharacteristic = nullptr;
-	try {
-		floraCharacteristic = floraService->getCharacteristic(uuid);
-	}
-	catch (...) {
-		// something went wrong
-	}
-	if (floraCharacteristic == nullptr) {
-		
-		LogW(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Failed to force device in data mode", true);
-		return false;
-	}
-
-	// write the magic data
-	//uint8_t buf[2] = {0xA0, 0x1F};
-	floraCharacteristic->writeValue(data, dataLength, true);
-
-	delay(100);
-	return true;
-}
-
-bool HAPPluginNimbleMiFlora::readFloraDataCharacteristic(BLERemoteService* floraService, struct floraData* retData) {
-	BLERemoteCharacteristic* floraCharacteristic = nullptr;
-
-	// get the main device data characteristic	
-	LogV(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Read data from device", true);
-	try {
-		floraCharacteristic = floraService->getCharacteristic(_uuid_sensor_data);
-	}
-	catch (...) {
-		// something went wrong
-	}
-	if (floraCharacteristic == nullptr) {
-		LogW(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Failed to read characteristic", true);
-		return false;
-	}
-
-	// read characteristic value
-	//LogD("- Read value from characteristic", true);
-	std::string value;
-	try{
-		value = floraCharacteristic->readValue();
-	}
-	catch (...) {
-		// something went wrong
-		LogW(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Failed to read characteristic", true);
-		return false;
-	}
-	const char *val = value.c_str();
-
-#if HAP_PLUGIN_MIFLORA2_DEBUG
-    HAPHelper::array_print("value", (const unsigned char*)val, 16);
-#endif
-
-	int16_t* temp_raw = (int16_t*)val;
-	float temperature = (*temp_raw) / ((float)10.0);
-
-#if HAP_PLUGIN_MIFLORA2_DEBUG    
-	Serial.print("-- Temperature: ");
-	Serial.println(temperature);
-#endif
-
-
-	int moisture = val[7];
-
-#if HAP_PLUGIN_MIFLORA2_DEBUG
-	Serial.print("-- Moisture: ");
-	Serial.println(moisture);
-#endif
-
-	int light = val[3] + val[4] * 256;
-	
-#if HAP_PLUGIN_MIFLORA2_DEBUG    
-    Serial.print("-- Light: ");
-	Serial.println(light);
-#endif
-
-	int conductivity = val[8] + val[9] * 256;
-
-#if HAP_PLUGIN_MIFLORA2_DEBUG    
-	Serial.print("-- Conductivity: ");
-	Serial.println(conductivity);
-#endif
-
-	if ((temperature > 200) || (temperature < -100)) {
-		LogW(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Unreasonable values received", true);
-		return false;
-	}
-
-	retData->temperature = temperature;
-	retData->moisture = moisture;
-	retData->light = light;
-	retData->conductivity = conductivity;
-
-	return true;
-}
-
-
-bool HAPPluginNimbleMiFlora::readFloraBatteryCharacteristic(BLERemoteService* floraService, struct floraData* retData) {
-	BLERemoteCharacteristic* floraCharacteristic = nullptr;
-
-	// get the device battery characteristic
-	LogV(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Read device info from device", true);
-	try {
-		floraCharacteristic = floraService->getCharacteristic(_uuid_version_battery);
-	}
-	catch (...) {
-		// something went wrong
-	}
-	if (floraCharacteristic == nullptr) {
-		LogD("-- Failed, skipping battery level", true);
-		return false;
-	}
-
-	// read characteristic value
-	//LogD("- Read value from characteristic", true);
-	std::string value;
-
-	try{
-		value = floraCharacteristic->readValue();
-	}
-	catch (...) {
-		// something went wrong
-		LogW(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Failed to read characteristic", true);
-		return false;
-	}
-	
-    const char *val2 = value.c_str();
-
-#if HAP_PLUGIN_MIFLORA2_DEBUG
-    HAPHelper::array_print("value", (const unsigned char*)val2, strlen(val2));
-#endif
-
-
-	int battery = val2[0];
-
-#if HAP_PLUGIN_MIFLORA2_DEBUG
-	Serial.print("-- Battery: ");
-	Serial.println(battery);
-#endif
-
-	retData->battery = battery;
-
-
-    if (strlen(val2) == 7) {
-        retData->firmware[0] = val2[2];
-        retData->firmware[1] = val2[3];
-        retData->firmware[2] = val2[4];
-        retData->firmware[3] = val2[5];
-        retData->firmware[4] = val2[6];
-        retData->firmware[5] = '\0';
-
-#if HAP_PLUGIN_MIFLORA2_DEBUG
-    	Serial.print("-- Firmware: ");
-    	Serial.println(retData->firmware);
-#endif
-    }
-
-	return true;
-}
-
-#if HAP_PLUGIN_MIFLORA2_FETCH_HISTORY 
-bool HAPPluginNimbleMiFlora::readFloraDeviceTimeCharacteristic(BLERemoteService* floraService, uint32_t* deviceTime) {
-	BLERemoteCharacteristic* floraCharacteristic = nullptr;
-
-	// get the device device time characteristic
-	LogD("- Access time characteristic from device", true);
-	try {
-		floraCharacteristic = floraService->getCharacteristic(_uuid_device_time);
-	}
-	catch (...) {
-		// something went wrong
-	}
-	if (floraCharacteristic == nullptr) {
-		LogD("-- Failed - char not found?, skipping device time", true);
-		return false;
-	}
-
-	// read characteristic value
-	LogD("- Read value from characteristic", true);
-	std::string value;
-	try{
-		value = floraCharacteristic->readValue();
-	}
-	catch (...) {
-		// something went wrong
-		LogD("-- Failed - reading value, skipping device time", true);
-		return false;
-	}
-	const char *val = value.c_str();
-	*deviceTime = val[0] + val[1] * 256;
-
-#if HAP_PLUGIN_MIFLORA2_DEBUG
-	Serial.print("-- DeviceTime: ");
-	Serial.println(*deviceTime);
-	// retData->deviceTime = deviceTime;
-#endif
-
-	return true;
-}
-
-bool HAPPluginNimbleMiFlora::readFloraHistoryEntryCountCharacteristic(BLERemoteService* floraService, uint16_t* entryCount) {
-	BLERemoteCharacteristic* floraCharacteristic = nullptr;
-
-	// get the device device time characteristic
-	LogD("- Access history entry count characteristic from device", true);
-	try {
-		floraCharacteristic = floraService->getCharacteristic(_uuid_history_read);
-	}
-	catch (...) {
-		// something went wrong
-	}
-	if (floraCharacteristic == nullptr) {
-		LogD("-- Failed - char not found?, skipping device time", true);
-		return false;
-	}
-
-	// read characteristic value
-	LogD("- Read value from characteristic", true);
-	std::string value;
-	try{
-		value = floraCharacteristic->readValue();
-	}
-	catch (...) {
-		// something went wrong
-		LogD("-- Failed - reading value, skipping device time", true);
-		return false;
-	}
-	const char *val = value.c_str();
-	*entryCount = val[0] + val[1] * 256;
-
-#if HAP_PLUGIN_MIFLORA2_DEBUG
-	Serial.print("-- Entry Count: ");
-	Serial.println(*entryCount);
-	// retData->deviceTime = deviceTime;
-#endif
-
-
-	return true;
-}
-
-
-void HAPPluginNimbleMiFlora::entryAddress(uint8_t *address, uint16_t entry){
-	address[0] = 0xA1;
-    address[1] = entry;
-    address[2] = entry << 8;
-}
-
-
-bool HAPPluginNimbleMiFlora::readFloraHistoryEntryCharacteristic(BLERemoteService* floraService, struct floraHistory* history) {
-	BLERemoteCharacteristic* floraCharacteristic = nullptr;
-
-	// get the device device time characteristic
-	Serial.println("- Access history entry characteristic from device");
-	try {
-		floraCharacteristic = floraService->getCharacteristic(_uuid_history_read);
-	}
-	catch (...) {
-		// something went wrong
-	}
-	if (floraCharacteristic == nullptr) {
-		Serial.println("-- Failed - char not found?, skipping device time");
-		return false;
-	}
-
-	// read characteristic value
-	Serial.println("- Read value from characteristic");
-	std::string value;
-	try{
-		value = floraCharacteristic->readValue();
-	}
-	catch (...) {
-		// something went wrong
-		Serial.println("-- Failed - reading value, skipping device time");
-		return false;
-	}
-	const char *val = value.c_str();
-
-#if HAP_PLUGIN_MIFLORA2_DEBUG
-    HAPHelper::array_print("value", (const unsigned char*)val, strlen(val));
-#endif
-
-
-	uint32_t timestamp = val[0] | ((uint32_t)val[1] << 8) |
-                    ((uint32_t)val[2] << 16) | ((uint32_t)val[3] << 24);
-	
-	Serial.print("-- Timestamp: ");
-	Serial.println(timestamp);
-
-	int16_t temp_raw = val[4] | ((int16_t)val[5] << 8);
-	float temperature = temp_raw / ((float)10.0);
-
-	Serial.print("-- Temperature: ");
-	Serial.println(temperature);
-
-	uint32_t light = val[7] | ((uint32_t)val[8] << 8) |
-                    ((uint32_t)val[9] << 16) | ((uint32_t)val[10] << 24);
-	Serial.print("-- Light: ");
-	Serial.println(light);
-
-	int moisture = val[11];
-	Serial.print("-- Moisture: ");
-	Serial.println(moisture);
-	
-	int conductivity = val[12] | ((uint32_t)val[13] << 8);
-	Serial.print("-- Conductivity: ");
-	Serial.println(conductivity);
-
-	if ((temperature > 200) || (temperature < -100)) {
-		Serial.println("-- Unreasonable values received, skip publish");
-		return false;
-	}
-
-	history->timestamp = timestamp;
-	history->temperature = temperature;
-	history->moisture = moisture;
-	history->light = light;
-	history->conductivity = conductivity;
-	// retData->deviceTime = deviceTime;
-
-	return true;
-}
-
-
-bool HAPPluginNimbleMiFlora::getEntryCount(BLERemoteService* floraService, uint16_t *entryCount){
-    // set device in data mode
-	// write the magic data
-	uint8_t buf[3] = {0xA0, 0x00, 0x00};
-	if (!forceFloraServiceDataMode(floraService, _uuid_write_history_mode, buf, 3)) {
-		return false;
-	}
-
-	bool entryCountSuccess = readFloraHistoryEntryCountCharacteristic(floraService, entryCount);
-
-#if HAP_PLUGIN_MIFLORA2_DEBUG
-	Serial.print(">>> entryCount: ");
-	Serial.println(*entryCount);
-#endif
-
-    return entryCountSuccess;
-}
-
-bool HAPPluginNimbleMiFlora::processFloraHistoryService(BLERemoteService* floraService, struct floraHistory* history, uint16_t entryCount) {
-	
-    uint32_t deviceTime = 0;
-	bool deviceTimeSuccess = readFloraDeviceTimeCharacteristic(floraService, &deviceTime);
-
-
-	if (entryCount == 0) {
-		history->success = true;
-		return history->success;
-	}
-
-	bool entrySuccess = false;
-	
-	
-	Serial.println("History Data:");
-	Serial.println("=============================================================");
-
-	
-	
-	for (int i = 0; i < entryCount; i++){
-
-		uint8_t address[3];
-		entryAddress(&(*address), i);
-
-		Serial.print("Address: ");
-		for (int j = 0; j < 3; j++){
-			Serial.printf("%02X", address[j]);			
-		}
-		Serial.println("");
-
-
-		if (!forceFloraServiceDataMode(floraService, _uuid_write_history_mode, address, 3)) {
-			break;
-		}
-
-		entrySuccess = readFloraHistoryEntryCharacteristic(floraService, &(history[i]));
-
-		Serial.println("=============================================================");
-		if (!entrySuccess){
-			break;
-		}
-	}
-
-	history->success = deviceTimeSuccess && entrySuccess;
-	return history->success;
-}
-
-#endif
-
-bool HAPPluginNimbleMiFlora::processFloraService(BLERemoteService* floraService, struct floraData* retData) {
-	
-    bool batterySuccess = readFloraBatteryCharacteristic(floraService, retData);
-	
-	// set device in data mode
-	// write the magic data
-	uint8_t buf[2] = {0xA0, 0x1F};
-	if (!forceFloraServiceDataMode(floraService, _uuid_write_mode, buf, 2)) {
-		return false;
-	}
-
-	bool dataSuccess = readFloraDataCharacteristic(floraService, retData);
-	
-	retData->success = dataSuccess && batterySuccess;
-	return retData->success;
-}
-
-
-bool HAPPluginNimbleMiFlora::processFloraDevice(BLEAddress floraAddress, int tryCount, struct floraData* retData) {
-	Serial.print("Processing Flora device at ");
-	Serial.print(floraAddress.toString().c_str());
-	Serial.print(" (try ");
-	Serial.print(tryCount);
-	Serial.println(")");
-
-	// connect to flora ble server
-	BLEClient* floraClient = getFloraClient(floraAddress);
-	if (floraClient == nullptr) {
-		return false;
-	}
-
-
-	// connect data service
-	BLERemoteService* floraService = getFloraService(floraClient, _serviceUUID);
-	if (floraService == nullptr) {
-		floraClient->disconnect();
-		return false;
-	}
-
-	// process devices data
-	bool success = processFloraService(floraService, retData);
-	// blink(floraService);
-
-
-#if HAP_PLUGIN_MIFLORA2_FETCH_HISTORY
-	BLERemoteService* floraHistoryService = getFloraService(floraClient, _serviceHistoryUUID);
-	if (floraHistoryService == nullptr) {
-		floraClient->disconnect();
-		return false;
-	}
-
-	Serial.print("HEAP: ");
-	Serial.println(ESP.getFreeHeap());
-
-    uint16_t entryCount = 0;
-    getEntryCount(floraHistoryService, &entryCount);	
-
-    struct floraHistory* history = (struct floraHistory*)malloc(entryCount * sizeof(struct floraHistory));
-	bool successHistory = processFloraHistoryService(floraHistoryService, history, entryCount);	
-
-    success = success && successHistory;
-
-    free(history);
-
-#endif
-
-	// disconnect from device
-	floraClient->disconnect();
-
-	Serial.print("HEAP: ");
-	Serial.println(ESP.getFreeHeap());
-
-
-	return success;
-}
-
-
-void HAPPluginNimbleMiFlora::processDevices(struct floraData* deviceData){
+void HAPPluginNimbleMiFlora::processDevices(){
 	// check if battery status should be read - based on boot count
     // process devices    
     for (int i = 0; i < _supportedDevices.size(); i++) {
@@ -662,10 +184,7 @@ void HAPPluginNimbleMiFlora::processDevices(struct floraData* deviceData){
             // not in devices list -> initialize and add to accessorySet
             LogI(HAPServer::timeString() + " " + "MiFlora" + "->" + String(__FUNCTION__) + " [   ] " + "Add MiFlora device to devices list [" + String(deviceAddress.toString().c_str()) + "]", true);
             
-            newDevice = new HAPPluginNimbleMiFloraDevice(deviceAddress.toString());
-
-			auto callbackSetInterval = std::bind(&HAPPluginNimbleMiFlora::setInterval, this, std::placeholders::_1);        
-            newDevice->setIntervalCallback(callbackSetInterval);
+            newDevice = new HAPPluginNimbleMiFloraDevice(_floraClient, deviceAddress.toString());
 
             newDevice->setFakeGatoFactory(_fakeGatoFactory);
             newDevice->setEventManager(_eventManager);
@@ -680,11 +199,9 @@ void HAPPluginNimbleMiFlora::processDevices(struct floraData* deviceData){
         
         
         int retryCount = 0;            
-        for (retryCount=0; retryCount < HAP_MIFLORA_RETRY; retryCount++){
+        for (retryCount=0; retryCount < HAP_PLUGIN_MIFLORA_RETRY; retryCount++){
 
-            if (processFloraDevice(deviceAddress, retryCount, &(deviceData[i]))) {                                    
-                newDevice->setValue(deviceData[i]);
-                                
+            if (newDevice->processFloraDevice()) {                                                    				                                
                 break;
             }  
 			LogE(HAPServer::timeString() + " " + "MiFlora" + "->" + String(__FUNCTION__) + " [   ] " + "Could not process device [" + String(deviceAddress.toString().c_str()) + "]", true);
@@ -694,9 +211,21 @@ void HAPPluginNimbleMiFlora::processDevices(struct floraData* deviceData){
     }	
 }
 
-void HAPPluginNimbleMiFlora::setInterval(unsigned long interval) {
-	_interval = interval;
 
-	struct HAPEvent event = HAPEvent(nullptr, 0, 0, "");							
-    _eventManager->queueEvent( EventManager::kEventUpdatedConfig, event, EventManager::kLowPriority);                    
+
+bool HAPPluginNimbleMiFlora::shouldScan(){
+    
+    unsigned long currentMillis = millis(); // grab current time
+
+    if ((unsigned long)(currentMillis - _previousMillisScan) >= _intervalScan) {
+
+        // save the last time you blinked the LED
+        _previousMillisScan = currentMillis;
+
+        //LogD("Handle plugin: " + String(_name), true);			
+        return true;			
+    }
+    
+
+    return false;
 }

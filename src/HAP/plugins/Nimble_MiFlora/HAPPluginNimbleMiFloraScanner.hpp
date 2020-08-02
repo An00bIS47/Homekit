@@ -12,10 +12,8 @@
 
 #include <Arduino.h>
 #include <NimBLEDevice.h>
+#include "HAPGlobals.hpp"
 
-#define MAX_DEVICES	        10
-// Max duration of BLE scan (in seconds)
-#define BLE_SCAN_DURATION   3
 
 // Root service for Flora Devices
 static BLEUUID rootServiceDataUUID((uint16_t) 0xfe95);
@@ -54,7 +52,7 @@ public:
     }
 
 private:
-    std::string _devices[MAX_DEVICES];
+    std::string _devices[HAP_PLUGIN_MIFLORA_MAX_DEVICES];
     int         _deviceCount = 0;
     BLEScan*    _scan = nullptr;
     bool        _isScanning = false;
@@ -66,7 +64,7 @@ private:
         Serial.print("Flora device found at address ");
         Serial.println(deviceAddress.c_str());
         
-        if (_deviceCount < MAX_DEVICES) {
+        if (_deviceCount < HAP_PLUGIN_MIFLORA_MAX_DEVICES) {
             _devices[_deviceCount++] = deviceAddress;
         } else {
             Serial.println("can't register device, no remaining slot");
@@ -105,7 +103,7 @@ inline bool HAPPluginNimbleMiFloraScanner::scan() {
     FloraDevicesBLEDetector floraDetector(*this);
     _scan->setAdvertisedDeviceCallbacks(&floraDetector);
     _isScanning = true;
-    _scan->start(BLE_SCAN_DURATION);
+    _scan->start(HAP_PLUGIN_MIFLORA_SCAN_DURATION);
     
     Serial.print("Number of Flora devices detected: ");
     Serial.println(_deviceCount);

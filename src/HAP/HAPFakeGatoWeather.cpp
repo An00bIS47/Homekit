@@ -83,6 +83,26 @@ bool HAPFakeGatoWeather::addEntry(String stringTemperature, String stringHumidit
     return addEntry(data);
 }
 
+bool HAPFakeGatoWeather::addEntry(uint32_t timestamp, String stringTemperature, String stringHumidity, String stringPressure){        
+
+
+    LogD(HAPServer::timeString() + " " + String(__CLASS_NAME__) + "->" + String(__FUNCTION__) + " [   ] " + "Adding entry for " + _name + " [size=" + String(_memoryUsed) + "]: temp=" + stringTemperature + " hum=" + stringHumidity + " pres=" + stringPressure, true);
+    
+    uint16_t valueTemperature   = (uint16_t) stringTemperature.toFloat()    * 100;
+    uint16_t valueHumidity      = (uint16_t) stringHumidity.toFloat()       * 100;
+    uint16_t valuePressure      = (uint16_t) stringPressure.toInt()         * 10;        
+
+    HAPFakeGatoWeatherData data = (HAPFakeGatoWeatherData){
+        timestamp,
+        // false,
+        valueTemperature,
+        valueHumidity,
+        valuePressure,        
+    };    
+
+    return addEntry(data);
+}
+
 
 bool HAPFakeGatoWeather::addEntry(HAPFakeGatoWeatherData data){
 
