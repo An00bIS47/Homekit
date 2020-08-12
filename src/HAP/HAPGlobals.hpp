@@ -32,7 +32,7 @@
 #define HOMEKIT_CONFIGURATION_NUMBER 		1		// Internal - keep value at 1
 #define HAP_BATTERY_LEVEL_LOW_THRESHOLD		15		// Battery threshold for alert
 
- 
+
 
 /**
  * Version
@@ -100,6 +100,16 @@
 #ifndef HAP_DEBUG_MIFLORA
 #define HAP_DEBUG_MIFLORA			1
 #endif
+
+#ifndef HAP_DEBUG_IR
+#define HAP_DEBUG_IR				1
+#endif
+
+/**
+ * Homekit misc
+ ********************************************************************/
+#define HAP_ALLOW_PAIRING_WHILE_PAIRED 1
+
 
 /**
  * WiFi

@@ -317,8 +317,6 @@ void HAPPluginNimbleMiFloraDevice::setDeviceData(floraDeviceData data){
     }
     
     _accessory->setFirmware(String(data.firmware));
-
-    // ToDo: Add Events
 }
 
 
@@ -621,10 +619,10 @@ bool HAPPluginNimbleMiFloraDevice::readFloraDeviceTimeCharacteristic(BLERemoteSe
 	uint32_t deviceTime = val[0] | ((uint32_t)val[1] << 8) | ((uint32_t)val[2] << 16) | ((uint32_t)val[3] << 24);
 
     _deviceData.deviceTime = HAPServer::timestamp() - deviceTime;
+
 #if HAP_DEBUG_MIFLORA
 	Serial.print("-- DeviceTime: ");
-	Serial.println(_deviceData.deviceTime);
-	
+	Serial.println(_deviceData.deviceTime);	
 #endif
 
 	return true;
@@ -780,7 +778,7 @@ bool HAPPluginNimbleMiFloraDevice::readFloraHistoryEntryCharacteristic(BLERemote
 	history->conductivity = conductivity;
 	// retData->deviceTime = deviceTime;    
 
-	return _fakegato.addEntry(history->timestamp, String(history->temperature), String(history->moisture), "0");
+	return true;
 }
 
 
@@ -834,14 +832,17 @@ bool HAPPluginNimbleMiFloraDevice::processFloraHistoryService(BLERemoteService* 
             floraService = getFloraService(_serviceHistoryUUID);
             if (floraService == nullptr) {
                 _floraClient->disconnect();
-                LogE("Could not connect to history service [", true);
+                LogE("Could not connect to history service [" + String(_floraClient->getPeerAddress().toString().c_str()) + "]", true);
                 return false;
             }
 
             uint8_t buf[3] = {0xA0, 0x00, 0x00};
             if (!forceFloraServiceDataMode(floraService, _uuid_write_history_mode, buf, 3)) {
+				LogE("Could not force data mode to history service [" + String(_floraClient->getPeerAddress().toString().c_str()) + "]", true);
                 return false;
             }	 
+
+			errorCounter = 0;
         }
 
 		uint8_t address[3];
@@ -857,15 +858,18 @@ bool HAPPluginNimbleMiFloraDevice::processFloraHistoryService(BLERemoteService* 
 
 		if (!forceFloraServiceDataMode(floraService, _uuid_write_history_mode, address, 3)) {
             errorOccured = true;
-            LogE("Could not set read mode for history entry[", true);
+            LogE("Could not set read mode for history entry [" + String(_floraClient->getPeerAddress().toString().c_str()) + "]", true);
 			break;
 		}
 
         entrySuccess = readFloraHistoryEntryCharacteristic(floraService, &(history[i]));
 		if (!entrySuccess){
             errorOccured = true;
-            LogE("Could not read history entry [", true);
+            LogE("Could not read history entry [" + String(_floraClient->getPeerAddress().toString().c_str()) + "]", true);
 		}
+
+		// Add to fakegato 
+		errorOccured = !_fakegato.addEntry(history->timestamp, String(history->temperature), String(history->moisture), "0");
 
 #if HAP_DEBUG_MIFLORA
 		Serial.println("=============================================================");
@@ -926,7 +930,7 @@ bool HAPPluginNimbleMiFloraDevice::processFloraDevice() {
         // connect data service
         BLERemoteService* floraService = getFloraService(_serviceUUID);
         if (floraService == nullptr) {
-            LogE("Could not connect to service [", true);
+            LogE("Could not connect to service [" + String(_floraClient->getPeerAddress().toString().c_str()) + "]", true);
             _floraClient->disconnect();
             return false;
         }
@@ -947,13 +951,13 @@ bool HAPPluginNimbleMiFloraDevice::processFloraDevice() {
             BLERemoteService* floraHistoryService = getFloraService(_serviceHistoryUUID);
             if (floraHistoryService == nullptr) {
                 _floraClient->disconnect();
-                LogE("Could not connect to history service [", true);
+                LogE("Could not connect to history service [" + String(_floraClient->getPeerAddress().toString().c_str()) + "]", true);
                 return false;
             }
 
             bool deviceTimeSuccess = readFloraDeviceTimeCharacteristic(floraHistoryService);
             if (!deviceTimeSuccess) {
-                LogE("Processing device time failed :(", true);
+                LogE("Could not process device time [" + String(_floraClient->getPeerAddress().toString().c_str()) + "]", true);
             }
 
             uint16_t entryCount = 0;
@@ -963,7 +967,7 @@ bool HAPPluginNimbleMiFloraDevice::processFloraDevice() {
 
             bool successHistory = processFloraHistoryService(floraHistoryService, history, entryCount);	
             if (!successHistory) {
-                LogE("Processing history failed :(", true);
+                LogE("Processing history failed for device [" + String(_floraClient->getPeerAddress().toString().c_str()) + "]", true);
             }
             
 
@@ -993,7 +997,7 @@ bool HAPPluginNimbleMiFloraDevice::blinkLED(){
     // connect data service
 	BLERemoteService* floraService = getFloraService(_serviceUUID);
 	if (floraService == nullptr) {
-        LogE("Could not connect to service ", true);
+        LogE("Could not connect to service [" + String(_floraClient->getPeerAddress().toString().c_str()) + "]", true);
 		_floraClient->disconnect();
 		return false;
 	}
@@ -1002,7 +1006,7 @@ bool HAPPluginNimbleMiFloraDevice::blinkLED(){
 	// write the magic data
 	uint8_t buf[2] = {0xFD, 0xFF};
 	if (!forceFloraServiceDataMode(floraService, _uuid_write_mode, buf, 2)) {
-        LogE("Could not write to char ", true);
+        LogE("Could not blink LED for device [" + String(_floraClient->getPeerAddress().toString().c_str()) + "]", true);
 		return false;
 	}
 

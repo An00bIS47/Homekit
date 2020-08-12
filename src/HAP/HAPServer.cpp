@@ -1412,7 +1412,10 @@ void HAPServer::processIncomingRequest(HAPClient* hapClient){
 					
 					// pair-setup M1
 					if ( (hapClient->request.path == "/pair-setup" ) && (hapClient->pairState == HAP_PAIR_STATE_M1) ) {
-						
+
+
+#if HAP_ALLOW_PAIRING_WHILE_PAIRED == 0
+
 						if (_accessorySet->isPaired() == true) {
 							// accessory is already paired
 							LogE( "ERROR: Accessory is already paired!", true);						
@@ -1427,6 +1430,7 @@ void HAPServer::processIncomingRequest(HAPClient* hapClient){
 							sendErrorTLV(hapClient, HAP_PAIR_STATE_M2, HAP_ERROR_MAX_TRIES);
 							return;								
 						} else {
+#endif							
 							if (!handlePairSetupM1( hapClient ) ) {
 								LogE( "ERROR: Pair-setup failed at M1!", true);
 								
@@ -1435,8 +1439,11 @@ void HAPServer::processIncomingRequest(HAPClient* hapClient){
 								stopEvents(false);
 
 								hapClient->state = HAP_CLIENT_STATE_DISCONNECTED;
+							
 							}
+#if HAP_ALLOW_PAIRING_WHILE_PAIRED == 0							
 						}
+#endif							
 					}
 
 					// pair-setup M3

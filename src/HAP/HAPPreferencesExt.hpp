@@ -19,7 +19,6 @@ public:
 
 private:
 
-    uint8_t _test;
 };
 
 #endif /* HAPPREFERENCESEXT_HPP_ */
