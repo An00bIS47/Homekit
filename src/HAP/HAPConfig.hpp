@@ -74,7 +74,13 @@ public:
     void begin();
     JsonObject config();
 
-    inline void registerCallback(std::function<void(void)> callback){
+    inline void setConfig(DynamicJsonDocument doc){
+        _config = doc;
+        _config.garbageCollect();
+        _config.shrinkToFit();
+    }
+
+    inline void registerCallbackUpdate(std::function<void(void)> callback){
         _callbackUpdate = callback;
     }
 

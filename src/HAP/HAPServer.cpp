@@ -147,7 +147,7 @@ bool HAPServer::begin(bool resume) {
 		// 
 		LogV("Loading configuration ...", false);	
 		auto callback = std::bind(&HAPServer::updateConfig, this);
-		_config.registerCallback(callback);
+		_config.registerCallbackUpdate(callback);
 		_config.begin();
 
 		bool res = _config.load();
@@ -4050,6 +4050,7 @@ void HAPServer::updateConfig(){
 	
 	HAPLogger::setLogLevel(_config.config()["homekit"]["loglevel"].as<uint8_t>());    
 
+	// ToDo: Update plugins and reinit
 	// for (auto& plugin : _plugins) {						
     // 	plugin->setConfig(_config.config()["plugins"][plugin->name()]);
 	// } 
@@ -4059,26 +4060,36 @@ void HAPServer::updateConfig(){
 
 void HAPServer::handleEventUpdatedConfig(int eventCode, struct HAPEvent eventParam){
 
+	// ToDo: find error
 	LogI("Handle update config event", true);
-	const size_t capacity = HAP_ARDUINOJSON_BUFFER_SIZE / 8;
-    DynamicJsonDocument doc(capacity);
-	
+	const size_t capacity = HAP_ARDUINOJSON_BUFFER_SIZE;
+    DynamicJsonDocument doc(capacity);	
+
+#if HAP_DEBUG_CONFIG
+	Serial.println("before merging:");
+	_config.prettyPrintTo(Serial);	
+#endif
+
+	HAPHelper::mergeJson(doc, _config.config());
+	doc.remove("plugins");
+
 	JsonObject plugins = doc.createNestedObject("plugins");
 
-  	for (auto & plugin : _plugins) {
-			
-		if (plugin->isEnabled()) {			
+  	for (auto & plugin : _plugins) {			
+		//if (plugin->isEnabled()) {			
         	plugins[plugin->name()] = plugin->getConfig();				
-		}			
+		//}			
 	} 
 
-	_config.mergeConfig(doc.as<JsonObject>());
-	
-#if HAP_DEBUG	
-	_config.prettyPrintTo(Serial);
+	_config.setConfig(doc);
+
+#if HAP_DEBUG_CONFIG
+	Serial.println("after merging:");
+	_config.prettyPrintTo(Serial);	
 #endif
 
 	_config.save();
+	
 	updateConfig();	
 }
 

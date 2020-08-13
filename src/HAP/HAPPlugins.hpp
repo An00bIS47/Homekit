@@ -157,13 +157,13 @@ public:
 	virtual JsonObject getConfig(){	
 		LogD(String(__PRETTY_FUNCTION__), true);
 
-		const size_t capacity = HAP_ARDUINOJSON_BUFFER_SIZE / 2;
+		const size_t capacity = 2048;
     	DynamicJsonDocument doc(capacity);
     	
     	doc["enabled"] = isEnabled();
     	doc["interval"] = interval();	
 
-		DynamicJsonDocument pluginDoc(capacity/ 2);
+		DynamicJsonDocument pluginDoc(1024);
 		pluginDoc = getConfigImpl();		
 
 		HAPHelper::mergeJson(doc, pluginDoc.as<JsonObject>());

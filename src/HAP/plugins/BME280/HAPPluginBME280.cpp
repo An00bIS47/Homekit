@@ -249,9 +249,18 @@ HAPConfigValidationResult HAPPluginBME280::validateConfig(JsonObject object){
     return result;
 }
 
-JsonObject HAPPluginBME280::getConfigImpl(){    
-    DynamicJsonDocument doc(1);
+JsonObject HAPPluginBME280::getConfigImpl(){  
+	LogD(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Get config implementation", true);
+
+    DynamicJsonDocument doc(128);
 	doc["mode"] = (uint8_t) _mode;
+
+#if HAP_DEBUG_CONFIG
+    serializeJson(doc, Serial);
+    Serial.println();
+#endif
+	
+	doc.shrinkToFit();
 	return doc.as<JsonObject>();
 }
 

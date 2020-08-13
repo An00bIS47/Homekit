@@ -63,7 +63,7 @@
 
 #include "RF24.h"
 
-const char FIRMWARE_VERSION[6] = "1.0.5";
+const char FIRMWARE_VERSION[6] = "1.0.6";
 
 // #define DEBUG       
 #define EEPROM_SETTINGS_VERSION 1
@@ -98,7 +98,7 @@ const char FIRMWARE_VERSION[6] = "1.0.5";
 #endif
 
 #ifndef RF24_DATA_RATE
-    #define RF24_DATA_RATE      RF24_250KBPS
+    #define RF24_DATA_RATE      RF24_1MBPS
 #endif
 
 // RF24 Address
@@ -110,8 +110,8 @@ const char FIRMWARE_VERSION[6] = "1.0.5";
 // 
 // Pins
 // 
-#define RF24_CE_PIN     9  // PB3
-#define RF24_CSN_PIN    10  // Since we are using 3 pin configuration we will use same pin for both CE and CSN
+#define RF24_CE_PIN     9  
+#define RF24_CSN_PIN    10  
 
 
 // 
@@ -235,18 +235,20 @@ EepromSettings  _settings;
 
 uint16_t readVcc()
 {
-    adc_enable();  // enable ADC
-    // Details on http://provideyourown.com/2012/secret-arduino-voltmeter-measure-battery-voltage/
+    // adc_enable();  // enable ADC
+    // // Details on http://provideyourown.com/2012/secret-arduino-voltmeter-measure-battery-voltage/
 
-    ADMUX = _BV(MUX3) | _BV(MUX2); // Select internal 1.1V reference for measurement.
-    delay(2);                      // Let voltage stabilize.
-    ADCSRA |= _BV(ADSC);           // Start measuring.
-    while (ADCSRA & _BV(ADSC));    // Wait for measurement to complete.
-    uint16_t adcReading = ADC;
-    uint16_t vcc = (1.1 * 1024.0 / adcReading) * 100; // Note the 1.1V reference can be off +/- 10%, so calibration is needed.
+    // ADMUX = _BV(MUX3) | _BV(MUX2); // Select internal 1.1V reference for measurement.
+    // delay(2);                      // Let voltage stabilize.
+    // ADCSRA |= _BV(ADSC);           // Start measuring.
+    // while (ADCSRA & _BV(ADSC));    // Wait for measurement to complete.
+    // uint16_t adcReading = ADC;
+    // uint16_t vcc = (1.1 * 1024.0 / adcReading) * 100; // Note the 1.1V reference can be off +/- 10%, so calibration is needed.
 
-    adc_disable();  // disable ADC
-    return vcc;
+    // adc_disable();  // disable ADC
+    // return vcc;
+
+    return 3400;
 }
 
 

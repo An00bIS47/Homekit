@@ -275,13 +275,23 @@ HAPConfigValidationResult HAPPluginNeoPixel::validateConfig(JsonObject object){
 }
 
 JsonObject HAPPluginNeoPixel::getConfigImpl(){
+    LogD(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Get config implementation", true);
+
     DynamicJsonDocument doc(128);
     doc["gpio"] = _gpio;
 
+#if HAP_DEBUG_CONFIG
+    serializeJson(doc, Serial);
+    Serial.println();
+#endif
+
+    doc.shrinkToFit();
 	return doc.as<JsonObject>();
 }
 
 void HAPPluginNeoPixel::setConfigImpl(JsonObject root){
+
+
     if (root.containsKey("gpio")){
         // LogD(" -- password: " + String(root["password"]), true);
         _gpio = root["gpio"].as<uint8_t>();

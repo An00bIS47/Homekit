@@ -71,62 +71,6 @@ bool HAPPluginIR::receiveIRSignal(){
             _devices.push_back(newDevice);
         }
 
-#if 0
-        DynamicJsonDocument doc(512);
-
-        // The capture has stopped at this point.
-        decode_type_t protocol = _results.decode_type;
-        uint16_t size = _results.bits;
-        bool success = true;
-        
-
-        LogD("Received IR Signal: ", true);
-        LogD("   protocol: " + typeToString(protocol), true);
-        //LogD("   size:     " + String(size), true);
-        LogD("   code:     " + resultToHexidecimal(&_results), true);
-        LogD("   bits:     " + uint64ToString(_results.bits), true);
-
-        // Is it a protocol we don't understand?
-        if (protocol == decode_type_t::UNKNOWN) {  // Yes.
-            // Convert the results into an array suitable for sendRaw().
-            // resultToRawArray() allocates the memory we need for the array.
-            uint16_t *raw_array = resultToRawArray(&_results);
-            // Find out how many elements are in the array.
-            size = getCorrectedRawLength(&_results);
-
-            doc["protocol"] = (uint8_t) decode_type_t::UNKNOWN;
-            doc["size"] = size;
-            doc["hasACState"] = false;
-            
-            JsonArray arrayData = doc.createNestedArray("rawData");
-            for (int i = 0; i < size; i++){
-                arrayData.add(arrayData[i]);
-            }
-
-            // Deallocate the memory allocated by resultToRawArray().
-            delete [] raw_array;
-        } else if (hasACState(protocol)) {
-            doc["protocol"] = (uint8_t) protocol;
-            doc["size"] = size / 8;
-            doc["hasACState"] = true;        
-            doc["rawData"] = _results.state;        
-        } else {
-            doc["protocol"] = (uint8_t) protocol;
-            doc["size"] = size;
-            doc["hasACState"] = false;
-            doc["rawData"] = _results.value;            
-        }
-
-        // Display a crude timestamp & notification.
-        uint32_t now = millis();
-        Serial.printf(
-            "%06u.%03u: A %d-bit %s message was %ssuccessfully retransmitted.\n",
-            now / 1000, now % 1000, size, typeToString(protocol).c_str(),
-            success ? "" : "un");
-
-        serializeJson(doc, Serial);
-#endif
-
         // Resume capturing IR messages. It was not restarted until after we sent
         // the message so we didn't capture our own message.
         _irrecv->resume();
@@ -239,17 +183,36 @@ HAPConfigValidationResult HAPPluginIR::validateConfig(JsonObject object){
         result.reason = "plugins." + _name + ".gpioIRRecv is not an integer";
         return result;
     }
+
+    // ToDo: Validate devices array
 #endif
     result.valid = true;
     return result;
 }
 
 JsonObject HAPPluginIR::getConfigImpl(){
-    DynamicJsonDocument doc(128);
+
+    LogD(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Get config implementation", true);
+
+    DynamicJsonDocument doc(512);
     doc["gpioIRSend"] = _gpioIRSend;
 #if HAP_PLUGIN_IR_ENABLE_RECV     
     doc["gpioIRRecv"] = _gpioIRRecv;
+
+
+    JsonArray devices = doc.createNestedArray("devices");
+    for (int i=0; i < _devices.size(); i++){   
+        JsonObject device = devices.createNestedObject();     
+        _devices[i]->toJson(device);
+    }
+
 #endif
+
+#if HAP_DEBUG_CONFIG
+    serializeJson(doc, Serial);
+    Serial.println();
+#endif
+
 	return doc.as<JsonObject>();
 }
 
@@ -261,6 +224,20 @@ void HAPPluginIR::setConfigImpl(JsonObject root){
     if (root.containsKey("gpioIRRecv")){        
         _gpioIRRecv = root["gpioIRRecv"].as<uint8_t>();
     }
+
+    // using C++11 syntax (preferred):
+    for (JsonVariant value : root["devices"].as<JsonArray>()) {
+        
+        HAPPluginIRDevice* newDevice = new HAPPluginIRDevice(value.as<JsonObject>());
+            
+        newDevice->setEventManager(_eventManager);                        
+        _accessorySet->addAccessory(newDevice->initAccessory());
+
+        _devices.push_back(newDevice);
+        
+    }
+
+
 #endif    
 }
 
@@ -287,15 +264,26 @@ void HAPPluginIR::setupIRSend(){
 int HAPPluginIR::indexOfDecodeResult(decode_results* result){
     
     for (uint8_t i=0; i < _devices.size(); i++){  
+
+#if HAP_DEBUG_IR        
         Serial.print(i);
         Serial.println();    // Blank line between entries           
         Serial.print(resultToHumanReadableBasic(&_results));
         Serial.println(resultToSourceCode(&_results));
-        Serial.println();    // Blank line between entries           
+        Serial.println();    // Blank line between entries    
+#endif               
         if (memcmp(_devices[i]->getDecodeResults(), result, sizeof(decode_results)) == 0){
             return i;
+#if HAP_DEBUG_IR      
+            Serial.println("IDENTICAL");
+#endif 
         }
+#if HAP_DEBUG_IR              
         Serial.println("=================================================");    // Blank line between entries           
+#endif         
     }
+#if HAP_DEBUG_IR       
+    Serial.println("NO MATCH FOUND");
+#endif     
     return -1;
 }

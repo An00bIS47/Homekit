@@ -319,9 +319,17 @@ HAPConfigValidationResult HAPPluginFanHoneywell::validateConfig(JsonObject objec
 }
 
 JsonObject HAPPluginFanHoneywell::getConfigImpl(){
-    DynamicJsonDocument doc(128);
+    LogD(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Get config implementation", true);
+
+    DynamicJsonDocument doc(1);
     // doc["gpio"] = _gpio;
 
+#if HAP_DEBUG_CONFIG
+    serializeJson(doc, Serial);
+    Serial.println();
+#endif
+
+    doc.shrinkToFit();
 	return doc.as<JsonObject>();
 }
 

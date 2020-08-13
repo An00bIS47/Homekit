@@ -25,7 +25,7 @@
 #endif 
 
 #define HAP_PLUGIN_RF24_PA_LEVEL       RF24_PA_MAX
-#define HAP_PLUGIN_RF24_DATA_RATE      RF24_250KBPS
+#define HAP_PLUGIN_RF24_DATA_RATE      RF24_1MBPS
 
 // http://www.iotsharing.com/2018/03/esp-and-raspberry-connect-with-nrf24l01.html
 // modified Lib: https://github.com/nhatuan84/RF24.git
@@ -39,13 +39,21 @@
 // MISO ->| | |<- IRQ
 //        +-+-+   
 // 
-// CE         -> GPIO 12    
-// CSN        -> GPIO 33
-// CLK        -> GPIO 5
-// MISO       -> GPIO 19
-// MOSI       -> GPIO 18
-// IRQ        -> not connected
+//               ESP32                Breakout Board
+// =====================================================
+// CE         -> GPIO 12                -> CE
+// CSN        -> GPIO 33                -> CSN
+// CLK        -> GPIO 5                 -> SCK
+// MISO       -> GPIO 19                -> MI
+// MOSI       -> GPIO 18                -> MO
+// IRQ        -> not connected          -> -
 // 
+
+#define HAP_PLUGIN_RF24_PIN_CE      12
+#define HAP_PLUGIN_RF24_PIN_CSN     33
+#define HAP_PLUGIN_RF24_PIN_CLK     5
+#define HAP_PLUGIN_RF24_PIN_MISO    19
+#define HAP_PLUGIN_RF24_PIN_MOSI    18
 
 
 HAPPluginRF24::HAPPluginRF24(){
@@ -79,7 +87,7 @@ bool HAPPluginRF24::begin() {
     if (_isInitialized) return true;
     
     // _radio = new RF24(13, 33);
-    _radio = new RF24(12, 33, 5, 19, 18);
+    _radio = new RF24(HAP_PLUGIN_RF24_PIN_CE, HAP_PLUGIN_RF24_PIN_CSN, HAP_PLUGIN_RF24_PIN_CLK, HAP_PLUGIN_RF24_PIN_MISO, HAP_PLUGIN_RF24_PIN_MOSI);
     
     if (_radio->begin() ){                          // Start up the radio    
 
@@ -275,7 +283,7 @@ void HAPPluginRF24::handleImpl(bool forced){
                 // read the settings from the payload
                 // !! _awaitSettingsConfirmation can be updated during this process !!
                 // !! set it to false above this line !!
-                Serial.print("readSettings 1: ");
+                Serial.print("readSettings from device: ");
                 Serial.println(readSettingsFromRadio());                                                                                                       
             }          
             
@@ -442,10 +450,11 @@ HAPConfigValidationResult HAPPluginRF24::validateConfig(JsonObject object){
 }
 
 JsonObject HAPPluginRF24::getConfigImpl(){
-    DynamicJsonDocument doc(HAP_ARDUINOJSON_BUFFER_SIZE / 8);
+
+    LogD(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Get config implementation", true);
+    
+    DynamicJsonDocument doc(2048);
     JsonArray devices = doc.createNestedArray("devices");
-
-
 
     for (auto& dev : _devices){
         JsonObject devices_ = devices.createNestedObject();
@@ -456,6 +465,12 @@ JsonObject HAPPluginRF24::getConfigImpl(){
         devices_["sleepInterval"]   = (uint8_t)dev->sleepInterval;
     }
 
+#if HAP_DEBUG_CONFIG
+    serializeJson(doc, Serial);
+    Serial.println();
+#endif
+
+    doc.shrinkToFit();
     return doc.as<JsonObject>();
 }
 

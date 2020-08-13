@@ -154,10 +154,19 @@ HAPConfigValidationResult HAPPluginNimbleMiFlora::validateConfig(JsonObject obje
 }
 
 JsonObject HAPPluginNimbleMiFlora::getConfigImpl(){
+    LogD(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Get config implementation", true);
+
     DynamicJsonDocument doc(128);
 #if HAP_PLUGIN_MIFLORA_ENABLE_HISTORY 
 	doc["intervalScan"] = _intervalScan;
 #endif
+
+#if HAP_DEBUG_CONFIG
+    serializeJson(doc, Serial);
+    Serial.println();
+#endif
+
+    doc.shrinkToFit();
 	return doc.as<JsonObject>();
 }
 

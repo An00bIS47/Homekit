@@ -88,6 +88,8 @@ void HAPConfig::begin(){
                 
         plugins[plugin->name()] = plugin->getConfig();               
     }    
+
+    _config.shrinkToFit();
 }
 
 JsonObject HAPConfig::config(){
@@ -152,7 +154,11 @@ HAPConfigValidationResult HAPConfig::parse(const uint8_t* jsonString, size_t len
     }
 
     if (!dryRun){        
-        _config =  doc;
+        _config = doc;
+        // reclaim leaked strings
+        _config.garbageCollect();
+        _config.shrinkToFit();
+
         _callbackUpdate();        
     }
 
@@ -566,10 +572,12 @@ HAPConfigValidationResult HAPConfig::validateConfigPlugins(const JsonObject obje
 
 void HAPConfig::prettyPrintTo(Print& output){
     serializeJsonPretty(_config, output);    
+    output.println();
 }
 
 void HAPConfig::prettyPrintTo(String& output){
     serializeJsonPretty(_config, output);
+
 }
 
 bool HAPConfig::save(){
@@ -580,7 +588,8 @@ bool HAPConfig::save(){
     _prefs.begin("config", false);
 
     String cfg;        
-#if HAP_DEBUG  
+
+#if HAP_DEBUG_CONFIG  
     LogD("Saving config to", true); 
     serializeJsonPretty(_config, cfg);     
     LogD(cfg, true); 
@@ -602,6 +611,9 @@ bool HAPConfig::save(){
         LogD("Config hasn't changed! Saving not required!", true);
     }
     
+    _config.garbageCollect();
+    _config.shrinkToFit();
+    
     _prefs.end();
     return true;        
 }
@@ -620,13 +632,15 @@ bool HAPConfig::load(){
         return false;
     }
 
-#if HAP_DEBUG  
+#if HAP_DEBUG_CONFIG  
     LogD("Loaded config", true);      
     prettyPrintTo(Serial);
 #endif
 
     _callbackUpdate();
     
+    _config.shrinkToFit();
+
     return true;
 }
 
@@ -665,7 +679,7 @@ void HAPConfig::addNetwork(String ssid, String password){
         // change password if found
         for (JsonObject network : _config["wifi"]["networks"].as<JsonArray>()){
             if ( network["ssid"].as<String>() == ssid){
-                network["ssid"] = password;                
+                network["password"] = password;                
                 return;
             }
         }

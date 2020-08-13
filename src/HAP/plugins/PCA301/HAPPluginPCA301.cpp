@@ -398,9 +398,9 @@ HAPConfigValidationResult HAPPluginPCA301::validateConfig(JsonObject object){
 
 JsonObject HAPPluginPCA301::getConfigImpl(){  
 
-    LogD(String(__PRETTY_FUNCTION__), true);          
+    LogD(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Get config implementation", true);       
 
-    DynamicJsonDocument doc(HAP_ARDUINOJSON_BUFFER_SIZE / 8);
+    DynamicJsonDocument doc(2048);
     doc["pollInterval"] = pollIntv;
     doc["deadInterval"] = deadIntv;
     doc["centerFrequency"] = rfm69_center_freq;
@@ -415,6 +415,12 @@ JsonObject HAPPluginPCA301::getConfigImpl(){
         devices_["state"]   = dev->pState;
     }
 
+#if HAP_DEBUG_CONFIG
+    serializeJson(doc, Serial);
+    Serial.println();
+#endif
+
+    doc.shrinkToFit();
     return doc.as<JsonObject>();
 }
 

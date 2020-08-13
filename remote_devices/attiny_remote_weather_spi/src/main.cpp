@@ -63,7 +63,7 @@
 
 #include "RF24.h"
 
-const char FIRMWARE_VERSION[6] = "1.0.5";
+const char FIRMWARE_VERSION[6] = "1.0.6";
 
 // #define DEBUG       
 #define EEPROM_SETTINGS_VERSION 1
@@ -105,7 +105,7 @@ const char FIRMWARE_VERSION[6] = "1.0.5";
 #endif
 
 #ifndef RF24_DATA_RATE
-    #define RF24_DATA_RATE      RF24_250KBPS
+    #define RF24_DATA_RATE      RF24_1MBPS
 #endif
 
 // RF24 Address
@@ -118,8 +118,23 @@ const char FIRMWARE_VERSION[6] = "1.0.5";
 // Pins
 // 
 #define RF24_CE_PIN     PIN_B3  // PB3
-#define RF24_CSN_PIN    PIN_B4  // Since we are using 3 pin configuration we will use same pin for both CE and CSN
+#define RF24_CSN_PIN    PIN_B4  // NOPE -> Since we are using 3 pin configuration we will use same pin for both CE and CSN
+
 #define BME280_CS_PIN   PIN_B5  // PB5 = RESET
+
+
+// ATMEL ATTINY 25/45/85 / ARDUINO
+//
+//                   +-\/-+
+//  Ain0 (D 5) PB5  1|    |8  Vcc
+//  Ain3 (D 3) PB3  2|    |7  PB2 (D 2) Ain1
+//  Ain2 (D 4) PB4  3|    |6  PB1 (D 1) pwm1
+//             GND  4|    |5  PB0 (D 0) pwm0
+//                   +----+
+
+
+
+
 
 // 
 // EEPRom Macros

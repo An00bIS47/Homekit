@@ -11,6 +11,7 @@
 
 
 #include <Arduino.h>
+#include <ArduinoJson.h>
 #include "HAPAccessory.hpp"
 #include "HAPService.hpp"
 #include "HAPCharacteristic.hpp"
@@ -26,7 +27,7 @@ class HAPPluginIRDevice {
 public:
 
     HAPPluginIRDevice(const decode_results capture);
-    
+    HAPPluginIRDevice(JsonObject device);
                             
     HAPAccessory* initAccessory();    
 
@@ -39,6 +40,8 @@ public:
     decode_results* getDecodeResults(){
         return &_capture;
     }
+
+    void toJson(JsonObject root);
 
 private:    
     

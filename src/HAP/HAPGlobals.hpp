@@ -105,6 +105,10 @@
 #define HAP_DEBUG_IR				1
 #endif
 
+#ifndef HAP_DEBUG_CONFIG
+#define HAP_DEBUG_CONFIG			1
+#endif
+
 /**
  * Homekit misc
  ********************************************************************/
@@ -233,7 +237,7 @@
  ********************************************************************/
 
 #ifndef HAP_FAKEGATO_BUFFER_SIZE
-#define HAP_FAKEGATO_BUFFER_SIZE	1536    // Number of history entries for each characteristic 
+#define HAP_FAKEGATO_BUFFER_SIZE	768     // Number of history entries for each characteristic 
 #endif										// default: 768
 
 
@@ -385,7 +389,7 @@
 #endif
 
 #ifndef HAP_PLUGIN_USE_RF24
-#define HAP_PLUGIN_USE_RF24				0
+#define HAP_PLUGIN_USE_RF24				1
 #endif
 
 #ifndef HAP_PLUGIN_USE_SSD1306
@@ -449,7 +453,7 @@
 
 // reduce fakegato buffer
 #undef HAP_FAKEGATO_BUFFER_SIZE
-#define HAP_FAKEGATO_BUFFER_SIZE 768
+#define HAP_FAKEGATO_BUFFER_SIZE 512
 #endif
 
 /**
@@ -507,11 +511,11 @@ STR(HAP_PLUGIN_USE_BME280)
 #define HAP_BUFFER_SEND_SIZE		3192	// 3192 max ?
 #endif
 
-#define HAP_ARDUINOJSON_BUFFER_SIZE 4096
-#define HAP_ENCRYPTION_BUFFER_SIZE 	16384
+#define HAP_ARDUINOJSON_BUFFER_SIZE 4096	//(ESP.getMaxAllocHeap() - 4096)
+#define HAP_ENCRYPTION_BUFFER_SIZE 	(ESP.getMaxAllocHeap() - 4096)	// 16384
 
-#define HAP_PAIRINGS_MAX			10		// Number of available pairings 
-											// Default: 10
+#define HAP_PAIRINGS_MAX			16		// Number of available pairings 
+											// Default: 16
 
 #define HAP_STRING_LENGTH_MAX		64		// Max length of strings for config validation
 
