@@ -176,7 +176,10 @@ HAPConfigValidationResult HAPPluginRCSwitch::validateConfig(JsonObject object){
 }
 
 JsonObject HAPPluginRCSwitch::getConfigImpl(){
-    DynamicJsonDocument doc(HAP_ARDUINOJSON_BUFFER_SIZE / 8);
+
+    LogD(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Get config implementation", true);
+
+    DynamicJsonDocument doc(2048);
     JsonArray devices = doc.createNestedArray("devices");
 
     for (auto& dev : _devices){
@@ -186,6 +189,13 @@ JsonObject HAPPluginRCSwitch::getConfigImpl(){
         devices_["name"]    = dev->name;
     }
 
+    
+#if HAP_DEBUG_CONFIG
+    serializeJson(doc, Serial);
+    Serial.println();
+#endif
+
+    doc.shrinkToFit();
     return doc.as<JsonObject>();
 }
 

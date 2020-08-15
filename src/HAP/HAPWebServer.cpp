@@ -415,143 +415,145 @@ void HAPWebServer::handleConfigPost(HTTPRequest *req, HTTPResponse *res){
     // This would be handy if you provide an API with lists of resources, but access rights are defined object-based.
     // if (req->getHeader(HEADER_GROUP) == "ADMIN")    
     // {
-        size_t capacity = HAP_ARDUINOJSON_BUFFER_SIZE / 2;
 
-        // Try to read request into buffer
-        size_t idx = 0;
+    // ToDo: rewrite this
+    size_t capacity = HAP_ARDUINOJSON_BUFFER_SIZE;
 
-        String boundry;
-        String contentType = req->getHeader("Content-Type").c_str();
+    // Try to read request into buffer
+    size_t idx = 0;
 
-        size_t idxBoundry = contentType.indexOf("boundry=");
-        size_t idxComma = contentType.indexOf(";", idxBoundry + 1);
+    String boundry;
+    String contentType = req->getHeader("Content-Type").c_str();
 
-        if ((idxBoundry > 0) && (idxComma > 0))
+    size_t idxBoundry = contentType.indexOf("boundry=");
+    size_t idxComma = contentType.indexOf(";", idxBoundry + 1);
+
+    if ((idxBoundry > 0) && (idxComma > 0))
+    {
+        boundry = contentType.substring(idxBoundry + 8, idxComma);
+    }
+    else if ((idxBoundry > 0))
+    {
+        boundry = contentType.substring(idxBoundry + 8);
+    }
+
+
+    bool foundBoundry = false;
+
+    bool foundFrom = false;
+    bool foundTo = false;
+
+    int from = 0;
+    int to = 0;
+
+    // Create buffer to read request
+    uint8_t *buffer = new uint8_t[capacity + 1];
+    memset(buffer, 0, capacity + 1);
+
+    // while "not everything read" or "buffer is full"
+    while (!req->requestComplete() && idx < capacity)
+    {
+        size_t startIdx = idx;
+        idx += req->readBytes(buffer + idx, capacity - idx);
+
+        char *p;
+        int k = 1;
+        p = strchr((char *)buffer + startIdx, '\n');
+        while (p != NULL)
         {
-            boundry = contentType.substring(idxBoundry + 8, idxComma);
-        }
-        else if ((idxBoundry > 0))
-        {
-            boundry = contentType.substring(idxBoundry + 8);
-        }
 
+            size_t curIdx = p - (char *)buffer - startIdx + 1;
 
-        bool foundBoundry = false;
+            // printf ("Startindex at position %d\n", startIdx);
+            // printf ("Character i found at position %d\n", curIdx);
+            // printf ("Occurrence of character \"i\" : %d \n",k);
 
-        bool foundFrom = false;
-        bool foundTo = false;
-
-        int from = 0;
-        int to = 0;
-
-        // Create buffer to read request
-        uint8_t *buffer = new uint8_t[capacity + 1];
-        memset(buffer, 0, capacity + 1);
-
-        // while "not everything read" or "buffer is full"
-        while (!req->requestComplete() && idx < capacity)
-        {
-            size_t startIdx = idx;
-            idx += req->readBytes(buffer + idx, capacity - idx);
-
-            char *p;
-            int k = 1;
-            p = strchr((char *)buffer + startIdx, '\n');
-            while (p != NULL)
-            {
-
-                size_t curIdx = p - (char *)buffer - startIdx + 1;
-
-                // printf ("Startindex at position %d\n", startIdx);
-                // printf ("Character i found at position %d\n", curIdx);
-                // printf ("Occurrence of character \"i\" : %d \n",k);
-
-                if (strncmp((char *)buffer + startIdx, "--", 2) == 0) {           
-                    foundBoundry = true;
-                }
-
-                if (strncmp((char *)buffer + startIdx, "\r\n", 2) == 0) {
-          
-                    if (foundFrom == false) {
-                        from = startIdx + curIdx;
-                        foundFrom = true;
-                        foundTo = false;
-                    } else if (foundTo == false) {
-                        to = startIdx + curIdx;
-                        foundTo = true;
-                    }
-                }
-
-                // Serial.write(buffer + startIdx, curIdx);
-                // Serial.write("\0");
-
-                startIdx += curIdx;
-
-                p = strchr(p + 1, '\n');
-                k++;
+            if (strncmp((char *)buffer + startIdx, "--", 2) == 0) {           
+                foundBoundry = true;
             }
-        }
 
-        // If the request is still not read completely, we cannot process it.
-        if (!req->requestComplete()) {
-            res->setStatusCode(413);
-            res->setStatusText("Request entity too large");
-            res->println("413 Request entity too large");
-            // Clean up
-            delete[] buffer;
-            return;
-        }
+            if (strncmp((char *)buffer + startIdx, "\r\n", 2) == 0) {
+        
+                if (foundFrom == false) {
+                    from = startIdx + curIdx;
+                    foundFrom = true;
+                    foundTo = false;
+                } else if (foundTo == false) {
+                    to = startIdx + curIdx;
+                    foundTo = true;
+                }
+            }
 
-        if (to == 0) {
-            to = idx;
+            // Serial.write(buffer + startIdx, curIdx);
+            // Serial.write("\0");
+
+            startIdx += curIdx;
+
+            p = strchr(p + 1, '\n');
+            k++;
         }
+    }
+
+    // If the request is still not read completely, we cannot process it.
+    if (!req->requestComplete()) {
+        res->setStatusCode(413);
+        res->setStatusText("Request entity too large");
+        res->println("413 Request entity too large");
+        // Clean up
+        delete[] buffer;
+        return;
+    }
+
+    if (to == 0) {
+        to = idx;
+    }
 
 #if HAP_DEBUG
-        Serial.write(buffer + from, to - from);
-        Serial.println("");
+    Serial.write(buffer + from, to - from);
+    Serial.println("");
 #endif
 
-        HAPConfigValidationResult result = _config->parse(buffer + from, to - from, false);
-        if (result.valid == false) {
-            res->setStatusCode(400);
-            res->setStatusText("Bad Request");
-            res->setHeader("Content-Type", "application/json");
-            res->println("{ \"Bad Request\": \"" + result.reason + "\"}");
-            // Clean up
-            delete[] buffer;
-            return;
+    HAPConfigValidationResult result = _config->parse(buffer + from, to - from, false);
+    if (result.valid == false) {
+        res->setStatusCode(400);
+        res->setStatusText("Bad Request");
+        res->setHeader("Content-Type", "application/json");
+        res->println("{ \"Bad Request\": \"" + result.reason + "\"}");
+        // Clean up
+        delete[] buffer;
+        return;
+    } else {
+        
+        bool error = _config->save();
+        if (error == false)
+        {
+            LogE("ERROR: Could not save configuration!", true);
+
+            res->setStatusCode(500);
+            res->setStatusText("Internal Server Error");
+            // res->println("Passed but could not save :(");
         } else {
+            LogD("Config saved successfully!", true);
+
+            // res->setStatusCode(201);
+            // res->setStatusText("Created");
+
+            // Call updatecallback
+            _config->update();
+
+            // template processing                    
             
-            bool error = _config->save();
-            if (error == false)
-            {
-                LogE("ERROR: Could not save configuration!", true);
-
-                res->setStatusCode(500);
-                res->setStatusText("Internal Server Error");
-                // res->println("Passed but could not save :(");
-            } else {
-                LogD("Config saved successfully!", true);
-
-                // res->setStatusCode(201);
-                // res->setStatusText("Created");
-
-                // Call updatecallback
-                _config->update();
-
-                // template processing                    
-                
 
 #if HAP_WEBSERVER_USE_SPIFFS        
-                HAPWebServerTemplateProcessor::processAndSend(res, "/index.html", &HAPWebServer::configGetKeyProcessor, 201, "Created", "text/html");
+            HAPWebServerTemplateProcessor::processAndSend(res, "/index.html", &HAPWebServer::configGetKeyProcessor, 201, "Created", "text/html");
 #else
-                HAPWebServerTemplateProcessor::processAndSendEmbedded(res, html_template_index_start, html_template_index_end, &HAPWebServer::configGetKeyProcessor, 201, "Created", "text/html");
+            HAPWebServerTemplateProcessor::processAndSendEmbedded(res, html_template_index_start, html_template_index_end, &HAPWebServer::configGetKeyProcessor, 201, "Created", "text/html");
 #endif                
 
-            }            
-        }
+        }            
+    }
 
-        delete[] buffer;
+    delete[] buffer;
     // } else {
     //     res->setStatusCode(401);
     //     res->setStatusText("Unauthorized");

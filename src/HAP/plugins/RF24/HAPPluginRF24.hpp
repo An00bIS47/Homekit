@@ -62,6 +62,8 @@ private:
 	// HAPPluginRF24Device* _newDevice;
 
 	bool fakeGatoCallback();
+
+	uint8_t _messageCounter;
 };
 
 REGISTER_PLUGIN(HAPPluginRF24)

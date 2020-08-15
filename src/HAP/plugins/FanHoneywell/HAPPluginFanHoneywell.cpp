@@ -17,6 +17,9 @@
 #define VERSION_REVISION    1
 #define VERSION_BUILD       1
 
+#ifndef HAP_PLUGIN_IR_DEVICE_FREQUENCY
+#define HAP_PLUGIN_IR_DEVICE_FREQUENCY 38000
+#endif
 
 #define HAP_PLUGIN_HONEYWELL_DELAY_SEND 	300  // in m
 
@@ -120,7 +123,7 @@ void HAPPluginFanHoneywell::changeActive(uint8_t oldValue, uint8_t newValue) {
     LogD(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Setting Active State " +  " oldValue: " + String(oldValue) + " -> newValue: " + String(newValue), true);    
     
     // _irsend->sendRaw(rawDataOnOff, 23, 38);   
-    HAPPluginIR::getIRSend()->sendRaw(rawDataOnOff, 23, 38);   
+    HAPPluginIR::getIRSend()->sendRaw(rawDataOnOff, 23, HAP_PLUGIN_IR_DEVICE_FREQUENCY);   
 
     _isOn = (bool)newValue;
 
@@ -134,7 +137,7 @@ void HAPPluginFanHoneywell::changeFanState(uint8_t oldValue, uint8_t newValue){
     LogD(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Setting Fan State " +  " oldValue: " + String(oldValue) + " -> newValue: " + String(newValue), true);    
     
     //_irsend->sendRaw(rawDataOnOff, 23, 38);       
-    HAPPluginIR::getIRSend()>sendRaw(rawDataOnOff, 23, 38);   
+    HAPPluginIR::getIRSend()->sendRaw(rawDataOnOff, 23, HAP_PLUGIN_IR_DEVICE_FREQUENCY);   
     
     _fanState = newValue;   
 
@@ -148,7 +151,7 @@ void HAPPluginFanHoneywell::changeSwingMode(uint8_t oldValue, uint8_t newValue){
     LogD(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Setting Swing Mode " +  " oldValue: " + String(oldValue) + " -> newValue: " + String(newValue), true);    
     // _irsend->sendRaw(rawDataOscillation, 23, 38);  
 
-    HAPPluginIR::getIRSend()->sendRaw(rawDataOscillation, 23, 38);  
+    HAPPluginIR::getIRSend()->sendRaw(rawDataOscillation, 23, HAP_PLUGIN_IR_DEVICE_FREQUENCY);  
     _swingMode = (bool)newValue; 
 
     // Add event
@@ -181,7 +184,7 @@ void HAPPluginFanHoneywell::changeRotationSpeed(float oldValue, float newValue){
     LogD(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Press rotation speed button " + String(numberOfPresses) + " times", true);
     for (int i = 0; i < numberOfPresses; i++){
         // _irsend->sendRaw(rawDataSpeed, 23, 38); 
-        HAPPluginIR::getIRSend()->sendRaw(rawDataSpeed, 23, 38); 
+        HAPPluginIR::getIRSend()->sendRaw(rawDataSpeed, 23, HAP_PLUGIN_IR_DEVICE_FREQUENCY); 
 
         if (numberOfPresses > 1) {
             delay(HAP_PLUGIN_HONEYWELL_DELAY_SEND);
@@ -316,9 +319,17 @@ HAPConfigValidationResult HAPPluginFanHoneywell::validateConfig(JsonObject objec
 }
 
 JsonObject HAPPluginFanHoneywell::getConfigImpl(){
-    DynamicJsonDocument doc(128);
+    LogD(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Get config implementation", true);
+
+    DynamicJsonDocument doc(1);
     // doc["gpio"] = _gpio;
 
+#if HAP_DEBUG_CONFIG
+    serializeJson(doc, Serial);
+    Serial.println();
+#endif
+
+    doc.shrinkToFit();
 	return doc.as<JsonObject>();
 }
 

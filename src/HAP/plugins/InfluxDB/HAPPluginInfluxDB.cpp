@@ -295,15 +295,23 @@ HAPConfigValidationResult HAPPluginInfluxDB::validateConfig(JsonObject object){
  *                  enabled and interval is already present 
  *                  add all other config values except "_enabled" and "_interval"
  */
-JsonObject HAPPluginInfluxDB::getConfigImpl(){        
+JsonObject HAPPluginInfluxDB::getConfigImpl(){   
+
+    LogD(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Get config implementation", true);     
     
-    DynamicJsonDocument doc(HAP_ARDUINOJSON_BUFFER_SIZE / 8);
+    DynamicJsonDocument doc(512);
     doc["username"] = _username;
     doc["password"] = _password;
     doc["database"] = _database;
     doc["port"]     = _port;
     doc["hostname"] = _hostname;
 
+#if HAP_DEBUG_CONFIG
+    serializeJson(doc, Serial);
+    Serial.println();
+#endif
+
+    doc.shrinkToFit();
     return doc.as<JsonObject>();
 }
 

@@ -247,8 +247,17 @@ bool HAPHelper::containsNestedKey(const JsonObject obj, const char* key) {
 
 void HAPHelper::mergeJson(JsonDocument& dst, const JsonObject& src) {
     for (auto p : src) {
+
+#if HAP_DEBUG_CONFIG
+	Serial.println("Replacing key: " + String(p.key()) + "with value: " + String(p.value()) );
+#endif
         dst[p.key()] = p.value();
     } 
+
+#if HAP_DEBUG_CONFIG
+    serializeJson(dst, Serial);
+#endif
+
 }
 
 void HAPHelper::getPartionTableInfo()

@@ -37,8 +37,6 @@
 // 		  INT SS  MOS MIS SCK
 //  Sparkfun ESP Thing
 //        17  2   23  19  18
-//  AZDelivery
-//        2   5   23  19  18
 //  ESP32 Thing Plus / Huzzah32 
 // 		  A1  A5  18  19  5			=> 		A5 == GPIO 4
 // 									=>		A1 == GPIO 25
@@ -62,26 +60,8 @@
 // 
 
 #define RFM69_IS_HW                 false
-#define PCA301_FREQ_CARRIER_KHZ     868950
+#define PCA301_FREQ_CARRIER_KHZ     868950 
 #define PCA301_BITRATE_BS           6631	
-
-
-//  AZDelivery																					Sparkfun
-//        2   5   23  19  18									         AZDeliviery	|  Thing 	| Thing+ / Huzzah32															
-// #define PCA301_PIN_SPI_CLK       18		// SPI CLOCK PIN				(18)			(18)			(5)
-// #define PCA301_PIN_SPI_MISO      19		// SPI MISO PIN					(19)			(19)			(19)
-// #define PCA301_PIN_SPI_MOSI      23		// SPI MOSI PIN					(23)			(23)			(18)
-// #define PCA301_PIN_SPI_SS        2		// sPI Slave seclect PIN		(5)				(2)				(4)
-// #define PCA301_PIN_INT           17		// Interrupt PIN 				(2)				(17)			(24)
-
-//  Sparkfun ESP32 Thing
-//        17  2   23  19  18
-// #define PCA301_PIN_SPI_CLK       18		// SPI CLOCK PIN				(18)			(18)			(5)
-// #define PCA301_PIN_SPI_MISO      19		// SPI MISO PIN					(19)			(19)			(19)
-// #define PCA301_PIN_SPI_MOSI      23		// SPI MOSI PIN					(23)			(23)			(18)
-// #define PCA301_PIN_SPI_SS        2		// sPI Slave seclect PIN		(5)				(2)				(4)
-// #define PCA301_PIN_INT           17		// Interrupt PIN 				(2)				(17)			(24)
-
 
 //  Sparkfun ESP32 Thing Plus / Huzzah32 
 // 		  A1  A5  18  19  5			=> 		A5 == GPIO 4

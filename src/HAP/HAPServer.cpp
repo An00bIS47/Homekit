@@ -147,7 +147,7 @@ bool HAPServer::begin(bool resume) {
 		// 
 		LogV("Loading configuration ...", false);	
 		auto callback = std::bind(&HAPServer::updateConfig, this);
-		_config.registerCallback(callback);
+		_config.registerCallbackUpdate(callback);
 		_config.begin();
 
 		bool res = _config.load();
@@ -536,8 +536,9 @@ bool HAPServer::begin(bool resume) {
 					}
 				}
 
+				// ToDo: Check if required here!
 				// initial handle for HAP values
-				plugin->handle(true);  
+				// plugin->handle(true);  
 
 				if (_minimalPluginInterval == HAP_MINIMAL_PLUGIN_INTERVAL && _minimalPluginInterval < plugin->interval() ) {
 					_minimalPluginInterval = plugin->interval();	
@@ -548,7 +549,7 @@ bool HAPServer::begin(bool resume) {
 				_plugins.push_back(std::move(plugin));
 
 			} else {
-				LogW("   - DISABLED " + plugin->name(), false);
+				LogW("   - DISABLED cause plugin could not be started" + plugin->name(), false);
 				LogD(" (v" + String(plugin->version()) + ")", false);	
 				LogD(" of type: " + String(plugin->type()), false);
 				LogW("", true);
@@ -1412,7 +1413,10 @@ void HAPServer::processIncomingRequest(HAPClient* hapClient){
 					
 					// pair-setup M1
 					if ( (hapClient->request.path == "/pair-setup" ) && (hapClient->pairState == HAP_PAIR_STATE_M1) ) {
-						
+
+
+#if HAP_ALLOW_PAIRING_WHILE_PAIRED == 0
+
 						if (_accessorySet->isPaired() == true) {
 							// accessory is already paired
 							LogE( "ERROR: Accessory is already paired!", true);						
@@ -1427,6 +1431,7 @@ void HAPServer::processIncomingRequest(HAPClient* hapClient){
 							sendErrorTLV(hapClient, HAP_PAIR_STATE_M2, HAP_ERROR_MAX_TRIES);
 							return;								
 						} else {
+#endif							
 							if (!handlePairSetupM1( hapClient ) ) {
 								LogE( "ERROR: Pair-setup failed at M1!", true);
 								
@@ -1435,8 +1440,11 @@ void HAPServer::processIncomingRequest(HAPClient* hapClient){
 								stopEvents(false);
 
 								hapClient->state = HAP_CLIENT_STATE_DISCONNECTED;
+							
 							}
+#if HAP_ALLOW_PAIRING_WHILE_PAIRED == 0							
 						}
+#endif							
 					}
 
 					// pair-setup M3
@@ -4043,6 +4051,7 @@ void HAPServer::updateConfig(){
 	
 	HAPLogger::setLogLevel(_config.config()["homekit"]["loglevel"].as<uint8_t>());    
 
+	// ToDo: Update plugins and reinit
 	// for (auto& plugin : _plugins) {						
     // 	plugin->setConfig(_config.config()["plugins"][plugin->name()]);
 	// } 
@@ -4052,26 +4061,36 @@ void HAPServer::updateConfig(){
 
 void HAPServer::handleEventUpdatedConfig(int eventCode, struct HAPEvent eventParam){
 
+	// ToDo: find error
 	LogI("Handle update config event", true);
-	const size_t capacity = HAP_ARDUINOJSON_BUFFER_SIZE / 8;
-    DynamicJsonDocument doc(capacity);
-	
+	const size_t capacity = HAP_ARDUINOJSON_BUFFER_SIZE;
+    DynamicJsonDocument doc(capacity);	
+
+#if HAP_DEBUG_CONFIG
+	Serial.println("before merging:");
+	_config.prettyPrintTo(Serial);	
+#endif
+
+	HAPHelper::mergeJson(doc, _config.config());
+	doc.remove("plugins");
+
 	JsonObject plugins = doc.createNestedObject("plugins");
 
-  	for (auto & plugin : _plugins) {
-			
-		if (plugin->isEnabled()) {			
+  	for (auto & plugin : _plugins) {			
+		//if (plugin->isEnabled()) {			
         	plugins[plugin->name()] = plugin->getConfig();				
-		}			
+		//}			
 	} 
 
-	_config.mergeConfig(doc.as<JsonObject>());
-	
-#if HAP_DEBUG	
-	_config.prettyPrintTo(Serial);
+	_config.setConfig(doc);
+
+#if HAP_DEBUG_CONFIG
+	Serial.println("after merging:");
+	_config.prettyPrintTo(Serial);	
 #endif
 
 	_config.save();
+	
 	updateConfig();	
 }
 

@@ -235,11 +235,11 @@ void HAPPluginRF24DeviceWeather::changeBatteryStatus(float oldValue, float newVa
 }
 
 void HAPPluginRF24DeviceWeather::changeLastUpdate(String oldValue, String newValue){
-    Serial.printf("[RF24:%d] New LastUpdate: %s\n", id, newValue.c_str());
+    Serial.printf("[RF24:%X] New LastUpdate: %s\n", id, newValue.c_str());
 }
 
 void HAPPluginRF24DeviceWeather::changeMeasureMode(uint8_t oldValue, uint8_t newValue){
-    Serial.printf("[RF24:%d] New Measure Mode: %d\n", id, newValue);
+    Serial.printf("[RF24:%X] New Measure Mode: %d\n", id, newValue);
 
     if (oldValue != newValue){
         NewSettingsPacket newSettings;
@@ -261,13 +261,14 @@ void HAPPluginRF24DeviceWeather::changeMeasureMode(uint8_t oldValue, uint8_t new
 #endif
 
         _callbackSendSettings(newSettings);
-		        
-        _eventManager->queueEvent( EventManager::kEventUpdatedConfig, HAPEvent());            	
+		
+        // ToDo: Check if required
+        // _eventManager->queueEvent( EventManager::kEventUpdatedConfig, HAPEvent());            	
     }
 }
 
 void HAPPluginRF24DeviceWeather::changeHeartbeat(uint8_t oldValue, uint8_t newValue){
-    Serial.printf("[RF24:%d] New Heartbeat: %d\n", id, newValue);
+    Serial.printf("[RF24:%X] New Heartbeat: %d\n", id, newValue);
 
     if (oldValue != newValue){
         NewSettingsPacket newSettings;
@@ -289,8 +290,9 @@ void HAPPluginRF24DeviceWeather::changeHeartbeat(uint8_t oldValue, uint8_t newVa
 #endif
 
         _callbackSendSettings(newSettings);
-		        
-        _eventManager->queueEvent( EventManager::kEventUpdatedConfig, HAPEvent());            	
+
+        // ToDo: Check if required
+        // _eventManager->queueEvent( EventManager::kEventUpdatedConfig, HAPEvent());            	
     }
 
 }
@@ -313,7 +315,8 @@ bool HAPPluginRF24DeviceWeather::fakeGatoCallback(){
 
 void HAPPluginRF24DeviceWeather::setValuesFromPayload(struct RadioPacket payload){
 
-	LogD("Setting values for remote weather device ...", false);
+    LogD(HAPServer::timeString() + " Setting values for remote weather device ...", false);
+	
 	_humidityValue->setValue(String(payload.humidity / 100.0));
 	_temperatureValue->setValue(String(payload.temperature / 100.0));
 	_pressureValue->setValue(String(payload.pressure / 100.0));
@@ -361,6 +364,9 @@ void HAPPluginRF24DeviceWeather::setValuesFromPayload(struct RadioPacket payload
 }
 
 void HAPPluginRF24DeviceWeather::setSettingsFromPayload(struct RemoteDeviceSettings settings){
+
+    LogD(HAPServer::timeString() + " Setting config for remote weather device ...", false);
+
     measureMode 	= (enum MeasureMode) settings.measureMode;
     sleepInterval 	= settings.sleepInterval;
     
@@ -368,4 +374,6 @@ void HAPPluginRF24DeviceWeather::setSettingsFromPayload(struct RemoteDeviceSetti
 
 	_measureMode->setValue(String((uint8_t) measureMode ));	
     _heartbeat->setValue(String(sleepInterval));	
+
+    LogD(" OK", true);
 }

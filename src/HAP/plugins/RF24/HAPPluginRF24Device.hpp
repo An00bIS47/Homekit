@@ -40,7 +40,7 @@ struct __attribute__((__packed__)) RemoteDeviceSettings
 
 
 struct __attribute__((__packed__)) RadioPacket {
-    uint16_t     radioId;
+    uint16_t    radioId;
     uint8_t     type;
     
     int32_t     temperature;    // temperature

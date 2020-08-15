@@ -18,7 +18,7 @@
 
 
 
-#if HAP_PLUGIN_MIFLORA_ENABLE_SCANNER
+#if HAP_PLUGIN_MIFLORA_ENABLE_SCANNER 
 
 #ifndef HAP_PLUGIN_MIFLORA_SCAN_INTERVAL
 #define HAP_PLUGIN_MIFLORA_SCAN_INTERVAL    300000
@@ -30,8 +30,6 @@
 
 #include "HAPPluginNimbleMiFloraScanner.hpp"
 #endif
-
-
 
 
 std::vector<BLEAddress> HAPPluginNimbleMiFlora::_supportedDevices;
@@ -84,10 +82,16 @@ void HAPPluginNimbleMiFlora::handleImpl(bool forced){
 
 		HAPPluginNimbleMiFloraScanner floraScanner;
 		if (floraScanner.scan()) {
-
+            
+            LogV("Found the following devices: ", true);
 			for (int i = 0; i < floraScanner.getDeviceCount(); i++){
-				if (!containsDevice(floraScanner.getDeviceAddress(i))){
-					LogD(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Found device [" + String(floraScanner.getDeviceAddress(i).c_str()) + "]: Add to supported list", true);
+                LogV("   - " + String(i) + ": " + String(floraScanner.getDeviceAddress(i).c_str()), true);
+
+				if (!containsDevice(floraScanner.getDeviceAddress(i))){                                        
+
+					LogD(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Found new device [" + String(floraScanner.getDeviceAddress(i).c_str()) + "]: Add to supported list", true);
+
+                    // Commit 353e5a6 breaks this, BLEAddress can not be retrieved afterwards :(
 					_supportedDevices.push_back(BLEAddress(floraScanner.getDeviceAddress(i)));
 				}
 			}
@@ -150,10 +154,19 @@ HAPConfigValidationResult HAPPluginNimbleMiFlora::validateConfig(JsonObject obje
 }
 
 JsonObject HAPPluginNimbleMiFlora::getConfigImpl(){
+    LogD(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Get config implementation", true);
+
     DynamicJsonDocument doc(128);
 #if HAP_PLUGIN_MIFLORA_ENABLE_HISTORY 
 	doc["intervalScan"] = _intervalScan;
 #endif
+
+#if HAP_DEBUG_CONFIG
+    serializeJson(doc, Serial);
+    Serial.println();
+#endif
+
+    doc.shrinkToFit();
 	return doc.as<JsonObject>();
 }
 
@@ -175,11 +188,21 @@ void HAPPluginNimbleMiFlora::setConfigImpl(JsonObject root){
 void HAPPluginNimbleMiFlora::processDevices(){
 	// check if battery status should be read - based on boot count
     // process devices    
+
+#if 0
+    LogV("Supported devices list: ", true);
+#endif
+
     for (int i = 0; i < _supportedDevices.size(); i++) {
 
         HAPPluginNimbleMiFloraDevice* newDevice = nullptr;        
         BLEAddress deviceAddress = _supportedDevices[i];
-    
+
+#if 0        
+        LogV("   - " + String(i) + ": " + String(_supportedDevices[i].toString().c_str()), true);
+#endif
+
+
         if (!containsDevice(deviceAddress.toString())){
             // not in devices list -> initialize and add to accessorySet
             LogI(HAPServer::timeString() + " " + "MiFlora" + "->" + String(__FUNCTION__) + " [   ] " + "Add MiFlora device to devices list [" + String(deviceAddress.toString().c_str()) + "]", true);

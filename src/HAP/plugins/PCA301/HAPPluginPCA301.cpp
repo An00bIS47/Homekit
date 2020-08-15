@@ -91,7 +91,7 @@ HAPPluginPCA301::HAPPluginPCA301(){
     numDev      = 0;
     pollIntv    = HAP_PCA301_POLL_INTERVAL;
     deadIntv    = HAP_PCA301_DEAD_INTERVAL;
-    quiet       = 1;
+    quiet       = HAP_PCA301_QUIET;
     crc         = 0;
 
     rfm69_crc           = 0;
@@ -148,7 +148,7 @@ void HAPPluginPCA301::handleImpl(bool forced){
 
     if (updated){
 
-#if HAP_DEBUG
+#if HAP_DEBUG_PCA301
         LogD("<<< RX: ", false);
         for (int i = 0; i < PCA301_PACKET_LENGTH; i++){
             LogD(rfm69_buf[i], false);
@@ -185,7 +185,7 @@ void HAPPluginPCA301::handleImpl(bool forced){
                 float totalConsumption = consumption * 0.01;
                 float ampere = currentPower / 230;
 
-#if HAP_DEBUG
+#if HAP_DEBUG_PCA301
                 Serial.printf("currentPower:     %.4f\n", currentPower);
                 Serial.printf("totalConsumption: %.4f\n", totalConsumption);
                 Serial.printf("ampere:           %.4f\n", ampere);
@@ -398,9 +398,9 @@ HAPConfigValidationResult HAPPluginPCA301::validateConfig(JsonObject object){
 
 JsonObject HAPPluginPCA301::getConfigImpl(){  
 
-    LogD(String(__PRETTY_FUNCTION__), true);          
+    LogD(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Get config implementation", true);       
 
-    DynamicJsonDocument doc(HAP_ARDUINOJSON_BUFFER_SIZE / 8);
+    DynamicJsonDocument doc(2048);
     doc["pollInterval"] = pollIntv;
     doc["deadInterval"] = deadIntv;
     doc["centerFrequency"] = rfm69_center_freq;
@@ -415,6 +415,12 @@ JsonObject HAPPluginPCA301::getConfigImpl(){
         devices_["state"]   = dev->pState;
     }
 
+#if HAP_DEBUG_CONFIG
+    serializeJson(doc, Serial);
+    Serial.println();
+#endif
+
+    doc.shrinkToFit();
     return doc.as<JsonObject>();
 }
 
@@ -437,14 +443,14 @@ void HAPPluginPCA301::setConfigImpl(JsonObject root){
         rfm69_center_freq = root["centerFrequency"].as<uint32_t>();
     }
 
-#if HAP_DEBUG    
+#if HAP_DEBUG_PCA301    
     int count = 0;
 
 #endif
     if (root.containsKey("devices")){        
         for (JsonVariant dev : root["devices"].as<JsonArray>()) {
 
-#if HAP_DEBUG            
+#if HAP_DEBUG_PCA301            
             LogD(" -- device " + String(count) + ": devId "     + dev["id"].as<String>()        , true);            
             LogD(" -- device " + String(count) + ": name "      + dev["name"].as<String>()      , true);                        
             LogD(" -- device " + String(count) + ": channel "   + dev["channel"].as<String>()   , true);                    
@@ -858,7 +864,7 @@ void HAPPluginPCA301::handleInput (char c) {
                 break;
 
             case 'q':     // turn quiet mode on or off (don't report TX and bad packets)
-                Serial.print("Toggle quit mode");
+                Serial.print("Toggle quite mode");
                 if (value == 1) {
                     Serial.println(" ON");
                 } else {
@@ -985,7 +991,7 @@ uint16_t HAPPluginPCA301::hexToUInt16(String hexString) {
 void HAPPluginPCA301::pca301serial_setup() {
 
     // available cli options
-#if HAP_DEBUG    
+#if HAP_DEBUG_PCA301    
     showHelp();
 #endif
     // try loading config from EEPROM. if CRC does not match, use blank default config
@@ -1187,11 +1193,13 @@ void HAPPluginPCA301::saveConf() {
     // }
     // pcaConf.crc = eeprom_crc;
 
-#if HAP_DEBUG
+#if HAP_DEBUG_PCA301
     // serializeJsonPretty(getConfigImpl(), Serial);	
+
+#endif    
+
     struct HAPEvent event = HAPEvent();												
 	_eventManager->queueEvent( EventManager::kEventUpdatedConfig, event);
-#endif    
 
 //   eeprom_write_block(&pcaConf, (void *) 0, len);
 }
@@ -1213,7 +1221,7 @@ void HAPPluginPCA301::fillConf() {
 //     pcaConf.pollIntv   = HAP_PCA301_POLL_INTERVAL;        // default poll interval in 1/10th seconds
 //     pcaConf.deadIntv   = 3000;                            // dead device poll retry interval in 1/10th seconds
 
-// #if HAP_DEBUG    
+// #if HAP_DEBUG_PCA301    
 //     pcaConf.quiet      = 0;                               // quiet, 1=suppress TX and bad packets
 // #else
 //     pcaConf.quiet      = 1;                               // quiet, 1=suppress TX and bad packets
