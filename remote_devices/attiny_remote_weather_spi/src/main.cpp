@@ -351,7 +351,8 @@ void loop() {
         radioData.pressure      = _bme280.readFixedPressure();
         radioData.humidity      = _bme280.readFixedHumidity();
         
-
+        _bme280.setMode(tiny::Mode::SLEEP);
+        
 #ifdef USE_BATTERY_CHECK_INTERVAL
         batteryCheckCounter++;
 

@@ -52,6 +52,15 @@
 //   so you must use external ones. That said, for maximum reliability, you should always use external pullups,
 //   even on the t48/88, as the internal pullups are not as strong as the specification requires.
 // 
+// 
+//  Pinout ATTINY85
+//                   +-\/-+
+//  BME280 CS   PB5  1|    |8  Vcc
+//  RF24 CE     PB3  2|    |7  PB2  SCK
+//  RF24 CSN    PB4  3|    |6  PB1  MISO
+//              GND  4|    |5  PB0  MOSI
+//                    +----+
+// 
 
 #include <Arduino.h>
 #include <SPI.h>
@@ -63,12 +72,11 @@
 
 #include "RF24.h"
 
-const char FIRMWARE_VERSION[6] = "1.0.8";
+const char FIRMWARE_VERSION[6] = "1.0.9";
 
 // #define DEBUG       
-#define EEPROM_SETTINGS_VERSION 2
+#define EEPROM_SETTINGS_VERSION 1
 #define WATCHDOG_WAKEUPS_TARGET 1                
-
 
 #ifndef DEVICE_ID
 #define DEVICE_ID               0x12
@@ -94,7 +102,7 @@ const char FIRMWARE_VERSION[6] = "1.0.8";
 #endif
 
 #ifndef RF24_PA_LEVEL
-    #define RF24_PA_LEVEL       RF24_PA_MIN
+    #define RF24_PA_LEVEL       RF24_PA_HIGH
 #endif
 
 #ifndef RF24_DATA_RATE
@@ -110,8 +118,35 @@ const char FIRMWARE_VERSION[6] = "1.0.8";
 // 
 // Pins
 // 
+
+#ifdef ATTINY
+
+// 
+// BME280
+// 
+#ifdef ATTINY_USE_BME280
+#define TINY_BME280_SPI
+#include <TinyBME280.h>
+#define BME280_CS_PIN   PIN_B5  // PB5 = RESET
+#endif
+
+#define WDTCSR WDTCR
+
+
+
+#define RF24_CE_PIN     PIN_B3  // PB3
+#define RF24_CSN_PIN    PIN_B4  // NOPE -> Since we are using 3 pin configuration we will use same pin for both CE and CSN
+
+#else
+
+#ifndef UNO
+#define UNO
+#endif
+
 #define RF24_CE_PIN     9  
 #define RF24_CSN_PIN    10  
+
+#endif
 
 
 // 
@@ -225,7 +260,11 @@ RF24            _radio(RF24_CE_PIN, RF24_CSN_PIN);
 uint8_t         address[RF24_ADDRESS_SIZE] = RF24_ADDRESS;
 EepromSettings  _settings;
 
-
+#ifdef ATTINY
+#ifdef ATTINY_USE_BME280
+tiny::BME280    _bme280;
+#endif
+#endif
 
 // *****************************************************************************************************************************
 // 
@@ -247,9 +286,12 @@ uint16_t readVcc()
 
     adc_disable();  // disable ADC
 
-    // return vcc;
-    
+#ifdef ATTINY
+    return vcc;
+#else    
     return 3440;
+#endif    
+
 }
 
 
@@ -261,9 +303,10 @@ uint16_t readVcc()
     
 void setup() {
 
+#ifdef UNO
     Serial.begin(9600);
     Serial.println("Starting NRF24 Test...");
-
+#endif
     // Disable Analog Digital converter
     adc_disable();  // disable ADC
 
@@ -290,26 +333,33 @@ void setup() {
         saveSettings();
     }
 
+#ifdef ATTINY
+
+#ifdef ATTINY_USE_BME280
     // set slave select pins BME280 as outputs
-    // pinMode(BME280_CS_PIN, OUTPUT);
+    pinMode(BME280_CS_PIN, OUTPUT);
   
     // set BME280_CS_PIN 
-    // digitalWrite(BME280_CS_PIN, HIGH);
+    digitalWrite(BME280_CS_PIN, HIGH);
 
 
     // init BME280
-    // _bme280.beginSPI(BME280_CS_PIN); // Start using SPI and CS Pin 10
+    _bme280.beginSPI(BME280_CS_PIN); // Start using SPI and CS Pin 10
 
-    // _bme280.setTempOverSample(1);
-    // _bme280.setPressureOverSample(1);
-    // _bme280.setHumidityOverSample(1);
+    _bme280.setTempOverSample(1);
+    _bme280.setPressureOverSample(1);
+    _bme280.setHumidityOverSample(1);
 
-    // _bme280.setMode(tiny::Mode::SLEEP);
+    _bme280.setMode(tiny::Mode::SLEEP);
     
-    // _bme280.setFilter(0);
+    _bme280.setFilter(0);
+#endif
+#endif
 
-
+#ifdef UNO
     pinMode(LED_BUILTIN, OUTPUT);
+#endif
+
 
     setupWatchDogTimer(); // approximately 8 seconds sleep
 }
@@ -331,16 +381,23 @@ void loop() {
         
         radioData.type = RemoteDeviceTypeWeather;
         radioData.radioId = _settings.radioId;
-                
-        // _bme280.setMode(tiny::Mode::FORCED); //Wake up sensor and take reading
 
-        // radioData.temperature   = _bme280.readFixedTempC();
-        // radioData.pressure      = _bme280.readFixedPressure();
-        // radioData.humidity      = _bme280.readFixedHumidity();
-        
+
+
+#ifdef ATTINY_USE_BME280
+     
+        _bme280.setMode(tiny::Mode::FORCED); //Wake up sensor and take reading
+
+        radioData.temperature   = _bme280.readFixedTempC();
+        radioData.pressure      = _bme280.readFixedPressure();
+        radioData.humidity      = _bme280.readFixedHumidity();
+
+        _bme280.setMode(tiny::Mode::SLEEP);
+#else   
         radioData.temperature   = 1100;
         radioData.pressure      = 12000;
         radioData.humidity      = 1300;
+#endif
 
 #ifdef USE_BATTERY_CHECK_INTERVAL
         batteryCheckCounter++;
@@ -359,49 +416,72 @@ void loop() {
         // _radio.powerUp();
         // delay(5);
 
+#ifdef UNO
         Serial.print("Setup Radio ...");
+#endif
+
         // Re-initialize the radio.               
         if (setupRadio()){
+
+#ifdef UNO            
             Serial.println("OK");
-
             Serial.print("Send values ...");
+#endif            
             if (!_radio.write( &radioData, sizeof(RadioPacket) ) ) { //Send data to 'Receiver' every x seconds                        
+#ifdef UNO          
                 Serial.println("FAILED");
+#endif                
             } else {
-                
+#ifdef UNO                
                 Serial.println("OK");                
-
+#endif
                 if ( _radio.isAckPayloadAvailable() ) {
-
+#ifdef UNO
                     Serial.print("Acknowledgement available for radio Id: ");
-
+#endif
                     NewSettingsPacket newSettingsData;
                     _radio.read(&newSettingsData, sizeof(NewSettingsPacket));
-                    Serial.println(newSettingsData.forRadioId, HEX);
 
+#ifdef UNO                    
+                    Serial.println(newSettingsData.forRadioId, HEX);
+#endif
                     if (newSettingsData.forRadioId == _settings.radioId) {
 
+#ifdef UNO
                         Serial.print("Process settings ...");
-
+#endif
                         processSettingsChange(newSettingsData);        
+#ifdef UNO                        
                         Serial.println("OK");
-
+#endif
+#ifdef UNO
                         // Send new updated settings
                         Serial.print("Send updated settings ...");
+#endif
                         if (!_radio.write( &_settings, sizeof(EepromSettings) ) ) { //Send data to 'Receiver' every x seconds                                
+#ifdef UNO                        
                             Serial.println("FAILED");
-                        } else {
+#endif                            
+                        } 
+#ifdef UNO                        
+                        else {
                             Serial.println("OK");
                         }
+#endif                        
                     }           
-                } else {
+                } 
+#ifdef UNO
+                else {
                     Serial.println("No ack available");
                 }
+#endif                
             }
-        } else {
+        } 
+#ifdef UNO        
+        else {
             Serial.println("FAILED");
         }                         
-    
+#endif    
         _radio.powerDown();                  // Put the radio into a low power state.        
         
         // Put the SPI pins to low for energy saving
@@ -410,21 +490,23 @@ void loop() {
         counterWD = 0;
     }
 
+#ifdef UNO   
 	// Toggle the LED on
 	digitalWrite(LED_BUILTIN, 1);
 	// wait
 	delay(20);
 	// Toggle the LED off
 	digitalWrite(LED_BUILTIN, 0);
-
+#endif
 
     // deep sleep    
     enterSleep();
 
+#ifdef UNO
     Serial.print("CounterWD: ");
     Serial.println(counterWD);
     // delay(1000 * 8);
-    
+#endif    
         
 }
 
@@ -560,18 +642,22 @@ void processSettingsChange(NewSettingsPacket newSettings) {
         _settings.measureMode = newSettings.newMeasureMode;
       
         if (_settings.measureMode == MeasureModeWeatherStation){
-            // _bme280.setTempOverSample(1);
-            // _bme280.setPressureOverSample(1);
-            // _bme280.setHumidityOverSample(1);
-            // _bme280.setMode(tiny::Mode::SLEEP);
-            // _bme280.setFilter(0);
+#ifdef ATTINY_USE_BME280         
+            _bme280.setTempOverSample(1);
+            _bme280.setPressureOverSample(1);
+            _bme280.setHumidityOverSample(1);
+            _bme280.setMode(tiny::Mode::SLEEP);
+            _bme280.setFilter(0);
+#endif            
         } else if (_settings.measureMode == MeasureModeIndoor){
-            // _bme280.setTempOverSample(2);
-            // _bme280.setPressureOverSample(16);
-            // _bme280.setHumidityOverSample(1);
-            // _bme280.setMode(tiny::Mode::NORMAL);
-            // _bme280.setFilter(16);
-            // _bme280.setStandbyTime(0);
+#ifdef ATTINY_USE_BME280          
+            _bme280.setTempOverSample(2);
+            _bme280.setPressureOverSample(16);
+            _bme280.setHumidityOverSample(1);
+            _bme280.setMode(tiny::Mode::NORMAL);
+            _bme280.setFilter(16);
+            _bme280.setStandbyTime(0);
+#endif            
         }
 
         

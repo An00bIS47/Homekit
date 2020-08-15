@@ -28,6 +28,8 @@ HAPFakeGatoWeather::HAPFakeGatoWeather(){
     _idxWrite       = 0;            // gets incremented when pushed
 	_transfer       = false;
     _rolledOver     = false;    
+
+    _periodicUpdates = true;
 }
 
 HAPFakeGatoWeather::~HAPFakeGatoWeather(){

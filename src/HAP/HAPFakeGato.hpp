@@ -233,7 +233,7 @@ protected:
 
     uint32_t                _requestedEntry;
 
-
+    bool                    _periodicUpdates;
     uint32_t*               _ptrTimestampLastEntry;
 
     uint32_t     		    _previousMillis;

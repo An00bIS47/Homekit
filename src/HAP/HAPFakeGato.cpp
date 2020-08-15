@@ -35,6 +35,7 @@ HAPFakeGato::HAPFakeGato() {
 
     _ptrTimestampLastEntry = nullptr;
 
+    _periodicUpdates = false;
 
     _transfer = false;
     _interval = 0; 
@@ -92,18 +93,18 @@ void HAPFakeGato::handle(bool forced){
     if ( shouldHandle() || forced ){       
         // This line could cause a crash 
         // LogD(HAPServer::timeString() + " " + String(__CLASS_NAME__) + "->" + String(__FUNCTION__) + " [   ] " + "Handle fakegato ", true);         
-        if (_callbackAddEntry != NULL){
-            bool overwritten = !_callbackAddEntry();  
+        
+        if (_periodicUpdates) {
+            if (_callbackAddEntry != NULL){
+                bool overwritten = !_callbackAddEntry();  
 
-            // ToDo: Persist history ??
-            if (overwritten) {
-                // LogV("A fakegato history entry was overwritten!", true);
-            }                      
-        }                                            
-    }
-    // ToDo: Needed ?
-    if (_transfer == true){
-
+                // ToDo: Persist history ??
+                if (overwritten) {
+                    // LogV("A fakegato history entry was overwritten!", true);
+                }                      
+            }   
+        }
+                                         
     }
 }
 
