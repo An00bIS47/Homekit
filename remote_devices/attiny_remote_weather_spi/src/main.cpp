@@ -389,13 +389,7 @@ void loop() {
         _radio.powerDown();                  // Put the radio into a low power state.        
         
         // Put the SPI pins to low for energy saving
-        // SPI.end();
-        
-
-#ifdef DEBUG
-        delay(1000);
-#endif        
-
+        // SPI.end();    
         counterWD = 0;
     }
 

@@ -14,7 +14,7 @@
 
 #define VERSION_MAJOR       0
 #define VERSION_MINOR       3
-#define VERSION_REVISION    1
+#define VERSION_REVISION    2
 #define VERSION_BUILD       0
 
 #define HAP_PLUGIN_RF24_INTERVAL    250
@@ -26,6 +26,10 @@
 
 #define HAP_PLUGIN_RF24_PA_LEVEL       RF24_PA_MAX
 #define HAP_PLUGIN_RF24_DATA_RATE      RF24_1MBPS
+
+#define HAP_PLUGIN_UPDATE_SETTINGS_MESSAGE_COUNT    0   // request settings every x messages; 
+                                                        // Setting to 0 disables this; 
+                                                        // default 0
 
 // http://www.iotsharing.com/2018/03/esp-and-raspberry-connect-with-nrf24l01.html
 // modified Lib: https://github.com/nhatuan84/RF24.git
@@ -73,6 +77,9 @@ HAPPluginRF24::HAPPluginRF24(){
     
     _isInitialized = false;
     _radio = nullptr;
+
+
+    _messageCounter = 0;
 }
 
 HAPPluginRF24::~HAPPluginRF24(){
@@ -96,7 +103,9 @@ bool HAPPluginRF24::begin() {
                                                                 // depending on the distance between the 
                                                                 // transmitter and receiver.
         _radio->setDataRate(HAP_PLUGIN_RF24_DATA_RATE);                                                    
-        // _radio->setAutoAck(1);                      // Ensure autoACK is enabled
+        // _radio->setAutoAck(1);    
+        
+        _radio->enableDynamicPayloads();
         _radio->enableAckPayload();                 // Enable Ack Payload
         _radio->setRetries(5, 15);                  // delay, count
                                                     // 5 gives a 1500 µsec delay which is needed for a 32 byte ackPayload
@@ -147,6 +156,7 @@ void HAPPluginRF24::handleImpl(bool forced){
     
     if (_radio->available()){
         
+        _messageCounter++;
         bool newDeviceAdded = false;
 
         while(_radio->available()){            
@@ -208,7 +218,7 @@ void HAPPluginRF24::handleImpl(bool forced){
                         
 
                         LogD("Preload ack data for next transmission", true);
-                        _radio->writeAckPayload(newSettings.forRadioId, &newSettings, sizeof(NewSettingsPacket)); // pre-load data                            
+                        _radio->writeAckPayload(1, &newSettings, sizeof(NewSettingsPacket)); // pre-load data                            
                         newDeviceAdded = true;
 
                         newDevice->setEventManager(_eventManager);
@@ -223,8 +233,8 @@ void HAPPluginRF24::handleImpl(bool forced){
                         
                         _devices.push_back(newDevice);
                         
-                                                                    
-                        _eventManager->queueEvent( EventManager::kEventUpdatedConfig, HAPEvent(), EventManager::kLowPriority);        
+                        // ToDo: Check if neccessay here because all infos are stored by the remote device                                 
+                        // _eventManager->queueEvent( EventManager::kEventUpdatedConfig, HAPEvent(), EventManager::kLowPriority);        
                         
 
                         // index = indexOfDevice(payload.id);    
@@ -258,14 +268,12 @@ void HAPPluginRF24::handleImpl(bool forced){
                         auto callbackSendSettings = std::bind(&HAPPluginRF24::updateSettings, this, std::placeholders::_1);        
                         newDevice->setSendSettingsCallback(callbackSendSettings);
 
-
                         _accessorySet->addAccessory(newDevice->initAccessory());
                         
                         _devices.push_back(newDevice);
-                                                                    
-                        _eventManager->queueEvent( EventManager::kEventUpdatedConfig, HAPEvent(), EventManager::kLowPriority);        
-                        
 
+                        // ToDo: Check if neccessay here because all infos are stored by the remote device                   
+                        // _eventManager->queueEvent( EventManager::kEventUpdatedConfig, HAPEvent(), EventManager::kLowPriority);                                
                         
                         index = _devices.size() - 1;
                         LogI(" OK", true);          
@@ -295,6 +303,25 @@ void HAPPluginRF24::handleImpl(bool forced){
             if (newDeviceAdded) {                
                 _awaitSettingsConfirmation = true;
             } 
+
+
+            if (HAP_PLUGIN_UPDATE_SETTINGS_MESSAGE_COUNT > 0){
+                if (_messageCounter == HAP_PLUGIN_UPDATE_SETTINGS_MESSAGE_COUNT){
+                    
+                    _messageCounter = 0;
+                    LogD("Pre-Load settings config every 5 messages", true);  
+
+                    NewSettingsPacket newSettings;
+                    newSettings.forRadioId = payload.radioId;
+                    newSettings.changeType = ChangeTypeNone;
+                    newSettings.newRadioId = 0;
+                    newSettings.newSleepInterval = 0;
+                    newSettings.newMeasureMode = 0;
+
+                    updateSettings(newSettings);
+                }
+            }
+
         }
     }
 }	
@@ -460,25 +487,26 @@ HAPConfigValidationResult HAPPluginRF24::validateConfig(JsonObject object){
 JsonObject HAPPluginRF24::getConfigImpl(){
 
     LogD(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Get config implementation", true);
-    
-    DynamicJsonDocument doc(2048);
-    JsonArray devices = doc.createNestedArray("devices");
+    DynamicJsonDocument doc(1);    
 
-    for (auto& dev : _devices){
-        JsonObject devices_ = devices.createNestedObject();
-        devices_["id"]              = dev->id;        
-        devices_["name"]            = dev->name;
-        devices_["type"]            = dev->type;
-        devices_["measureMode"]     = (uint8_t)dev->measureMode;
-        devices_["sleepInterval"]   = (uint8_t)dev->sleepInterval;
-    }
+//     DynamicJsonDocument doc(2048);
+//     JsonArray devices = doc.createNestedArray("devices");
 
-#if HAP_DEBUG_CONFIG
-    serializeJson(doc, Serial);
-    Serial.println();
-#endif
+//     for (auto& dev : _devices){
+//         JsonObject devices_ = devices.createNestedObject();
+//         devices_["id"]              = dev->id;        
+//         devices_["name"]            = dev->name;
+//         devices_["type"]            = dev->type;
+//         devices_["measureMode"]     = (uint8_t)dev->measureMode;
+//         devices_["sleepInterval"]   = (uint8_t)dev->sleepInterval;
+//     }
 
-    doc.shrinkToFit();
+// #if HAP_DEBUG_CONFIG
+//     serializeJson(doc, Serial);
+//     Serial.println();
+// #endif
+
+//     doc.shrinkToFit();
     return doc.as<JsonObject>();
 }
 
@@ -576,7 +604,7 @@ int HAPPluginRF24::indexOfDevice(uint16_t id){
 
 
 void HAPPluginRF24::updateSettings(NewSettingsPacket newSettings){
-    _radio->writeAckPayload(newSettings.forRadioId, &newSettings, sizeof(NewSettingsPacket)); // pre-load data    
+    _radio->writeAckPayload(1, &newSettings, sizeof(NewSettingsPacket)); // pre-load data    
 
     _awaitSettingsConfirmation = true;
 }

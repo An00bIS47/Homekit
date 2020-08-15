@@ -261,8 +261,9 @@ void HAPPluginRF24DeviceWeather::changeMeasureMode(uint8_t oldValue, uint8_t new
 #endif
 
         _callbackSendSettings(newSettings);
-		        
-        _eventManager->queueEvent( EventManager::kEventUpdatedConfig, HAPEvent());            	
+		
+        // ToDo: Check if required
+        // _eventManager->queueEvent( EventManager::kEventUpdatedConfig, HAPEvent());            	
     }
 }
 
@@ -289,8 +290,9 @@ void HAPPluginRF24DeviceWeather::changeHeartbeat(uint8_t oldValue, uint8_t newVa
 #endif
 
         _callbackSendSettings(newSettings);
-		        
-        _eventManager->queueEvent( EventManager::kEventUpdatedConfig, HAPEvent());            	
+
+        // ToDo: Check if required
+        // _eventManager->queueEvent( EventManager::kEventUpdatedConfig, HAPEvent());            	
     }
 
 }

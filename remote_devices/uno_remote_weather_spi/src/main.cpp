@@ -63,7 +63,7 @@
 
 #include "RF24.h"
 
-const char FIRMWARE_VERSION[6] = "1.0.7";
+const char FIRMWARE_VERSION[6] = "1.0.8";
 
 // #define DEBUG       
 #define EEPROM_SETTINGS_VERSION 2
@@ -262,8 +262,8 @@ uint16_t readVcc()
 void setup() {
 
     Serial.begin(9600);
-
     Serial.println("Starting NRF24 Test...");
+
     // Disable Analog Digital converter
     adc_disable();  // disable ADC
 
@@ -356,6 +356,9 @@ void loop() {
 #endif
         
 
+        // _radio.powerUp();
+        // delay(5);
+
         Serial.print("Setup Radio ...");
         // Re-initialize the radio.               
         if (setupRadio()){
@@ -366,9 +369,7 @@ void loop() {
                 Serial.println("FAILED");
             } else {
                 
-                Serial.println("OK");
-                
-                delay(100);
+                Serial.println("OK");                
 
                 if ( _radio.isAckPayloadAvailable() ) {
 
@@ -472,7 +473,7 @@ void setupWatchDogTimer() {
 	 *	1    0    0    0    |  512K cycles  | 4.0 s
 	 *	1    0    0    1    | 1024K cycles  | 8.0 s
 	*/
-	WDTCSR  = (0<<WDP3) | (1<<WDP2) | (1<<WDP1) | (0<<WDP0);
+	WDTCSR  = (1<<WDP3) | (0<<WDP2) | (0<<WDP1) | (1<<WDP0);
 	// Enable the WD interrupt (note: no reset).
 	WDTCSR |= _BV(WDIE);
 }
@@ -617,6 +618,8 @@ bool setupRadio(){
         _radio.setPALevel(RF24_PA_LEVEL);   // You can set it as minimum or maximum depending on the distance between the transmitter and receiver.
         _radio.setDataRate(RF24_DATA_RATE);
         // _radio.setAutoAck(1);            // Ensure autoACK is enabled
+
+        _radio.enableDynamicPayloads();
         _radio.enableAckPayload();
         _radio.setRetries(5,15);             // delay, count
                                             // 5 gives a 1500 µsec delay which is needed for a 32 byte ackPayload
