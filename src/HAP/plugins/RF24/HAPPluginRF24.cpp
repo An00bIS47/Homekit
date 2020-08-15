@@ -27,8 +27,8 @@
 #define HAP_PLUGIN_RF24_PA_LEVEL       RF24_PA_MAX
 #define HAP_PLUGIN_RF24_DATA_RATE      RF24_1MBPS
 
-#define HAP_PLUGIN_UPDATE_SETTINGS_MESSAGE_COUNT    0   // request settings every x messages; 
-                                                        // Setting to 0 disables this; 
+#define HAP_PLUGIN_UPDATE_SETTINGS_MESSAGE_COUNT    10  // request settings from remote device every X messages
+                                                        // Setting to 0 disable this
                                                         // default 0
 
 // http://www.iotsharing.com/2018/03/esp-and-raspberry-connect-with-nrf24l01.html

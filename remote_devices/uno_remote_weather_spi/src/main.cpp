@@ -66,9 +66,8 @@
 const char FIRMWARE_VERSION[6] = "1.0.8";
 
 // #define DEBUG       
-#define EEPROM_SETTINGS_VERSION 2
+#define EEPROM_SETTINGS_VERSION 1
 #define WATCHDOG_WAKEUPS_TARGET 1                
-
 
 #ifndef DEVICE_ID
 #define DEVICE_ID               0x12
