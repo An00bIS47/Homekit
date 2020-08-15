@@ -63,11 +63,11 @@
 
 #include "RF24.h"
 
-const char FIRMWARE_VERSION[6] = "1.0.6";
+const char FIRMWARE_VERSION[6] = "1.0.7";
 
 // #define DEBUG       
-#define EEPROM_SETTINGS_VERSION 1
-#define WATCHDOG_WAKEUPS_TARGET 7                
+#define EEPROM_SETTINGS_VERSION 2
+#define WATCHDOG_WAKEUPS_TARGET 1                
 
 
 #ifndef DEVICE_ID
@@ -133,7 +133,7 @@ const char FIRMWARE_VERSION[6] = "1.0.6";
 // 
 // *****************************************************************************************************************************
 
-struct EepromSettings
+struct __attribute__((__packed__)) EepromSettings
 {
     uint16_t    radioId;
     uint8_t     sleepInterval;
@@ -142,7 +142,7 @@ struct EepromSettings
     char        firmware_version[6];
 };
 
-struct RadioPacket
+struct __attribute__((__packed__)) RadioPacket
 {
     uint16_t    radioId;
     uint8_t     type;
@@ -197,8 +197,8 @@ struct NewSettingsPacket
 
 uint16_t readVcc();
 
-void system_sleep();
-void setup_watchdog(int ii);
+void enterSleep();
+void setupWatchDogTimer();
 void resetWatchDog();
 
 
@@ -235,20 +235,21 @@ EepromSettings  _settings;
 
 uint16_t readVcc()
 {
-    // adc_enable();  // enable ADC
-    // // Details on http://provideyourown.com/2012/secret-arduino-voltmeter-measure-battery-voltage/
+    adc_enable();  // enable ADC
+    // Details on http://provideyourown.com/2012/secret-arduino-voltmeter-measure-battery-voltage/
 
-    // ADMUX = _BV(MUX3) | _BV(MUX2); // Select internal 1.1V reference for measurement.
-    // delay(2);                      // Let voltage stabilize.
-    // ADCSRA |= _BV(ADSC);           // Start measuring.
-    // while (ADCSRA & _BV(ADSC));    // Wait for measurement to complete.
-    // uint16_t adcReading = ADC;
-    // uint16_t vcc = (1.1 * 1024.0 / adcReading) * 100; // Note the 1.1V reference can be off +/- 10%, so calibration is needed.
+    ADMUX = _BV(MUX3) | _BV(MUX2); // Select internal 1.1V reference for measurement.
+    delay(2);                      // Let voltage stabilize.
+    ADCSRA |= _BV(ADSC);           // Start measuring.
+    while (ADCSRA & _BV(ADSC));    // Wait for measurement to complete.
+    uint16_t adcReading = ADC;
+    uint16_t vcc = (1.1 * 1024.0 / adcReading) * 100; // Note the 1.1V reference can be off +/- 10%, so calibration is needed.
 
-    // adc_disable();  // disable ADC
+    adc_disable();  // disable ADC
+
     // return vcc;
-
-    return 3400;
+    
+    return 3440;
 }
 
 
@@ -260,7 +261,7 @@ uint16_t readVcc()
     
 void setup() {
 
-    Serial.begin(19200);
+    Serial.begin(9600);
 
     Serial.println("Starting NRF24 Test...");
     // Disable Analog Digital converter
@@ -306,8 +307,11 @@ void setup() {
     // _bme280.setMode(tiny::Mode::SLEEP);
     
     // _bme280.setFilter(0);
-             
-    // setup_watchdog(9); // approximately 8 seconds sleep
+
+
+    pinMode(LED_BUILTIN, OUTPUT);
+
+    setupWatchDogTimer(); // approximately 8 seconds sleep
 }
 
 
@@ -356,22 +360,41 @@ void loop() {
         // Re-initialize the radio.               
         if (setupRadio()){
             Serial.println("OK");
+
+            Serial.print("Send values ...");
             if (!_radio.write( &radioData, sizeof(RadioPacket) ) ) { //Send data to 'Receiver' every x seconds                        
-                
+                Serial.println("FAILED");
             } else {
                 
+                Serial.println("OK");
+                
+                delay(100);
+
                 if ( _radio.isAckPayloadAvailable() ) {
+
+                    Serial.print("Acknowledgement available for radio Id: ");
+
                     NewSettingsPacket newSettingsData;
                     _radio.read(&newSettingsData, sizeof(NewSettingsPacket));
+                    Serial.println(newSettingsData.forRadioId, HEX);
 
                     if (newSettingsData.forRadioId == _settings.radioId) {
+
+                        Serial.print("Process settings ...");
+
                         processSettingsChange(newSettingsData);        
+                        Serial.println("OK");
 
                         // Send new updated settings
+                        Serial.print("Send updated settings ...");
                         if (!_radio.write( &_settings, sizeof(EepromSettings) ) ) { //Send data to 'Receiver' every x seconds                                
-
+                            Serial.println("FAILED");
+                        } else {
+                            Serial.println("OK");
                         }
                     }           
+                } else {
+                    Serial.println("No ack available");
                 }
             }
         } else {
@@ -381,21 +404,26 @@ void loop() {
         _radio.powerDown();                  // Put the radio into a low power state.        
         
         // Put the SPI pins to low for energy saving
-        // SPI.end();
-        
-
-#ifdef DEBUG
-        delay(1000);
-#endif        
+        // SPI.end();              
 
         counterWD = 0;
     }
 
+	// Toggle the LED on
+	digitalWrite(LED_BUILTIN, 1);
+	// wait
+	delay(20);
+	// Toggle the LED off
+	digitalWrite(LED_BUILTIN, 0);
+
 
     // deep sleep    
-    // system_sleep();
-    delay(1000);
-    counterWD++;
+    enterSleep();
+
+    Serial.print("CounterWD: ");
+    Serial.println(counterWD);
+    // delay(1000 * 8);
+    
         
 }
 
@@ -407,26 +435,47 @@ void loop() {
 // 
 // *****************************************************************************************************************************
 
-// 0=16ms, 1=32ms,2=64ms,3=128ms,4=250ms,5=500ms
-// 6=1 sec,7=2 sec, 8=4 sec, 9= 8sec
-void setup_watchdog(int ii) {
+// Setup the Watch Dog Timer (WDT)
+void setupWatchDogTimer() {
+	// The MCU Status Register (MCUSR) is used to tell the cause of the last
+	// reset, such as brown-out reset, watchdog reset, etc.
+	// NOTE: for security reasons, there is a timed sequence for clearing the
+	// WDE and changing the time-out configuration. If you don't use this
+	// sequence properly, you'll get unexpected results.
 
-    /* Setup des Watchdog Timers */
-    MCUSR &= ~(1<<WDRF);             /* WDT reset flag loeschen */
-    WDTCSR |= (1<<WDCE) | (1<<WDE);  /* WDCE setzen, Zugriff auf Presclaler etc. */
-    WDTCSR = 1<<WDP0 | 1<<WDP3;      /* Prescaler auf 8.0 s */
-    WDTCSR |= 1<<WDIE;               /* WDT Interrupt freigeben */
+	// Clear the reset flag on the MCUSR, the WDRF bit (bit 3).
+	MCUSR &= ~(1<<WDRF);
+
+	// Configure the Watchdog timer Control Register (WDTCSR)
+	// The WDTCSR is used for configuring the time-out, mode of operation, etc
+
+	// In order to change WDE or the pre-scaler, we need to set WDCE (This will
+	// allow updates for 4 clock cycles).
+
+	// Set the WDCE bit (bit 4) and the WDE bit (bit 3) of the WDTCSR. The WDCE
+	// bit must be set in order to change WDE or the watchdog pre-scalers.
+	// Setting the WDCE bit will allow updates to the pre-scalers and WDE for 4
+	// clock cycles then it will be reset by hardware.
+	WDTCSR |= (1<<WDCE) | (1<<WDE);
+
+	/**
+	 *	Setting the watchdog pre-scaler value with VCC = 5.0V and 16mHZ
+	 *	WDP3 WDP2 WDP1 WDP0 | Number of WDT | Typical Time-out at Oscillator Cycles
+	 *	0    0    0    0    |   2K cycles   | 16 ms
+	 *	0    0    0    1    |   4K cycles   | 32 ms
+	 *	0    0    1    0    |   8K cycles   | 64 ms
+	 *	0    0    1    1    |  16K cycles   | 0.125 s
+	 *	0    1    0    0    |  32K cycles   | 0.25 s
+	 *	0    1    0    1    |  64K cycles   | 0.5 s
+	 *	0    1    1    0    |  128K cycles  | 1.0 s
+	 *	0    1    1    1    |  256K cycles  | 2.0 s
+	 *	1    0    0    0    |  512K cycles  | 4.0 s
+	 *	1    0    0    1    | 1024K cycles  | 8.0 s
+	*/
+	WDTCSR  = (0<<WDP3) | (1<<WDP2) | (1<<WDP1) | (0<<WDP0);
+	// Enable the WD interrupt (note: no reset).
+	WDTCSR |= _BV(WDIE);
 }
-
-void resetWatchDog(){
-    MCUSR = 0;     // clear various "reset" flags
-    // WDTCR = bit (WDCE) | bit (WDE) | bit (WDIF);  // allow changes, disable reset, clear existing interrupt
-    // // set interrupt mode and an interval (WDE must be changed from 1 to 0 here)
-    // WDTCR = bit (WDIE) | bit (WDP3) | bit (WDP0);    // set WDIE, and 8 seconds delay
-    // pat the dog
-    wdt_reset();  
-}  // end of resetWatchdog
-
 
 
 // *****************************************************************************************************************************
@@ -434,9 +483,9 @@ void resetWatchDog(){
 // Interrupt
 // 
 // *****************************************************************************************************************************
-
+// Watchdog Interrupt Service. This is executed when watchdog timed out.
 ISR( WDT_vect ){    
-    counterWD ++;                           // increase the WDog firing counter. Used in the loop to time the flash
+    counterWD++;                            // increase the WDog firing counter. Used in the loop to time the flash
                                             // interval of the LED. If you only want the WDog to fire within the normal 
                                             // presets, say 2 seconds, then comment out this command and also the associated
                                             // commands in the if ( counterWD..... ) loop, except the 2 digitalWrites and the
@@ -453,24 +502,31 @@ ISR( WDT_vect ){
 // *****************************************************************************************************************************
 
 
-// set system into the sleep state 
-// system wakes up when wtchdog is timed out
-void system_sleep() {    
-        
-    set_sleep_mode ( SLEEP_MODE_PWR_DOWN ); // set sleep mode Power Down
 
+// Enters the arduino into sleep mode.
+void enterSleep(void)
+{
+	// There are five different sleep modes in order of power saving:
+	// SLEEP_MODE_IDLE - the lowest power saving mode
+	// SLEEP_MODE_ADC
+	// SLEEP_MODE_PWR_SAVE
+	// SLEEP_MODE_STANDBY
+	// SLEEP_MODE_PWR_DOWN - the highest power saving mode
+	set_sleep_mode(SLEEP_MODE_PWR_DOWN);
     power_all_disable ();                   // turn power off to ADC, TIMER 1 and 2, Serial Interface
-    
-    noInterrupts();                        // turn off interrupts as a precaution
-    resetWatchDog();                       // reset the WatchDog before beddy bies
-    sleep_enable();                        // allows the system to be commanded to sleep
-    interrupts();                          // turn on interrupts
-    
-    sleep_cpu();                           // send the system to sleep, night night!
 
-    sleep_disable();                       // after ISR fires, return to here and disable sleep
-    power_all_enable();                    // turn on power to ADC, TIMER1 and 2, Serial Interface    
-    
+	sleep_enable();
+
+	// Now enter sleep mode.
+	sleep_mode();
+
+	// The program will continue from here after the WDT timeout
+
+	// First thing to do is disable sleep.
+	sleep_disable();
+
+	// Re-enable the peripherals.
+	power_all_enable();
 }
 
 
@@ -562,7 +618,7 @@ bool setupRadio(){
         _radio.setDataRate(RF24_DATA_RATE);
         // _radio.setAutoAck(1);            // Ensure autoACK is enabled
         _radio.enableAckPayload();
-        _radio.setRetries(5,5);             // delay, count
+        _radio.setRetries(5,15);             // delay, count
                                             // 5 gives a 1500 µsec delay which is needed for a 32 byte ackPayload
         _radio.openWritingPipe(address);    // Write to device address 'HOMEKIT_RF24'
 

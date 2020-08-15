@@ -86,18 +86,19 @@ bool HAPPluginRF24::begin() {
 
     if (_isInitialized) return true;
     
-    // _radio = new RF24(13, 33);
+    
     _radio = new RF24(HAP_PLUGIN_RF24_PIN_CE, HAP_PLUGIN_RF24_PIN_CSN, HAP_PLUGIN_RF24_PIN_CLK, HAP_PLUGIN_RF24_PIN_MISO, HAP_PLUGIN_RF24_PIN_MOSI);
+    //_radio = new RF24(HAP_PLUGIN_RF24_PIN_CE, HAP_PLUGIN_RF24_PIN_CSN);
     
     if (_radio->begin() ){                          // Start up the radio    
 
         _radio->setPALevel(HAP_PLUGIN_RF24_PA_LEVEL);          // You can set it as minimum or maximum 
-                                                    // depending on the distance between the 
-                                                    // transmitter and receiver.
+                                                                // depending on the distance between the 
+                                                                // transmitter and receiver.
         _radio->setDataRate(HAP_PLUGIN_RF24_DATA_RATE);                                                    
         // _radio->setAutoAck(1);                      // Ensure autoACK is enabled
-        _radio->enableAckPayload();
-        _radio->setRetries(5, 5);                   // delay, count
+        _radio->enableAckPayload();                 // Enable Ack Payload
+        _radio->setRetries(5, 15);                  // delay, count
                                                     // 5 gives a 1500 µsec delay which is needed for a 32 byte ackPayload
 
         
@@ -205,6 +206,8 @@ void HAPPluginRF24::handleImpl(bool forced){
                         newSettings.newSleepInterval = 0;
                         newSettings.newMeasureMode = 0;
                         
+
+                        LogD("Preload ack data for next transmission", true);
                         _radio->writeAckPayload(newSettings.forRadioId, &newSettings, sizeof(NewSettingsPacket)); // pre-load data                            
                         newDeviceAdded = true;
 
@@ -277,7 +280,9 @@ void HAPPluginRF24::handleImpl(bool forced){
             }
        
             // awaits settings from the device 
-            if (_awaitSettingsConfirmation) {                   
+            if (_awaitSettingsConfirmation) {        
+
+                LogD("Awaiting settings confirmation", true);           
                 _awaitSettingsConfirmation = false;              
 
                 // read the settings from the payload
@@ -295,17 +300,20 @@ void HAPPluginRF24::handleImpl(bool forced){
 }	
 
 bool HAPPluginRF24::readSettingsFromRadio(){
-    uint8_t timeoutCounter = 0;
+    uint16_t timeoutCounter = 0;
 
     while (!_radio->available()){
-        // Serial.println(".");
+        Serial.print(".");
         delay(1);
         timeoutCounter++;
 
-        if (timeoutCounter >= HAP_PLUGIN_RF24_TIMEOUT) {
+        if (timeoutCounter >= HAP_PLUGIN_RF24_TIMEOUT) {       
+            Serial.println("Timed out");      
             break;
         }
     }
+    Serial.println("");
+
 
     if (_radio->available()){
 

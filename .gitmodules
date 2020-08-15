@@ -40,12 +40,12 @@
 [submodule "components/ArduinoStreamUtils"]
 	path = components/ArduinoStreamUtils
 	url = https://github.com/bblanchon/ArduinoStreamUtils.git
-[submodule "components/RF24"]
-	path = components/RF24
-	url = https://github.com/nhatuan84/RF24.git
+# [submodule "components/RF24"]
+# 	path = components/RF24
+# 	url = https://github.com/nhatuan84/RF24.git
 [submodule "components/IRremote8266"]
 	path = components/IRremote8266
 	url = https://github.com/crankyoldgit/IRremoteESP8266.git
-[submodule "components/IR32"]
-	path = components/IR32
-	url = https://github.com/lbernstone/IR32.git
+[submodule "components/RF24"]
+	path = components/RF24
+	url = https://github.com/An00bIS47/RF24.git

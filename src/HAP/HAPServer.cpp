@@ -536,8 +536,9 @@ bool HAPServer::begin(bool resume) {
 					}
 				}
 
+				// ToDo: Check if required here!
 				// initial handle for HAP values
-				plugin->handle(true);  
+				// plugin->handle(true);  
 
 				if (_minimalPluginInterval == HAP_MINIMAL_PLUGIN_INTERVAL && _minimalPluginInterval < plugin->interval() ) {
 					_minimalPluginInterval = plugin->interval();	
@@ -548,7 +549,7 @@ bool HAPServer::begin(bool resume) {
 				_plugins.push_back(std::move(plugin));
 
 			} else {
-				LogW("   - DISABLED " + plugin->name(), false);
+				LogW("   - DISABLED cause plugin could not be started" + plugin->name(), false);
 				LogD(" (v" + String(plugin->version()) + ")", false);	
 				LogD(" of type: " + String(plugin->type()), false);
 				LogW("", true);
