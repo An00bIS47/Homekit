@@ -118,7 +118,7 @@ bool HAPFakeGatoWeather::addEntry(HAPFakeGatoWeatherData data){
         _memoryUsed++;
     }
 
-    // ToDo: Fix
+    // ToDo: Fix?
     _ptrTimestampLastEntry = &data.timestamp;
     
 
@@ -201,6 +201,8 @@ void HAPFakeGatoWeather::getData(const size_t count, uint8_t *data, size_t* leng
         uint8_t typ = HAP_FAKEGATO_TYPE_WEATHER;
         memcpy(data + offset, (uint8_t *)&size, 1);
 
+
+        // ToDo: Rewrite and remove unions
         ui32_to_ui8 eC;
         eC.ui32 = _requestedEntry++;
         memcpy(data + offset + 1, eC.ui8, 4);

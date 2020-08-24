@@ -119,20 +119,18 @@ const char FIRMWARE_VERSION[6] = "1.0.9";
 // Pins
 // 
 
-#ifdef ATTINY
+#if ATTINY
 
 // 
 // BME280
 // 
-#ifdef ATTINY_USE_BME280
+#if ATTINY_USE_BME280
 #define TINY_BME280_SPI
 #include <TinyBME280.h>
 #define BME280_CS_PIN   PIN_B5  // PB5 = RESET
-#endif
+#endif /* ATTINY_USE_BME280 */
 
 #define WDTCSR WDTCR
-
-
 
 #define RF24_CE_PIN     PIN_B3  // PB3
 #define RF24_CSN_PIN    PIN_B4  // NOPE -> Since we are using 3 pin configuration we will use same pin for both CE and CSN
@@ -140,13 +138,13 @@ const char FIRMWARE_VERSION[6] = "1.0.9";
 #else
 
 #ifndef UNO
-#define UNO
+#define UNO 1
 #endif
 
 #define RF24_CE_PIN     9  
 #define RF24_CSN_PIN    10  
 
-#endif
+#endif /* ATTINY */
 
 
 // 
@@ -260,8 +258,8 @@ RF24            _radio(RF24_CE_PIN, RF24_CSN_PIN);
 uint8_t         address[RF24_ADDRESS_SIZE] = RF24_ADDRESS;
 EepromSettings  _settings;
 
-#ifdef ATTINY
-#ifdef ATTINY_USE_BME280
+#if ATTINY
+#if ATTINY_USE_BME280
 tiny::BME280    _bme280;
 #endif
 #endif
@@ -286,7 +284,7 @@ uint16_t readVcc()
 
     adc_disable();  // disable ADC
 
-#ifdef ATTINY
+#if ATTINY
     return vcc;
 #else    
     return 3440;
@@ -303,7 +301,7 @@ uint16_t readVcc()
     
 void setup() {
 
-#ifdef UNO
+#if UNO
     Serial.begin(9600);
     Serial.println("Starting NRF24 Test...");
 #endif
@@ -313,7 +311,7 @@ void setup() {
     // Load settings from eeprom.
     eepromBegin();
 
-#ifdef RESET_EEPROM    
+#if RESET_EEPROM    
     eeprom_write_block(0xFF, 0, sizeof(_settings));
 #endif // RESET_EEPROM
 
@@ -333,9 +331,9 @@ void setup() {
         saveSettings();
     }
 
-#ifdef ATTINY
+#if ATTINY
 
-#ifdef ATTINY_USE_BME280
+#if ATTINY_USE_BME280
     // set slave select pins BME280 as outputs
     pinMode(BME280_CS_PIN, OUTPUT);
   
@@ -356,7 +354,7 @@ void setup() {
 #endif
 #endif
 
-#ifdef UNO
+#if UNO
     pinMode(LED_BUILTIN, OUTPUT);
 #endif
 
@@ -384,7 +382,7 @@ void loop() {
 
 
 
-#ifdef ATTINY_USE_BME280
+#if ATTINY_USE_BME280
      
         _bme280.setMode(tiny::Mode::FORCED); //Wake up sensor and take reading
 
@@ -399,7 +397,7 @@ void loop() {
         radioData.humidity      = 1300;
 #endif
 
-#ifdef USE_BATTERY_CHECK_INTERVAL
+#if USE_BATTERY_CHECK_INTERVAL
         batteryCheckCounter++;
 
         if (batteryCheckCounter >= 5) {
@@ -416,68 +414,68 @@ void loop() {
         // _radio.powerUp();
         // delay(5);
 
-#ifdef UNO
+#if UNO
         Serial.print("Setup Radio ...");
 #endif
 
         // Re-initialize the radio.               
         if (setupRadio()){
 
-#ifdef UNO            
+#if UNO            
             Serial.println("OK");
             Serial.print("Send values ...");
 #endif            
             if (!_radio.write( &radioData, sizeof(RadioPacket) ) ) { //Send data to 'Receiver' every x seconds                        
-#ifdef UNO          
+#if UNO          
                 Serial.println("FAILED");
 #endif                
             } else {
-#ifdef UNO                
+#if UNO                
                 Serial.println("OK");                
 #endif
                 if ( _radio.isAckPayloadAvailable() ) {
-#ifdef UNO
+#if UNO
                     Serial.print("Acknowledgement available for radio Id: ");
 #endif
                     NewSettingsPacket newSettingsData;
                     _radio.read(&newSettingsData, sizeof(NewSettingsPacket));
 
-#ifdef UNO                    
+#if UNO                    
                     Serial.println(newSettingsData.forRadioId, HEX);
 #endif
                     if (newSettingsData.forRadioId == _settings.radioId) {
 
-#ifdef UNO
+#if UNO
                         Serial.print("Process settings ...");
 #endif
                         processSettingsChange(newSettingsData);        
-#ifdef UNO                        
+#if UNO                        
                         Serial.println("OK");
 #endif
-#ifdef UNO
+#if UNO
                         // Send new updated settings
                         Serial.print("Send updated settings ...");
 #endif
                         if (!_radio.write( &_settings, sizeof(EepromSettings) ) ) { //Send data to 'Receiver' every x seconds                                
-#ifdef UNO                        
+#if UNO                        
                             Serial.println("FAILED");
 #endif                            
                         } 
-#ifdef UNO                        
+#if UNO                        
                         else {
                             Serial.println("OK");
                         }
 #endif                        
                     }           
                 } 
-#ifdef UNO
+#if UNO
                 else {
                     Serial.println("No ack available");
                 }
 #endif                
             }
         } 
-#ifdef UNO        
+#if UNO        
         else {
             Serial.println("FAILED");
         }                         
@@ -490,7 +488,7 @@ void loop() {
         counterWD = 0;
     }
 
-#ifdef UNO   
+#if UNO   
 	// Toggle the LED on
 	digitalWrite(LED_BUILTIN, 1);
 	// wait
@@ -502,7 +500,7 @@ void loop() {
     // deep sleep    
     enterSleep();
 
-#ifdef UNO
+#if UNO
     Serial.print("CounterWD: ");
     Serial.println(counterWD);
     // delay(1000 * 8);

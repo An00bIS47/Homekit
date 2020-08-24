@@ -54,6 +54,7 @@ void HAPFakeGato::registerFakeGatoService(HAPAccessory* accessory, String name){
     // S2R1 Char
     _s2r1Characteristics = new dataCharacteristics(HAP_CHARACTERISTIC_FAKEGATO_HISTORY_STATUS, permission_read|permission_notify|permission_hidden, 128);    
     auto callbackS2R1 = std::bind(&HAPFakeGato::setS2R1Characteristics, this, std::placeholders::_1, std::placeholders::_2);            
+    _s2r1Characteristics->setDescription("History Status");
     _s2r1Characteristics->setValue((char*)NULL);    
     _s2r1Characteristics->valueChangeFunctionCall = callbackS2R1;
     accessory->addCharacteristics(fgService, _s2r1Characteristics);
@@ -61,6 +62,7 @@ void HAPFakeGato::registerFakeGatoService(HAPAccessory* accessory, String name){
     // S2R2 Char
     _s2r2Characteristics = new dataCharacteristics(HAP_CHARACTERISTIC_FAKEGATO_HISTORY_ENTRIES, permission_read|permission_notify|permission_hidden, HAP_FAKEGATO_CHUNK_BUFFER_SIZE);
     auto callbackS2R2 = std::bind(&HAPFakeGato::setS2R2Characteristics, this, std::placeholders::_1, std::placeholders::_2);            
+    _s2r2Characteristics->setDescription("History Entries");
     _s2r2Characteristics->setValue((char*)NULL);
     _s2r2Characteristics->valueChangeFunctionCall = callbackS2R2;    
 
@@ -72,6 +74,7 @@ void HAPFakeGato::registerFakeGatoService(HAPAccessory* accessory, String name){
     // S2W1 Char
     _s2w1Characteristics = new dataCharacteristics(HAP_CHARACTERISTIC_FAKEGATO_HISTORY_REQUEST, permission_write|permission_hidden, 128);
     auto callbackS2W1 = std::bind(&HAPFakeGato::setS2W1Characteristics, this, std::placeholders::_1, std::placeholders::_2);        
+    _s2w1Characteristics->setDescription("History Request");
     _s2w1Characteristics->valueChangeFunctionCall = callbackS2W1;
     accessory->addCharacteristics(fgService, _s2w1Characteristics);
 
@@ -79,9 +82,10 @@ void HAPFakeGato::registerFakeGatoService(HAPAccessory* accessory, String name){
     _s2w2Characteristics = new dataCharacteristics(HAP_CHARACTERISTIC_FAKEGATO_SET_TIME, permission_write|permission_hidden, 128);
     auto callbackS2W2 = std::bind(&HAPFakeGato::setS2W2Characteristics, this, std::placeholders::_1, std::placeholders::_2);        
     _s2w2Characteristics->valueChangeFunctionCall = callbackS2W2;
+    _s2w2Characteristics->setDescription("SetTime");
     accessory->addCharacteristics(fgService, _s2w2Characteristics);
     
-    accessory->addService(fgService);   
+    accessory->addService(fgService);
 
     begin();   
 
@@ -168,7 +172,7 @@ void HAPFakeGato::updateS2R1Value(){
     // Serial.print("eveTime: ");  
     // Serial.println(eveTime);
     
-    
+    // ToDo: Rewrite and remove union
     HAPFakeGatoInfoStart infoStart;
     infoStart.data.evetime              = (*_ptrTimestampLastEntry) - _refTime; // Time from last update in seconds
     infoStart.data.negativeOffset       = 0x00;                                 // Negativ offset of reference time
@@ -244,14 +248,7 @@ void HAPFakeGato::getS2R2Callback(){
         uint8_t data[HAP_FAKEGATO_CHUNK_BUFFER_SIZE];
         uint16_t offset = 0;
         uint8_t chunksize = HAP_FAKEGATO_CHUNK_SIZE;
-        size_t len = 0;
-
-        // if (_requestedEntry == 1) {
-        //     getRefTime(data, &len, 0);
-        //     offset += len;
-        //     chunksize--;
-        //     len = 0;
-        // }                
+        size_t len = 0;               
         
         getData(chunksize, data, &len, offset);
 
@@ -299,17 +296,19 @@ void HAPFakeGato::setS2W1Characteristics(String oldValue, String newValue){
     mbedtls_base64_decode(NULL, NULL, &outputLength, (const uint8_t*)newValue.c_str(), newValue.length());
     uint8_t decoded[outputLength];
 
+#if HAP_DEBUG_FAKEGATO    
     Serial.print("Outoutlength: ");
     Serial.println(outputLength);
     Serial.println(sizeof(decoded));
-    mbedtls_base64_decode(decoded, sizeof(decoded), &outputLength, (const uint8_t*)newValue.c_str(), newValue.length());
-    
-    
+#endif
+
+    mbedtls_base64_decode(decoded, sizeof(decoded), &outputLength, (const uint8_t*)newValue.c_str(), newValue.length());    
     
 #if HAP_DEBUG_FAKEGATO    
     HAPHelper::array_print("S2W1", decoded, outputLength);
 #endif
 
+    // ToDo: Rewrite and remove union
     ui32_to_ui8 tmp;
 
     int n = 0;
@@ -356,8 +355,6 @@ void HAPFakeGato::setS2W1Characteristics(String oldValue, String newValue){
         _transfer = true;
         getS2R2Callback();   
     }
-
-    // free(decoded);
 }
 
 /**
@@ -381,16 +378,18 @@ void HAPFakeGato::setS2W2Characteristics(String oldValue, String newValue){
     mbedtls_base64_decode(NULL, NULL, &outputLength, (const uint8_t*)newValue.c_str(), newValue.length());
     uint8_t decoded[outputLength];
 
+#if HAP_DEBUG_FAKEGATO       
     Serial.print("Outoutlength: ");
     Serial.println(outputLength);
     Serial.println(sizeof(decoded));
+#endif
+
     mbedtls_base64_decode(decoded, sizeof(decoded), &outputLength, (const uint8_t*)newValue.c_str(), newValue.length());
     
 
     // ToDo: Set current time from this? (Only if NTP is not connected!)
     HAPHelper::array_print("S2W2", decoded, outputLength);
-    
-    // free(decoded);
+        
 }
 
 void HAPFakeGato::getRefTime(uint8_t *data, size_t* length, const uint16_t offset){
@@ -403,10 +402,9 @@ void HAPFakeGato::getRefTime(uint8_t *data, size_t* length, const uint16_t offse
     uint8_t typ = HAP_FAKEGATO_TYPE_REFTIME;
     memcpy(data + offset, (uint8_t *)&size, 1);
 
-
+    // ToDo: Rewrite and remove union
     ui32_to_ui8 eC;
 
-    // ToDo: incrmeent function ??
     _idxRead = incrementIndex(_idxRead);
     eC.ui32 = _idxRead;
     memcpy(data + offset + 1, eC.ui8, 4);
