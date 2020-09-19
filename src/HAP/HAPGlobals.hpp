@@ -389,7 +389,7 @@
 #endif
 
 #ifndef HAP_PLUGIN_USE_RF24
-#define HAP_PLUGIN_USE_RF24				1
+#define HAP_PLUGIN_USE_RF24				0
 #endif
 
 #ifndef HAP_PLUGIN_USE_SSD1306

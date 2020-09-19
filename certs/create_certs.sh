@@ -25,6 +25,13 @@ mkdir -p "$name"
 openssl req -out "$name/$name.csr" -new -newkey rsa:2048 -nodes -keyout "$name/$name.privatekey" -subj "/C=DE/ST=/L=Munich/O=ACME/OU=/CN=$name.local"
 openssl rsa -in "$name/$name.privatekey" -pubout -out "$name/$name.publickey"
 
+# Sparkfun 3
+name=esp32-134248
+mkdir -p "$name"
+openssl req -out "$name/$name.csr" -new -newkey rsa:2048 -nodes -keyout "$name/$name.privatekey" -subj "/C=DE/ST=/L=Munich/O=ACME/OU=/CN=$name.local"
+openssl rsa -in "$name/$name.privatekey" -pubout -out "$name/$name.publickey"
+
+
 
 name=update_server
 mkdir -p "$name"

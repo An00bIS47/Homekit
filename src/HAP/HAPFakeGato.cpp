@@ -18,6 +18,10 @@ HAPFakeGato::HAPFakeGato() {
     _s2w1Characteristics = nullptr;
     _s2w2Characteristics = nullptr;
     
+
+    _configReadCharacteristics = nullptr;
+    _configWriteCharacteristics = nullptr;
+
     _type = HAPFakeGatoType_weather;
     _isEnabled = true;
     _refTime = 0;    
@@ -43,7 +47,7 @@ HAPFakeGato::HAPFakeGato() {
 }
 
 
-void HAPFakeGato::registerFakeGatoService(HAPAccessory* accessory, String name){
+void HAPFakeGato::registerFakeGatoService(HAPAccessory* accessory, String name, bool withSchedule){
         
     HAPService* fgService = new HAPService(HAP_SERVICE_FAKEGATO_HISTORY);    
     
@@ -85,6 +89,23 @@ void HAPFakeGato::registerFakeGatoService(HAPAccessory* accessory, String name){
     _s2w2Characteristics->setDescription("SetTime");
     accessory->addCharacteristics(fgService, _s2w2Characteristics);
     
+
+    if (withSchedule){
+        _configReadCharacteristics = new dataCharacteristics(HAP_CHARACTERISTIC_FAKEGATO_CONFIG_READ, permission_read|permission_hidden, 512);
+        _configReadCharacteristics->setDescription("Config Read");
+        auto callbackConfigRead = std::bind(&HAPFakeGato::configRead, this, std::placeholders::_1, std::placeholders::_2);        
+        _configReadCharacteristics->valueChangeFunctionCall = callbackConfigRead;
+        accessory->addCharacteristics(fgService, _configReadCharacteristics);
+
+
+        _configWriteCharacteristics = new dataCharacteristics(HAP_CHARACTERISTIC_FAKEGATO_CONFIG_WRITE, permission_write|permission_hidden, 256);
+        _configWriteCharacteristics->setDescription("Config Write");
+        auto callbackConfigWrite = std::bind(&HAPFakeGato::configWrite, this, std::placeholders::_1, std::placeholders::_2);        
+        _configWriteCharacteristics->valueChangeFunctionCall = callbackConfigWrite;
+        accessory->addCharacteristics(fgService, _configWriteCharacteristics);
+    }
+
+
     accessory->addService(fgService);
 
     begin();   
@@ -104,7 +125,7 @@ void HAPFakeGato::handle(bool forced){
 
                 // ToDo: Persist history ??
                 if (overwritten) {
-                    // LogV("A fakegato history entry was overwritten!", true);
+                    LogW("A fakegato history entry was overwritten!", true);
                 }                      
             }   
         }
@@ -425,4 +446,13 @@ void HAPFakeGato::getRefTime(uint8_t *data, size_t* length, const uint16_t offse
     memcpy(data + offset + 10, refTime.ui8, 4);
     memset(data + offset + 10 + 4, 0x00, 7);                
     *length = offset + 21;    
+}
+
+
+void HAPFakeGato::configRead(String oldValue, String newValue){
+
+}
+
+void HAPFakeGato::configWrite(String oldValue, String newValue){
+
 }

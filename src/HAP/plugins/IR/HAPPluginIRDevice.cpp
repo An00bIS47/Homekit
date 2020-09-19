@@ -9,8 +9,12 @@
 #include "HAPPluginIRDevice.hpp"
 #include "HAPServer.hpp"
 #include "HAPLogger.hpp"
-#include <IRsend.h>
+#include "HAPPluginIR.hpp"
 
+#include <IRsend.h>
+#include <IRutils.h>
+#include <IRac.h>
+#include <IRtext.h>
 
 HAPPluginIRDevice::HAPPluginIRDevice(const decode_results capture){   
 

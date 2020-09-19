@@ -29,7 +29,7 @@ HAPFakeGatoSwitch::HAPFakeGatoSwitch(){
 	_transfer       = false;
     _rolledOver     = false;    
 
-    _periodicUpdates = false;
+    _periodicUpdates = false;       // only write a fakegato entry if an action; not periodic !
 }
 
 HAPFakeGatoSwitch::~HAPFakeGatoSwitch(){

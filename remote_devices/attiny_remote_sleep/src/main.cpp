@@ -70,6 +70,11 @@ SoftwareSerial softSerial(99, PIN_B4); // RX, TX
 #define adc_disable() (ADCSRA &= ~(1 << ADEN)) // disable ADC (before power-off)
 
 
+#ifndef WDTCSR
+#define WDTCSR WDTCR
+#endif
+
+
 // *****************************************************************************************************************************
 // 
 // Structs
@@ -77,6 +82,12 @@ SoftwareSerial softSerial(99, PIN_B4); // RX, TX
 // *****************************************************************************************************************************
 
 
+
+#define TEST_LED 1
+#if TEST_LED
+#define LED_PIN PIN_B3
+#define SLEEP 1000
+#endif
 
 
 
@@ -88,9 +99,9 @@ SoftwareSerial softSerial(99, PIN_B4); // RX, TX
 
 uint16_t readVcc();
 
-void system_sleep();
-void setup_watchdog(int ii);
-void resetWatchDog();
+void enterSleep();
+void setupWatchDogTimer();
+
 
 
 // *****************************************************************************************************************************
@@ -144,15 +155,15 @@ uint16_t readVcc()
 void setup() {
 
     softSerial.begin(9600);
-    delay(5000);
     softSerial.println(F("Starting ATTiny Sleep Test"));
 
+#if TEST_LED    
+  	// initialize the digital pin as an output.
+  	pinMode(LED_PIN, OUTPUT);
+#endif
 
-    // Disable Analog Digital converter
-    adc_disable();  // disable ADC
 
-             
-    setup_watchdog(9); // approximately 8 seconds sleep
+    setupWatchDogTimer();
 }
 
 
@@ -166,26 +177,36 @@ void setup() {
 void loop() {    
     
 
-    if ( counterWD == 2 ) {
+    if ( counterWD >= 2 ) {
 
-        
+        softSerial.print("wake up - readVcc=");
         softSerial.println(readVcc());
         // Put the SPI pins to low for energy saving
-        // SPI.end();
-        
+        // SPI.end();            
 
-#ifdef DEBUG
-        delay(1000);
-#endif        
 
+		// Reset WD counter to 0
         counterWD = 0;
+
+#if TEST_LED
+		softSerial.print("Blink ");
+        softSerial.println("ON");
+		digitalWrite(LED_PIN, HIGH); 	// turn the LED on (HIGH is the voltage level)
+  		delay(SLEEP);            		// wait for a second
+		softSerial.print("Blink ");
+        softSerial.println("OFF");
+  		digitalWrite(LED_PIN, LOW);  	// turn the LED off by making the voltage LOW
+  		delay(SLEEP);            		// wait for a second
+#endif		  
     }
 
 
     // deep sleep    
-    system_sleep();
+    enterSleep();
         
 }
+
+
 
 
 
@@ -195,35 +216,47 @@ void loop() {
 // 
 // *****************************************************************************************************************************
 
-// 0=16ms, 1=32ms,2=64ms,3=128ms,4=250ms,5=500ms
-// 6=1 sec,7=2 sec, 8=4 sec, 9= 8sec
-void setup_watchdog(int ii) {
+// Setup the Watch Dog Timer (WDT)
+void setupWatchDogTimer() {
+	// The MCU Status Register (MCUSR) is used to tell the cause of the last
+	// reset, such as brown-out reset, watchdog reset, etc.
+	// NOTE: for security reasons, there is a timed sequence for clearing the
+	// WDE and changing the time-out configuration. If you don't use this
+	// sequence properly, you'll get unexpected results.
 
-    uint8_t bb;
-    // int ww;
-    if (ii > 9 ) ii=9;
-    bb=ii & 7;
-    if (ii > 7) bb|= (1<<5);
-    bb|= (1<<WDCE);
-    // ww=bb;
+	// Clear the reset flag on the MCUSR, the WDRF bit (bit 3).
+	MCUSR &= ~(1<<WDRF);
 
-    MCUSR &= ~(1<<WDRF);
-    // start timed sequence
-    WDTCR |= (1<<WDCE) | (1<<WDE);
-    // set new watchdog timeout value
-    WDTCR = bb;
-    WDTCR |= _BV(WDIE);
+	// Configure the Watchdog timer Control Register (WDTCSR)
+	// The WDTCSR is used for configuring the time-out, mode of operation, etc
+
+	// In order to change WDE or the pre-scaler, we need to set WDCE (This will
+	// allow updates for 4 clock cycles).
+
+	// Set the WDCE bit (bit 4) and the WDE bit (bit 3) of the WDTCSR. The WDCE
+	// bit must be set in order to change WDE or the watchdog pre-scalers.
+	// Setting the WDCE bit will allow updates to the pre-scalers and WDE for 4
+	// clock cycles then it will be reset by hardware.
+	WDTCSR |= (1<<WDCE) | (1<<WDE);
+
+	/**
+	 *	Setting the watchdog pre-scaler value with VCC = 5.0V and 16mHZ
+	 *	WDP3 WDP2 WDP1 WDP0 | Number of WDT | Typical Time-out at Oscillator Cycles
+	 *	0    0    0    0    |   2K cycles   | 16 ms
+	 *	0    0    0    1    |   4K cycles   | 32 ms
+	 *	0    0    1    0    |   8K cycles   | 64 ms
+	 *	0    0    1    1    |  16K cycles   | 0.125 s
+	 *	0    1    0    0    |  32K cycles   | 0.25 s
+	 *	0    1    0    1    |  64K cycles   | 0.5 s
+	 *	0    1    1    0    |  128K cycles  | 1.0 s
+	 *	0    1    1    1    |  256K cycles  | 2.0 s
+	 *	1    0    0    0    |  512K cycles  | 4.0 s
+	 *	1    0    0    1    | 1024K cycles  | 8.0 s
+	*/
+	WDTCSR  = (1<<WDP3) | (0<<WDP2) | (0<<WDP1) | (1<<WDP0);
+	// Enable the WD interrupt (note: no reset).
+	WDTCSR |= _BV(WDIE);
 }
-
-void resetWatchDog(){
-    MCUSR = 0;     // clear various "reset" flags
-    WDTCR = bit (WDCE) | bit (WDE) | bit (WDIF);  // allow changes, disable reset, clear existing interrupt
-    // set interrupt mode and an interval (WDE must be changed from 1 to 0 here)
-    WDTCR = bit (WDIE) | bit (WDP3) | bit (WDP0);    // set WDIE, and 8 seconds delay
-    // pat the dog
-    wdt_reset();  
-}  // end of resetWatchdog
-
 
 
 // *****************************************************************************************************************************
@@ -231,9 +264,9 @@ void resetWatchDog(){
 // Interrupt
 // 
 // *****************************************************************************************************************************
-
+// Watchdog Interrupt Service. This is executed when watchdog timed out.
 ISR( WDT_vect ){    
-    counterWD ++;                           // increase the WDog firing counter. Used in the loop to time the flash
+    counterWD++;                            // increase the WDog firing counter. Used in the loop to time the flash
                                             // interval of the LED. If you only want the WDog to fire within the normal 
                                             // presets, say 2 seconds, then comment out this command and also the associated
                                             // commands in the if ( counterWD..... ) loop, except the 2 digitalWrites and the
@@ -250,25 +283,35 @@ ISR( WDT_vect ){
 // *****************************************************************************************************************************
 
 
-// set system into the sleep state 
-// system wakes up when wtchdog is timed out
-void system_sleep() {    
-        
-    set_sleep_mode ( SLEEP_MODE_PWR_DOWN ); // set sleep mode Power Down
+// Puts the arduino into sleep mode.
+void enterSleep(void)
+{
 
+    softSerial.println(F("Enter sleep mode"));
+
+	// There are five different sleep modes in order of power saving:
+	// SLEEP_MODE_IDLE - the lowest power saving mode
+	// SLEEP_MODE_ADC
+	// SLEEP_MODE_PWR_SAVE
+	// SLEEP_MODE_STANDBY
+	// SLEEP_MODE_PWR_DOWN - the highest power saving mode
+	set_sleep_mode(SLEEP_MODE_PWR_DOWN);
     power_all_disable ();                   // turn power off to ADC, TIMER 1 and 2, Serial Interface
-    
-    noInterrupts();                        // turn off interrupts as a precaution
-    resetWatchDog();                       // reset the WatchDog before beddy bies
-    sleep_enable();                        // allows the system to be commanded to sleep
-    interrupts();                          // turn on interrupts
-    
-    sleep_cpu();                           // send the system to sleep, night night!
 
-    sleep_disable();                       // after ISR fires, return to here and disable sleep
-    power_all_enable();                    // turn on power to ADC, TIMER1 and 2, Serial Interface    
-    
+	sleep_enable();
+
+	// Now enter sleep mode.
+	sleep_mode();
+
+	// The program will continue from here after the WDT timeout
+
+	// First thing to do is disable sleep.
+	sleep_disable();
+
+	// Re-enable the peripherals.
+	power_all_enable();
 }
+
 
 
 

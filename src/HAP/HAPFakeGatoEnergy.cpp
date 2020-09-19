@@ -29,6 +29,8 @@ HAPFakeGatoEnergy::HAPFakeGatoEnergy(){
     _rolledOver     = false;  
 
     _periodicUpdates = true;
+
+    
 } 
 
 HAPFakeGatoEnergy::~HAPFakeGatoEnergy(){
@@ -57,8 +59,7 @@ void HAPFakeGatoEnergy::getSignature(uint8_t* signature){
     s1.ui16 = __builtin_bswap16(0x0102);
     s2.ui16 = __builtin_bswap16(0x0202);
     s3.ui16 = __builtin_bswap16(0x0702);
-    s4.ui16 = __builtin_bswap16(0x0f03);
-
+    s4.ui16 = __builtin_bswap16(0x0F03);
 
     memcpy(signature, s1.ui8, 2);
     memcpy(signature + 2, s2.ui8, 2);
@@ -117,7 +118,6 @@ bool HAPFakeGatoEnergy::addEntry(HAPFakeGatoEnergyData data){
     updateS2R1Value();        
     
     return !_rolledOver;
-
 }
 
 

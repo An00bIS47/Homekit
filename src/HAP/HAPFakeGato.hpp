@@ -76,13 +76,15 @@ extern "C" {
 #define HAP_CHARACTERISTIC_FAKEGATO_TOTAL_CONSUMPTION           "E863F10C-079E-48FF-8F27-9C2605A29F52"  // 10C
 #define HAP_CHARACTERISTIC_FAKEGATO_CURRENT_CONSUMPTION         "E863F10D-079E-48FF-8F27-9C2605A29F52"  // 10D
 #define HAP_CHARACTERISTIC_FAKEGATO_AIR_PRESSURE                "E863F10F-079E-48FF-8F27-9C2605A29F52"  // 10F
-#define HAP_CHARACTERISTIC_FAKEGATO_RESET_TOTAL                 "E863F112-079E-48FF-8F27-9C2605A29F52"  // 112
+#define HAP_CHARACTERISTIC_FAKEGATO_RESET_TOTAL                 "E863F112-079E-48FF-8F27-9C2605A29F52"  // 112  => Reset Total
 #define HAP_CHARACTERISTIC_FAKEGATO_HISTORY_STATUS              "E863F116-079E-48FF-8F27-9C2605A29F52"  // 116  => S2R1
 #define HAP_CHARACTERISTIC_FAKEGATO_HISTORY_ENTRIES             "E863F117-079E-48FF-8F27-9C2605A29F52"  // 117  => S2R2
 #define HAP_CHARACTERISTIC_FAKEGATO_OPEN_DURATION               "E863F118-079E-48FF-8F27-9C2605A29F52"  // 118
 #define HAP_CHARACTERISTIC_FAKEGATO_CLOSED_DURATION             "E863F119-079E-48FF-8F27-9C2605A29F52"  // 119
 #define HAP_CHARACTERISTIC_FAKEGATO_LAST_ACTIVATION             "E863F11A-079E-48FF-8F27-9C2605A29F52"  // 11A
 #define HAP_CHARACTERISTIC_FAKEGATO_HISTORY_REQUEST             "E863F11C-079E-48FF-8F27-9C2605A29F52"  // 11C  => S2W1
+#define HAP_CHARACTERISTIC_FAKEGATO_CONFIG_WRITE                "E863F11D-079E-48FF-8F27-9C2605A29F52"  // 11D  => Config Write
+#define HAP_CHARACTERISTIC_FAKEGATO_FIRMWARE_UPDATE             "E863F11E-079E-48FF-8F27-9C2605A29F52"  // 11E  => Firmware Update ??
 #define HAP_CHARACTERISTIC_FAKEGATO_SENSITIVITY                 "E863F120-079E-48FF-8F27-9C2605A29F52"  // 120
 #define HAP_CHARACTERISTIC_FAKEGATO_SET_TIME                    "E863F121-079E-48FF-8F27-9C2605A29F52"  // 121  => S2W2
 #define HAP_CHARACTERISTIC_FAKEGATO_ELECTRIC_CURRENT            "E863F126-079E-48FF-8F27-9C2605A29F52"  // 126
@@ -93,7 +95,7 @@ extern "C" {
 #define HAP_CHARACTERISTIC_FAKEGATO_VALVE_POSITION              "E863F12E-079E-48FF-8F27-9C2605A29F52"  // 12E
 #define HAP_CHARACTERISTIC_FAKEGATO_PROGRAM_DATA                "E863F12E-079E-48FF-8F27-9C2605A29F52"  // 12E
 #define HAP_CHARACTERISTIC_FAKEGATO_ELEVATION                   "E863F130-079E-48FF-8F27-9C2605A29F52"  // 130
-
+#define HAP_CHARACTERISTIC_FAKEGATO_CONFIG_READ                 "E863F131-079E-48FF-8F27-9C2605A29F52"  // 131  => Config Read
 
 
 enum HAPFakeGatoType{
@@ -163,7 +165,7 @@ public:
     HAPFakeGato();
     ~HAPFakeGato() {};
 
-    void registerFakeGatoService(HAPAccessory* accessory, String name);
+    void registerFakeGatoService(HAPAccessory* accessory, String name, bool withSchedule = false);
     
     void handle(bool forced = false);
 
@@ -207,16 +209,23 @@ public:
         _callbackAddEntry = callback;
     }
     
+    
 
 protected:
     std::function<bool()> _callbackAddEntry = NULL;  
     
     String                _name;
+
+    // History Characteristics
     dataCharacteristics*  _s2r1Characteristics;
     dataCharacteristics*  _s2r2Characteristics;
     dataCharacteristics*  _s2w1Characteristics;
     dataCharacteristics*  _s2w2Characteristics;
     
+    // Schedule Characteristics
+    dataCharacteristics* _configReadCharacteristics;
+    dataCharacteristics* _configWriteCharacteristics;
+
     enum HAPFakeGatoType    _type;
     bool                    _isEnabled;
     uint32_t                _refTime;    
@@ -254,6 +263,7 @@ protected:
     virtual int signatureLength() = 0;
 
 
+
     inline uint32_t incrementIndex(uint32_t index){
         return (index + 1) % HAP_FAKEGATO_BUFFER_SIZE;
     }
@@ -275,6 +285,12 @@ protected:
 
     void setS2W1Characteristics(String oldValue, String newValue);
     void setS2W2Characteristics(String oldValue, String newValue);
+
+
+    // Schedules
+    virtual void configRead(String oldValue, String newValue);
+    virtual void configWrite(String oldValue, String newValue);
+
 };
 
 #endif /* HAPFAKEGATO_HPP_ */

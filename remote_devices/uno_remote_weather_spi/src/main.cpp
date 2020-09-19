@@ -61,6 +61,21 @@
 //              GND  4|    |5  PB0  MOSI
 //                    +----+
 // 
+//  ATtiny25/45/85 Pin map with CE_PIN 3 and CSN_PIN 3 => PB3 and PB4 are free to use for application
+//  Circuit idea from http://nerdralph.blogspot.ca/2014/01/nrf24l01-control-with-3-attiny85-pins.html
+//  Original RC combination was 1K/100nF. 22K/10nF combination worked better.
+//  For best settletime delay value in RF24::csn() the timingSearch3pin.ino scatch can be used.
+//  This configuration is enabled when CE_PIN and CSN_PIN are equal, e.g. both 3
+//  Because CE is always high the power consumption is higher than for 5 pins solution
+//                                                                                          ^^
+//                               +-\/-+           nRF24L01   CE, pin3 ------|              //
+//                         PB5  1|o   |8  Vcc --- nRF24L01  VCC, pin2 ------x----------x--|<|-- 5V
+//                 NC      PB3  2|    |7  PB2 --- nRF24L01  SCK, pin5 --|<|---x-[22k]--|  LED
+//                 NC      PB4  3|    |6  PB1 --- nRF24L01 MOSI, pin6  1n4148 |
+//  nRF24L01 GND, pin1 -x- GND  4|    |5  PB0 --- nRF24L01 MISO, pin7         |
+//                      |        +----+                                       |
+//                      |-----------------------------------------------||----x-- nRF24L01 CSN, pin4 
+//                                                                     10nF
 
 #include <Arduino.h>
 #include <SPI.h>
@@ -121,6 +136,10 @@ const char FIRMWARE_VERSION[6] = "1.0.9";
 
 #if ATTINY
 
+#include <SoftwareSerial.h>
+SoftwareSerial softSerial(99, PIN_B4); // RX, TX
+
+
 // 
 // BME280
 // 
@@ -130,10 +149,14 @@ const char FIRMWARE_VERSION[6] = "1.0.9";
 #define BME280_CS_PIN   PIN_B5  // PB5 = RESET
 #endif /* ATTINY_USE_BME280 */
 
-#define WDTCSR WDTCR
 
-#define RF24_CE_PIN     PIN_B3  // PB3
-#define RF24_CSN_PIN    PIN_B4  // NOPE -> Since we are using 3 pin configuration we will use same pin for both CE and CSN
+#ifndef WDTCSR
+#define WDTCSR WDTCR
+#endif
+
+
+#define RF24_CE_PIN     PIN_B5  // PB3
+#define RF24_CSN_PIN    PIN_B3  // NOPE -> Since we are using 3 pin configuration we will use same pin for both CE and CSN
 
 #else
 
@@ -304,6 +327,9 @@ void setup() {
 #if UNO
     Serial.begin(9600);
     Serial.println("Starting NRF24 Test...");
+#else 
+    softSerial.begin(9600);
+    softSerial.println(F("Starting ATTiny Sleep Test"));       
 #endif
     // Disable Analog Digital converter
     adc_disable();  // disable ADC
@@ -373,13 +399,14 @@ void setup() {
 void loop() {    
     
 
-    if ( counterWD == _settings.sleepInterval ) {
+    if ( counterWD >= _settings.sleepInterval ) {
+
+        counterWD = 0;
 
         RadioPacket radioData;
         
         radioData.type = RemoteDeviceTypeWeather;
         radioData.radioId = _settings.radioId;
-
 
 
 #if ATTINY_USE_BME280
@@ -416,6 +443,9 @@ void loop() {
 
 #if UNO
         Serial.print("Setup Radio ...");
+#else    
+      softSerial.print(F("Setup Radio ..."));
+           
 #endif
 
         // Re-initialize the radio.               
@@ -424,46 +454,70 @@ void loop() {
 #if UNO            
             Serial.println("OK");
             Serial.print("Send values ...");
+#else 
+            softSerial.println("OK");
+            softSerial.print("Send values ...");
 #endif            
             if (!_radio.write( &radioData, sizeof(RadioPacket) ) ) { //Send data to 'Receiver' every x seconds                        
 #if UNO          
                 Serial.println("FAILED");
+#else
+                softSerial.println("FAILED");
 #endif                
             } else {
 #if UNO                
-                Serial.println("OK");                
+                Serial.println("OK");      
+#else
+                softSerial.println("OK");
 #endif
                 if ( _radio.isAckPayloadAvailable() ) {
 #if UNO
                     Serial.print("Acknowledgement available for radio Id: ");
+#else
+                    softSerial.print("Acknowledgement available for radio Id: ");                    
 #endif
                     NewSettingsPacket newSettingsData;
                     _radio.read(&newSettingsData, sizeof(NewSettingsPacket));
 
 #if UNO                    
                     Serial.println(newSettingsData.forRadioId, HEX);
+#else
+                    softSerial.println(newSettingsData.forRadioId, HEX);
 #endif
                     if (newSettingsData.forRadioId == _settings.radioId) {
 
 #if UNO
                         Serial.print("Process settings ...");
+#else
+                        softSerial.print("Process settings ...");
 #endif
                         processSettingsChange(newSettingsData);        
 #if UNO                        
                         Serial.println("OK");
+#else
+                      softSerial.println("OK");
 #endif
 #if UNO
                         // Send new updated settings
                         Serial.print("Send updated settings ...");
+#else
+                      softSerial.print("Send updated settings ...");
 #endif
                         if (!_radio.write( &_settings, sizeof(EepromSettings) ) ) { //Send data to 'Receiver' every x seconds                                
 #if UNO                        
                             Serial.println("FAILED");
+#else
+                          softSerial.println("FAILED");
 #endif                            
                         } 
 #if UNO                        
                         else {
-                            Serial.println("OK");
+                            Serial.println("OK");                           
+                        }
+
+#else                   
+                        else {
+                          softSerial.println("OK");                         
                         }
 #endif                        
                     }           
@@ -472,20 +526,28 @@ void loop() {
                 else {
                     Serial.println("No ack available");
                 }
+#else 
+                else {
+                  softSerial.println("No ack available");
+                }                
 #endif                
             }
         } 
 #if UNO        
         else {
             Serial.println("FAILED");
-        }                         
+        }   
+#else
+        else {
+          softSerial.println("FAILED");
+        }                                
 #endif    
         _radio.powerDown();                  // Put the radio into a low power state.        
         
         // Put the SPI pins to low for energy saving
         // SPI.end();              
 
-        counterWD = 0;
+        
     }
 
 #if UNO   
@@ -504,6 +566,9 @@ void loop() {
     Serial.print("CounterWD: ");
     Serial.println(counterWD);
     // delay(1000 * 8);
+#else
+  softSerial.print("CounterWD: ");
+  softSerial.println(counterWD);
 #endif    
         
 }
@@ -587,6 +652,14 @@ ISR( WDT_vect ){
 // Enters the arduino into sleep mode.
 void enterSleep(void)
 {
+
+#if UNO
+    
+    Serial.println("Enter sleep");
+#else
+  softSerial.println("Enter sleep");
+#endif  
+
 	// There are five different sleep modes in order of power saving:
 	// SLEEP_MODE_IDLE - the lowest power saving mode
 	// SLEEP_MODE_ADC
@@ -711,5 +784,5 @@ bool setupRadio(){
 
         return true;
     }  
-    return false;
+    return false;    
 }
