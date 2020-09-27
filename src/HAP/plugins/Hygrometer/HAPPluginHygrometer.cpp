@@ -5,6 +5,28 @@
 //  Created on: 29.04.2018
 //      Author: michael
 //
+// Pinout:
+// The YL-39 module has 4 pins: 
+// - VCC: 3.3-5V
+// - GND
+// - D0 : digital pin that goes LOW or HIGH depending on a preset value
+// - A0 : analog output that can be easily read by Arduino
+// 
+// On ESP32s when using WiFi only ADC1 pins can be used! ADC2 is disabled when using WIFI
+// 
+// The issue with such sensors is that the probe itself work by trying to measure the current 
+// that goes from one side of it to the other. Because of this electrolysis occurs so it can destroy 
+// the probe (YL-69) pretty fast in high-moisture soils. To bypass this, 
+// instead of directly linking the VCC to the Arduino's VCC/5V we simply link it to a digital pin 
+// and power it (digital pin goes HIGH) only before we do a readout (see the code for this).
+// 
+// 
+// Huzzah32 Pinout:
+// 14 -> VCC
+// A0 -> GPIO 32
+// 
+// 
+
 #include "HAPPluginHygrometer.hpp"
 #include "HAPServer.hpp"
 
@@ -15,8 +37,14 @@
 #define VERSION_REVISION    3
 #define VERSION_BUILD       1
 
+#define HAP_PLUGIN_HYGROMTER_REFERENCE      2550    // value if put in a glass of water
 
+#define HAP_PLUGIN_HYGROMETER_PIN_VCC       A6	// 14
+#define HAP_PLUGIN_HYGROMETER_PIN_ADC       A7	// 32
 
+#ifndef HAP_DEBUG_HYGROMETER
+#define HAP_DEBUG_HYGROMETER 1
+#endif
 
 HAPPluginHygrometer::HAPPluginHygrometer(){
 	_type = HAP_PLUGIN_TYPE_ACCESSORY;
@@ -74,7 +102,7 @@ void HAPPluginHygrometer::handleImpl(bool forced){
     uint16_t moisture = readSensor();
     float percentage = map(moisture, HAP_PLUGIN_HYGROMTER_REFERENCE, 0, 100, 0) * 1.0;
 
-#if 0
+#if HAP_DEBUG_HYGROMETER
     Serial.print("[" + _name + "] Moisture: ");
     Serial.print(moisture);
     Serial.print(" = ");

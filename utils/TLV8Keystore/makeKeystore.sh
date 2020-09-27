@@ -1,6 +1,6 @@
 #!/bin/sh
 
-deviceIds=("esp32-CAFEEC" "esp32-AF5FA4" "esp32-0C9D6C" "esp32-CB3DC4" "esp32-134248")
+deviceIds=("esp32-CAFEEC" "esp32-AF5FA4" "esp32-0C9D6C" "esp32-CB3DC4" "esp32-134248" "esp32-13994C")
 containerId=6 
 
 for i in "${deviceIds[@]}"

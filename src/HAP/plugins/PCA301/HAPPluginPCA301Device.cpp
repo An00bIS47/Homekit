@@ -179,8 +179,6 @@ void HAPPluginPCA301Device::changedPowerCurrent(float oldValue, float newValue){
             _eventManager->queueEvent( EventManager::kEventNotifyController, eventInUse);
         }
     }
-
-    
 }
 
 void HAPPluginPCA301Device::changedPowerTotal(float oldValue, float newValue){
@@ -188,8 +186,6 @@ void HAPPluginPCA301Device::changedPowerTotal(float oldValue, float newValue){
         struct HAPEvent event = HAPEvent(nullptr, _accessory->aid, _ttlPowerValue->iid, String(newValue));							
 	    _eventManager->queueEvent( EventManager::kEventNotifyController, event); 
     }
-
-    
 }
 
 bool HAPPluginPCA301Device::fakeGatoCallback(){

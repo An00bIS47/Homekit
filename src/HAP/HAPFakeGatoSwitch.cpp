@@ -33,9 +33,9 @@ HAPFakeGatoSwitch::HAPFakeGatoSwitch(){
 }
 
 HAPFakeGatoSwitch::~HAPFakeGatoSwitch(){
-
-    _vectorBuffer->clear();
+    
     if (_vectorBuffer != nullptr){
+        _vectorBuffer->clear();
         delete _vectorBuffer;
     }
 }

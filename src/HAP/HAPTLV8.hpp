@@ -11,9 +11,6 @@
 
 #include <Arduino.h>
 
-
-
-
 struct TLV8Entry {
 	uint8_t type;
 	uint8_t length;
@@ -34,14 +31,19 @@ public:
 	TLV8();
 	~TLV8();
 
-	void addSeperator();
+	void addSeperator();	
 	TLV8Entry* searchType(TLV8Entry* ptr, uint8_t type);
 	TLV8Entry* searchId(TLV8Entry* ptr, uint8_t id);
 
+	TLV8Entry* getType(uint8_t type);
+	bool hasType(uint8_t type);
 
 	bool encode(uint8_t type, size_t length, const uint8_t data);
 	bool encode(uint8_t type, size_t length, const uint8_t* rawData);
 	bool encode(uint8_t* rawData, size_t dataLen);
+
+	bool encode(uint8_t type, const std::initializer_list<uint8_t> data);
+
 	
 	// uint8_t* decode() __attribute__ ((deprecated));
 	// uint8_t* decode(uint8_t type) __attribute__ ((deprecated));

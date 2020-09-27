@@ -44,6 +44,16 @@ HAPFakeGato::HAPFakeGato() {
     _transfer = false;
     _interval = 0; 
     _previousMillis = 0;
+
+
+    
+}
+
+HAPFakeGato::~HAPFakeGato(){
+    // if (_schedule != nullptr) {
+    //     _schedule->clear();
+    //     delete _schedule;
+    // }
 }
 
 
@@ -91,20 +101,20 @@ void HAPFakeGato::registerFakeGatoService(HAPAccessory* accessory, String name, 
     
 
     if (withSchedule){
+        
         _configReadCharacteristics = new dataCharacteristics(HAP_CHARACTERISTIC_FAKEGATO_CONFIG_READ, permission_read|permission_hidden, 512);
-        _configReadCharacteristics->setDescription("Config Read");
-        auto callbackConfigRead = std::bind(&HAPFakeGato::configRead, this, std::placeholders::_1, std::placeholders::_2);        
+        _configReadCharacteristics->setDescription("Schedule Read");
+        auto callbackConfigRead = std::bind(&HAPFakeGato::scheduleRead, this, std::placeholders::_1, std::placeholders::_2);        
         _configReadCharacteristics->valueChangeFunctionCall = callbackConfigRead;
         accessory->addCharacteristics(fgService, _configReadCharacteristics);
 
 
         _configWriteCharacteristics = new dataCharacteristics(HAP_CHARACTERISTIC_FAKEGATO_CONFIG_WRITE, permission_write|permission_hidden, 256);
-        _configWriteCharacteristics->setDescription("Config Write");
-        auto callbackConfigWrite = std::bind(&HAPFakeGato::configWrite, this, std::placeholders::_1, std::placeholders::_2);        
+        _configWriteCharacteristics->setDescription("Schedule Write");
+        auto callbackConfigWrite = std::bind(&HAPFakeGato::scheduleWrite, this, std::placeholders::_1, std::placeholders::_2);        
         _configWriteCharacteristics->valueChangeFunctionCall = callbackConfigWrite;
         accessory->addCharacteristics(fgService, _configWriteCharacteristics);
     }
-
 
     accessory->addService(fgService);
 
@@ -449,10 +459,3 @@ void HAPFakeGato::getRefTime(uint8_t *data, size_t* length, const uint16_t offse
 }
 
 
-void HAPFakeGato::configRead(String oldValue, String newValue){
-
-}
-
-void HAPFakeGato::configWrite(String oldValue, String newValue){
-
-}

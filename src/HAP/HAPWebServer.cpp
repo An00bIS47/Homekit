@@ -87,6 +87,11 @@ extern const unsigned char server_privateKey_der_start[] asm("_binary_esp32_1342
 extern const unsigned char server_privateKey_der_end[] asm("_binary_esp32_134248_privatekey_end");
 #endif
 
+#if HAP_BOARD_SPARKFUN4 == 1
+extern const unsigned char server_privateKey_der_start[] asm("_binary_esp32_13994C_privatekey_start");
+extern const unsigned char server_privateKey_der_end[] asm("_binary_esp32_13994C_privatekey_end");
+#endif
+
 #endif // HAP_WEBSERVER_USE_SSL
 
 

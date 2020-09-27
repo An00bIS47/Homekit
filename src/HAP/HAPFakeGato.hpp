@@ -163,7 +163,7 @@ union HAPFakeGatoInfoEnd {
 class HAPFakeGato {
 public:    
     HAPFakeGato();
-    ~HAPFakeGato() {};
+    ~HAPFakeGato();
 
     void registerFakeGatoService(HAPAccessory* accessory, String name, bool withSchedule = false);
     
@@ -208,13 +208,18 @@ public:
     inline void registerCallback(std::function<bool()> callback){
         _callbackAddEntry = callback;
     }
+
+    inline void setSerialNumber(String serialNumber) {
+        _serialNumber = serialNumber;
+    }
     
-    
+    virtual void initSchedule() {};
 
 protected:
     std::function<bool()> _callbackAddEntry = NULL;  
     
     String                _name;
+    String                _serialNumber;
 
     // History Characteristics
     dataCharacteristics*  _s2r1Characteristics;
@@ -288,9 +293,14 @@ protected:
 
 
     // Schedules
-    virtual void configRead(String oldValue, String newValue);
-    virtual void configWrite(String oldValue, String newValue);
+    virtual void scheduleRead(String oldValue, String newValue) {};
+    virtual void scheduleWrite(String oldValue, String newValue) {};
 
+    
+    // std::function<uint8_t*()> _callbackReadSchedule = NULL;  
+    // std::function<uint8_t*()> _callbackWriteSchedule = NULL;  
+
+    
 };
 
 #endif /* HAPFAKEGATO_HPP_ */

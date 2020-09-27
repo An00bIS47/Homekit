@@ -11,6 +11,8 @@
 
 #include <Arduino.h>
 #include "HAPFakeGato.hpp"
+#include "HAPFakeGatoScheduleEnergy.hpp"
+
 
 struct HAPFakeGatoEnergyData {
     uint32_t timestamp;     // unix
@@ -36,26 +38,36 @@ public:
     void getSignature(uint8_t* signature) override;
 
     
-    size_t size() override {
+    inline size_t size() override {
         return _memoryUsed;
     }
 
-    bool isFull() override {
+    inline bool isFull() override {
         return _memoryUsed == HAP_FAKEGATO_BUFFER_SIZE;
     }
 
-    void clear() override{
+    inline void clear() override{
         _vectorBuffer->clear();
     }
 
+    void setSerialNumber(String serialNumber);
     
     bool addEntry(String stringPower);    
     bool addEntry(HAPFakeGatoEnergyData data);
     void getData(const size_t count, uint8_t *data, size_t *length, uint16_t offset) override;
 
+    void initSchedule() override;
+
+protected:
+    // Schedules
+    void scheduleRead(String oldValue, String newValue) override;
+    void scheduleWrite(String oldValue, String newValue) override;
+
+    
 private:
     
-    std::vector<HAPFakeGatoEnergyData>* _vectorBuffer;    
+    std::vector<HAPFakeGatoEnergyData>* _vectorBuffer; 
+    HAPFakeGatoScheduleEnergy* _schedule;
 };
 
 #endif /* HAPFAKEGATOENERGY_HPP_ */
