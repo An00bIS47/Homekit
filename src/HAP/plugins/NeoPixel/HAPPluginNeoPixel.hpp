@@ -20,7 +20,7 @@
 
 // How many leds in your strip?
 #define NUM_LEDS 1
-#define DATA_PIN A1	
+#define DATA_PIN A5	
 
 #define HAP_PLUGIN_NEOPIXEL_ENABLE_BRIGHTNESS   1
 

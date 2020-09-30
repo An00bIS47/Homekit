@@ -18,7 +18,7 @@
 #include "HAPFakeGato.hpp"
 #include "HAPFakeGatoFactory.hpp"
 #include "EventManager.h"
-#include "HAPFakeGatoSwitch.hpp"
+#include "HAPFakeGatoEnergy.hpp"
 
 
 class HAPPluginRCSwitchDevice {
@@ -35,6 +35,10 @@ public:
     void setEventManager(EventManager* eventManager);
     void setFakeGatoFactory(HAPFakeGatoFactory* fakegatoFactory);
 
+    // void switchOn();
+    // void switchOff();
+    void switchCallback(uint16_t state);
+
     void setRCSwitchSendCallback(std::function<void(uint8_t, uint8_t, bool)> callback){
         _callbackRCSwitchSend = callback;
     }
@@ -48,14 +52,21 @@ private:
 
     std::function<void(uint8_t, uint8_t, uint8_t)> _callbackRCSwitchSend = NULL;  
 
-    HAPFakeGatoSwitch       _fakegato;
+    HAPFakeGatoEnergy       _fakegato;
     
     HAPAccessory*           _accessory;
     EventManager*			_eventManager;
     HAPFakeGatoFactory*     _fakegatoFactory;
 
     boolCharacteristics*    _stateValue;
+    boolCharacteristics*    _inUseState;
+    boolCharacteristics*    _parentalLock;
+    floatCharacteristics*   _curPowerValue;
+    floatCharacteristics*   _ttlPowerValue;
 
+    void changedPowerState(bool oldValue, bool newValue);
+	void changedPowerCurrent(float oldValue, float newValue);
+	void changedPowerTotal(float oldValue, float newValue);
     void changedState(bool oldValue, bool newValue);
    
     bool fakeGatoCallback();  

@@ -89,7 +89,7 @@ void HAPConfig::begin(){
         plugins[plugin->name()] = plugin->getConfig();               
     }    
 
-    _config.shrinkToFit();
+    // _config.shrinkToFit();
 }
 
 JsonObject HAPConfig::config(){
@@ -157,7 +157,7 @@ HAPConfigValidationResult HAPConfig::parse(const uint8_t* jsonString, size_t len
         _config = doc;
         // reclaim leaked strings
         _config.garbageCollect();
-        _config.shrinkToFit();
+        // _config.shrinkToFit();
 
         _callbackUpdate();        
     }
@@ -612,7 +612,7 @@ bool HAPConfig::save(){
     }
     
     _config.garbageCollect();
-    _config.shrinkToFit();
+    // _config.shrinkToFit();
     
     _prefs.end();
     return true;        
@@ -639,7 +639,7 @@ bool HAPConfig::load(){
 
     _callbackUpdate();
     
-    _config.shrinkToFit();
+    // _config.shrinkToFit();
 
     return true;
 }

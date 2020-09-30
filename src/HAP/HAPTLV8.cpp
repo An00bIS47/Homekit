@@ -13,8 +13,9 @@
 #include "HAPLogger.hpp"
 #include "HAPTLV8Types.hpp"
 
-
-#define TLV_DEBUG 0
+#ifndef HAP_DEBUG_TLV8
+#define HAP_DEBUG_TLV8 0
+#endif
 
 TLV8::TLV8()
 : _head(NULL)
@@ -23,6 +24,14 @@ TLV8::TLV8()
 
 }
 
+
+bool TLV8::hasType(uint8_t type){
+	return searchType(_head, type) != NULL;
+}
+
+TLV8Entry* TLV8::getType(uint8_t type){
+	return searchType(_head, type);
+}
 
 void TLV8::decode(const uint8_t type, uint8_t* out, size_t *outSize){
 	if (_head == NULL || !out) {
@@ -72,7 +81,7 @@ void TLV8::decode(const uint8_t type, uint8_t* out, size_t *outSize){
 	}
 	_head = tmp;
 
-#if TLV_DEBUG
+#if HAP_DEBUG_TLV8
 	LogV( "uint8_ts decoded: " false);
 	LogV(offset, true);
 #endif
@@ -111,7 +120,7 @@ void TLV8::decode(const uint8_t type, uint8_t* out, size_t *outSize){
 // 	}
 // 	_head = tmp;
 
-// #if TLV_DEBUG
+// #if HAP_DEBUG_TLV8
 // 	LogV( F("uint8_ts decoded: "), false);
 // 	LogV(offset, true);
 // #endif
@@ -170,7 +179,7 @@ void TLV8::decode(uint8_t* out, size_t *outSize){
 
 	_head = tmp;
 
-#if TLV_DEBUG
+#if HAP_DEBUG_TLV8
 	LogV( "uint8_ts decoded: " false);
 	LogV(offset, true);
 #endif
@@ -206,7 +215,7 @@ void TLV8::decode(uint8_t* out, size_t *outSize){
 
 // 	_head = tmp;
 
-// #if TLV_DEBUG
+// #if HAP_DEBUG_TLV8
 // 	LogV( F("uint8_ts decoded: "), false);
 // 	LogV(offset, true);
 // #endif
@@ -298,12 +307,22 @@ bool TLV8::encode(uint8_t type, size_t length, const uint8_t* rawData) {
 		addNode(ptr);
 	}
 
-#if TLV_DEBUG
+#if HAP_DEBUG_TLV8
 	LogV( "uint8_ts encoded: " false);
 	LogV(bdone, true);
 #endif
 
 	return (bdone == length) ? true : false;
+}
+
+bool TLV8::encode(uint8_t type, const std::initializer_list<uint8_t> data){
+	
+	size_t length = data.size();
+	uint8_t rawData[length];
+
+	std::copy(data.begin(), data.end(), rawData);
+	
+	return encode(type, length, rawData);
 }
 
 TLV8Entry* TLV8::initNode(const uint8_t* rawData) {

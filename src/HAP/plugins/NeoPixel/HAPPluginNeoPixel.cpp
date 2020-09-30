@@ -8,7 +8,7 @@
 #include "HAPPluginNeoPixel.hpp"
 #include "HAPServer.hpp"
 
-#define HAP_BLINK_INTERVAL 1000	
+#define HAP_PLUGIN_NEOPIXEL_INTERVAL 1000	
 
 
 #define VERSION_MAJOR       0
@@ -21,7 +21,7 @@ HAPPluginNeoPixel::HAPPluginNeoPixel(){
     _type = HAP_PLUGIN_TYPE_ACCESSORY;
     _name = "NeoPixel";
     _isEnabled = HAP_PLUGIN_USE_NEOPIXEL;
-    _interval = HAP_BLINK_INTERVAL;
+    _interval = HAP_PLUGIN_NEOPIXEL_INTERVAL;
     _previousMillis = 0;
     _isOn = false;
     _gpio = DATA_PIN;
@@ -92,7 +92,7 @@ void HAPPluginNeoPixel::changeSaturation(float oldValue, float newValue){
 
 void HAPPluginNeoPixel::handleImpl(bool forced){
     
-    LogD(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Handle plguin [" + String(_interval) + "]", true);
+    // LogD(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Handle plguin [" + String(_interval) + "]", true);
 
     // if (_isOn) {            
     //     _pixels->setPixelColor(0, _pixels->Color(0, 255, 0));

@@ -7,6 +7,8 @@
 //
 #include "HAPFakeGatoEnergy.hpp"
 #include "HAPServer.hpp"
+#include "HAPTLV8.hpp"
+
 
 #define HAP_FAKEGATO_SIGNATURE_LENGTH    4      // number of 16 bits word of the following "signature" portion
 #define HAP_FAKEGATO_DATA_LENGTH        20      // length of the data
@@ -27,15 +29,25 @@ HAPFakeGatoEnergy::HAPFakeGatoEnergy(){
     _idxWrite       = 0;            // gets incremented when pushed
 	_transfer       = false;
     _rolledOver     = false;  
+
+    _periodicUpdates = true;   
+
+    _schedule = nullptr;
+
+    begin(); 
 } 
 
 HAPFakeGatoEnergy::~HAPFakeGatoEnergy(){
-
-    _vectorBuffer->clear();
+    
     if (_vectorBuffer != nullptr){
+        _vectorBuffer->clear();
         delete _vectorBuffer;
     }
 
+    if (_schedule != nullptr) {
+        _schedule->clear();
+        delete _schedule;
+    }
 }
 
 
@@ -44,6 +56,11 @@ void HAPFakeGatoEnergy::begin(){
     if (_vectorBuffer == nullptr) {
         _vectorBuffer = new std::vector<HAPFakeGatoEnergyData>(HAP_FAKEGATO_BUFFER_SIZE);
     }
+
+    if (_schedule == nullptr) {
+        _schedule = new HAPFakeGatoScheduleEnergy();
+    }
+
 }
 
 int HAPFakeGatoEnergy::signatureLength(){
@@ -55,8 +72,7 @@ void HAPFakeGatoEnergy::getSignature(uint8_t* signature){
     s1.ui16 = __builtin_bswap16(0x0102);
     s2.ui16 = __builtin_bswap16(0x0202);
     s3.ui16 = __builtin_bswap16(0x0702);
-    s4.ui16 = __builtin_bswap16(0x0f03);
-
+    s4.ui16 = __builtin_bswap16(0x0F03);
 
     memcpy(signature, s1.ui8, 2);
     memcpy(signature + 2, s2.ui8, 2);
@@ -115,7 +131,6 @@ bool HAPFakeGatoEnergy::addEntry(HAPFakeGatoEnergyData data){
     updateS2R1Value();        
     
     return !_rolledOver;
-
 }
 
 
@@ -190,6 +205,82 @@ void HAPFakeGatoEnergy::getData(const size_t count, uint8_t *data, size_t* lengt
             }
         }      
     }         
-    
+}
 
+void HAPFakeGatoEnergy::scheduleRead(String oldValue, String newValue){
+    LogE(HAPServer::timeString() + " " + String(__CLASS_NAME__) + "->" + String(__FUNCTION__) + " [   ] " + "Schedule Read " + _name + " ..." , true);
+}
+
+void HAPFakeGatoEnergy::scheduleWrite(String oldValue, String newValue){
+    LogE(HAPServer::timeString() + " " + String(__CLASS_NAME__) + "->" + String(__FUNCTION__) + " [   ] " + "Schedule Write " + _name + " ..." , true);
+
+    size_t outputLength = 0;        
+    mbedtls_base64_decode(NULL, NULL, &outputLength, (const uint8_t*)newValue.c_str(), newValue.length());
+    uint8_t decoded[outputLength];
+
+    mbedtls_base64_decode(decoded, sizeof(decoded), &outputLength, (const uint8_t*)newValue.c_str(), newValue.length());    
+
+    HAPHelper::array_print("decoded", decoded, outputLength);    
+
+    TLV8 tlv;
+    tlv.encode(decoded, outputLength);
+
+    if (tlv.hasType(HAP_FAKEGATO_SCHEDULE_TYPE_COMMAND_TOGGLE_SCHEDULE)){        
+        TLV8Entry* tlvEntry = tlv.getType(HAP_FAKEGATO_SCHEDULE_TYPE_COMMAND_TOGGLE_SCHEDULE);  
+        _schedule->setActive(_schedule->decodeToggleOnOff(tlvEntry->value));
+    } 
+
+    if (tlv.hasType(HAP_FAKEGATO_SCHEDULE_TYPE_COMMAND_STATUS_LED)){        
+        TLV8Entry* tlvEntry = tlv.getType(HAP_FAKEGATO_SCHEDULE_TYPE_COMMAND_STATUS_LED);  
+        _schedule->setStatusLED(tlvEntry->value[0]);
+    } 
+
+    if (tlv.hasType(HAP_FAKEGATO_SCHEDULE_TYPE_DAYS)){        
+        TLV8Entry* tlvEntry = tlv.getType(HAP_FAKEGATO_SCHEDULE_TYPE_DAYS);  
+        _schedule->decodeDays(tlvEntry->value);
+    }
+    
+    if (tlv.hasType(HAP_FAKEGATO_SCHEDULE_TYPE_PROGRAMS)){        
+        TLV8Entry* tlvEntry = tlv.getType(HAP_FAKEGATO_SCHEDULE_TYPE_PROGRAMS);  
+        _schedule->decodePrograms(tlvEntry->value);
+    }
+
+
+
+    _configReadCharacteristics->setValue(_schedule->buildScheduleString());
+}
+
+void HAPFakeGatoEnergy::initSchedule(){
+
+    if (_schedule == nullptr) {
+        _schedule = new HAPFakeGatoScheduleEnergy();
+    }
+    
+    _configReadCharacteristics->setValue(_schedule->buildScheduleString());
+}
+
+void HAPFakeGatoEnergy::setSerialNumber(String serialNumber) {
+    _serialNumber = serialNumber;
+    _schedule->setSerialNumber(serialNumber);
+}
+
+
+void HAPFakeGatoEnergy::handle(bool forced){        
+    if ( shouldHandle() || forced ){       
+        // This line could cause a crash 
+        // LogD(HAPServer::timeString() + " " + String(__CLASS_NAME__) + "->" + String(__FUNCTION__) + " [   ] " + "Handle fakegato ", true);         
+        
+        if (_periodicUpdates) {
+            if (_callbackAddEntry != NULL){
+                bool overwritten = !_callbackAddEntry();  
+
+                // ToDo: Persist history ??
+                if (overwritten) {
+                    LogW("A fakegato history entry was overwritten!", true);
+                }                      
+            }   
+        }                                                            
+    }
+    
+    _schedule->handle();
 }

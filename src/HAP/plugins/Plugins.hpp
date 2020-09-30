@@ -64,6 +64,7 @@
 
 #if HAP_PLUGIN_USE_IR
 #include "HAPPluginIR.hpp"
+#include "HAPPluginIRDevice.hpp"
 #endif
 
 #if HAP_PLUGIN_USE_NIMBLE_MIFLORA

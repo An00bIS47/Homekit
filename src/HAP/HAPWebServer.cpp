@@ -21,7 +21,6 @@
 // Certs + Key
 #if HAP_WEBSERVER_USE_SSL
 
-
 // Server Cert if not using keystore
 #if HAP_KEYSTORE_ENABLED == 0
 
@@ -39,6 +38,7 @@ extern const unsigned char server_cert_der_end[] asm("_binary_esp32_0C9D6C_cer_e
 extern const unsigned char server_cert_der_start[] asm("_binary_esp32_CAFEEC_cer_start");
 extern const unsigned char server_cert_der_end[] asm("_binary_esp32_CAFEEC_cer_end");
 #endif
+
 
 #endif /* HAP_USE_KEYSTORE */
 
@@ -66,7 +66,6 @@ extern const unsigned char server_privateKey_der_end[] asm("_binary_esp32_0C9D6C
 #if HAP_BOARD_SPARKFUN == 1
 extern const unsigned char server_privateKey_der_start[] asm("_binary_esp32_CAFEEC_privatekey_start");
 extern const unsigned char server_privateKey_der_end[] asm("_binary_esp32_CAFEEC_privatekey_end");
-
 // extern const unsigned char server_publicKey_der_start[] asm("_binary_esp32_CAFEEC_publickey_start");
 // extern const unsigned char server_publicKey_der_end[] asm("_binary_esp32_CAFEEC_publickey_end");
 #endif
@@ -81,6 +80,16 @@ extern const unsigned char server_privateKey_der_end[] asm("_binary_certs_esp32_
 #endif
 // extern const unsigned char server_publicKey_der_start[] asm("_binary_esp32_CB3DC4_publickey_start");
 // extern const unsigned char server_publicKey_der_end[] asm("_binary_esp32_CB3DC4_publickey_end");
+#endif
+
+#if HAP_BOARD_SPARKFUN3 == 1
+extern const unsigned char server_privateKey_der_start[] asm("_binary_esp32_134248_privatekey_start");
+extern const unsigned char server_privateKey_der_end[] asm("_binary_esp32_134248_privatekey_end");
+#endif
+
+#if HAP_BOARD_SPARKFUN4 == 1
+extern const unsigned char server_privateKey_der_start[] asm("_binary_esp32_13994C_privatekey_start");
+extern const unsigned char server_privateKey_der_end[] asm("_binary_esp32_13994C_privatekey_end");
 #endif
 
 #endif // HAP_WEBSERVER_USE_SSL

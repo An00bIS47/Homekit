@@ -28,12 +28,14 @@ HAPFakeGatoSwitch::HAPFakeGatoSwitch(){
     _idxWrite       = 0;            // gets incremented when pushed
 	_transfer       = false;
     _rolledOver     = false;    
+
+    _periodicUpdates = false;       // only write a fakegato entry if an action; not periodic !
 }
 
 HAPFakeGatoSwitch::~HAPFakeGatoSwitch(){
-
-    _vectorBuffer->clear();
+    
     if (_vectorBuffer != nullptr){
+        _vectorBuffer->clear();
         delete _vectorBuffer;
     }
 }
