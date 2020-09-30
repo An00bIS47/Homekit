@@ -39,6 +39,8 @@ public:
     // void switchOff();
     void switchCallback(uint16_t state);
 
+    uint32_t getTimestampLastActivity();
+
     void setRCSwitchSendCallback(std::function<void(uint8_t, uint8_t, bool)> callback){
         _callbackRCSwitchSend = callback;
     }
@@ -63,6 +65,8 @@ private:
     boolCharacteristics*    _parentalLock;
     floatCharacteristics*   _curPowerValue;
     floatCharacteristics*   _ttlPowerValue;
+
+    uint32_t                _timestampLastActivity;
 
     void changedPowerState(bool oldValue, bool newValue);
 	void changedPowerCurrent(float oldValue, float newValue);

@@ -18,11 +18,11 @@ struct HAPFakeGatoEnergyData {
     uint32_t timestamp;     // unix
     // bool     setRefTime;    
 
-    // uint16_t unknown1;
-    // uint16_t unknown2;
-    uint16_t power;
-    // uint16_t unknown3;
-    // uint16_t unknown4;
+    uint16_t powerWatt;
+    uint16_t powerVoltage;
+    uint16_t powerCurrent;    
+    uint16_t power10th;
+    uint8_t status;    
 };
 
 
@@ -52,37 +52,42 @@ public:
 
     void setSerialNumber(String serialNumber);
     
-    bool addEntry(String stringPower);    
+    bool addEntry(String powerWatt, String powerVoltage, String powerCurrent, String stringPower10th, String status);    
     bool addEntry(HAPFakeGatoEnergyData data);
     void getData(const size_t count, uint8_t *data, size_t *length, uint16_t offset) override;
 
-    void initSchedule() override;
+    void beginSchedule() override;
 
-    virtual inline void setCallbackTimerStart(std::function<void(uint16_t)> callback){
+    inline void setCallbackTimerStart(std::function<void(uint16_t)> callback){
         // _callbackTimerStart = callback;
         _schedule->setCallbackTimerStart(callback);
     }
 
-    virtual inline void setCallbackTimerEnd(std::function<void(uint16_t)> callback){
+    inline void setCallbackTimerEnd(std::function<void(uint16_t)> callback){
         // _callbackTimerEnd = callback;
         _schedule->setCallbackTimerEnd(callback);
     }
 
     void handle(bool forced = false) override;
 
+    inline void setCallbackGetTimestampLastActivity(std::function<uint32_t(void)> callback){
+        _schedule->setCallbackGetTimestampLastActivity(callback);
+    }
+    
 protected:
     // Schedules
     void scheduleRead(String oldValue, String newValue) override;
     void scheduleWrite(String oldValue, String newValue) override;
 
-    
+
+
 private:
-    
+
     std::vector<HAPFakeGatoEnergyData>* _vectorBuffer; 
     HAPFakeGatoScheduleEnergy* _schedule;
 
     // std::function<void(uint16_t)> _callbackTimerEnd;
-    // std::function<void(uint16_t)> _callbackTimerStart;
+    // std::function<void(uint16_t)> _callbackTimerStart;    
 };
 
 #endif /* HAPFAKEGATOENERGY_HPP_ */

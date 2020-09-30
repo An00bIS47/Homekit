@@ -192,5 +192,5 @@ bool HAPPluginPCA301Device::fakeGatoCallback(){
     // LogD(HAPServer::timeString() + " " + "HAPPluginPCA301Device" + "->" + String(__FUNCTION__) + " [   ] " + "fakeGatoCallback()", true);
 
     // Serial.println("power: " + _curPowerValue->value());    
-    return _fakegato.addEntry(_curPowerValue->value());
+    return _fakegato.addEntry("0", "0", "0", _curPowerValue->value(), "0");
 }

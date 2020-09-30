@@ -12,15 +12,24 @@
 #include "HAPServer.hpp"
 
 HAPFakeGatoScheduleEnergy::HAPFakeGatoScheduleEnergy(){
-	// _programEvents = nullptr;
-	// _days = nullptr;
-
-	_isActive = false;
-	_serialNumber = "";
 	_statusLED = 0x00;
+
+
+	_serialNumber = "";
 
 	_callbackTimerStart = nullptr;
 	_callbackTimerEnd   = nullptr;
+
+	_callbackGetRefTime = nullptr;
+	_callbackGetTimestampLastActivity = nullptr;
+}
+
+HAPFakeGatoScheduleEnergy::HAPFakeGatoScheduleEnergy(String serialNumber, std::function<void(uint16_t)> callbackStartTimer, std::function<void(uint16_t)> callbackEndTimer, std::function<uint32_t(void)> callbackRefTime, std::function<uint32_t(void)> callbackTimestampLastActivity){
+	_serialNumber = serialNumber;
+	_callbackTimerStart = callbackStartTimer;
+	_callbackTimerEnd = callbackEndTimer;
+	_callbackGetRefTime = callbackRefTime;
+	_callbackGetTimestampLastActivity = callbackTimestampLastActivity;
 }
 
 HAPFakeGatoScheduleEnergy::~HAPFakeGatoScheduleEnergy(){
@@ -28,25 +37,23 @@ HAPFakeGatoScheduleEnergy::~HAPFakeGatoScheduleEnergy(){
 }
 
 void HAPFakeGatoScheduleEnergy::begin(){
-    // if (_programEvents == nullptr) {
-    //     _programEvents = new std::vector<HAPFakeGatoScheduleProgramEvent>(15);
-    // }
+
 }
 
 bool HAPFakeGatoScheduleEnergy::decodeToggleOnOff(uint8_t* data){
 	return data[1] & 0x01;
 }
 
-void HAPFakeGatoScheduleEnergy::setActive(bool on){	
-	_isActive = on;
+void HAPFakeGatoScheduleEnergy::enable(bool on){		
+	_timers.enable(on);
 }
 
 void HAPFakeGatoScheduleEnergy::setStatusLED(uint8_t mode){	
 	_statusLED = mode;
 }
 
-bool HAPFakeGatoScheduleEnergy::isActive(){
-	return _isActive;
+bool HAPFakeGatoScheduleEnergy::isEnabled(){
+	return _timers.isEnabled();
 }
 
 void HAPFakeGatoScheduleEnergy::decodeDays(uint8_t *data){
@@ -342,7 +349,7 @@ String HAPFakeGatoScheduleEnergy::buildScheduleString(){
     // tlv.encode(0x44, {0x05, 0x0C, 0x00, 0x05, 0x03, 0x3C, 0x00, 0x00, 0x00, 0x32, 0xC2, 0x42, 0x42, 0xA1, 0x93, 0x34, 0x41});
 	// 						    |	 
 	//						    +-> 0x0C = OFF -- 0xOD = ON 
-	if (_isActive) {
+	if (_timers.isEnabled()) {
 		tlv.encode(HAP_FAKEGATO_SCHEDULE_TYPE_COMMAND_TOGGLE_SCHEDULE, {0x05, 0x0D, 0x00, 0x05, 0x03, 0x3C, 0x00, 0x00, 0x00, 0x32, 0xC2, 0x42, 0x42, 0xA1, 0x93, 0x34, 0x41});
 	} else {
 		tlv.encode(HAP_FAKEGATO_SCHEDULE_TYPE_COMMAND_TOGGLE_SCHEDULE, {0x05, 0x0C, 0x00, 0x05, 0x03, 0x3C, 0x00, 0x00, 0x00, 0x32, 0xC2, 0x42, 0x42, 0xA1, 0x93, 0x34, 0x41});
@@ -358,11 +365,33 @@ String HAPFakeGatoScheduleEnergy::buildScheduleString(){
     // tlv.encode(0x60, {0x64});
 	tlv.encode(HAP_FAKEGATO_SCHEDULE_TYPE_STATUS_LED, 1, _statusLED);
 
-     // last activity ?
-    tlv.encode(0xD0, {0x52, 0x09, 0x03, 0x00});
+     // last activity On switch ?
+    // tlv.encode(0xD0, {0x52, 0x09, 0x03, 0x00});
+	ui32_to_ui8 secsLastAct;
+	if ((_callbackGetTimestampLastActivity != nullptr) && (_callbackGetRefTime != nullptr)) {
+		secsLastAct.ui32 = HAPServer::timestamp() -_callbackGetTimestampLastActivity() - _callbackGetRefTime();
+	} else {
+		secsLastAct.ui32 = 0;
+	}    
+	tlv.encode(0xD0, 4, secsLastAct.ui8); // offset ?
+
+#if HAP_DEBUG_FAKEGATO_SCHEDULE	
+	HAPHelper::array_print("secsLastAct", secsLastAct.ui8, 4);
+#endif
 
     //  ref time / timestamp ?
-    tlv.encode(0x9B, {0xFB, 0x2C, 0x19, 0x00}); // offset ?
+	//tlv.encode(0x9B, {0xFB, 0x2C, 0x19, 0x00}); // offset ?
+	ui32_to_ui8 secs;
+	if (_callbackGetRefTime != nullptr) {
+		secs.ui32 = HAPServer::timestamp() -_callbackGetTimestampLastActivity() - _callbackGetRefTime();
+	} else {
+		secs.ui32 = 0;
+	}    
+	tlv.encode(0x9B, 4, secs.ui8); // offset ?
+
+#if HAP_DEBUG_FAKEGATO_SCHEDULE	
+    HAPHelper::array_print("secs", secs.ui8, 4);
+#endif
     
     // ending bytes?
     // tlv.encode(0xD2, {});

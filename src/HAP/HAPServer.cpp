@@ -3591,7 +3591,7 @@ void HAPServer::handlePairingsRemove(HAPClient* hapClient, const uint8_t* identi
 	
 	// tear down all other pairings if admin removed
 	// and update mdns
-	if (_accessorySet->isPaired()) {
+	if (!_accessorySet->isPaired()) {
 		
 		hapClient->state = HAP_CLIENT_STATE_ALL_PAIRINGS_REMOVED;
 		_eventManager.queueEvent(EventManager::kEventAllPairingsRemoved, HAPEvent());

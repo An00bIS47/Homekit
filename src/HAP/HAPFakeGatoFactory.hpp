@@ -25,7 +25,7 @@ public:
 
 private:    
     std::vector<HAPFakeGato*> _fakegatos;    
-    uint32_t                  _refTime;
+    uint32_t                  _refTime;    
 };
 
 #endif /* HAPFAKEGATOFACTORY_HPP_ */

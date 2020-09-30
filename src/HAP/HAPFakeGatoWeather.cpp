@@ -52,15 +52,24 @@ int HAPFakeGatoWeather::signatureLength(){
 }
 
 void HAPFakeGatoWeather::getSignature(uint8_t* signature){
-    ui16_to_ui8 s1, s2, s3;    
-    s1.ui16 = __builtin_bswap16(0x0102);
-    s2.ui16 = __builtin_bswap16(0x0202);
-    s3.ui16 = __builtin_bswap16(0x0302);
+    // ui16_to_ui8 s1, s2, s3;    
+    // s1.ui16 = __builtin_bswap16(0x0102);
+    // s2.ui16 = __builtin_bswap16(0x0202);
+    // s3.ui16 = __builtin_bswap16(0x0302);
 
-    memcpy(signature, s1.ui8, 2);
-    memcpy(signature + 2, s2.ui8, 2);
-    memcpy(signature + 2 + 2, s3.ui8, 2);
-    // *length = signatureLength();    
+    // memcpy(signature, s1.ui8, 2);
+    // memcpy(signature + 2, s2.ui8, 2);
+    // memcpy(signature + 2 + 2, s3.ui8, 2);
+    // // *length = signatureLength();    
+
+    signature[0] = (uint8_t)HAPFakeGatoSignature_Temperature;
+    signature[1] = 2;
+
+    signature[2] = (uint8_t)HAPFakeGatoSignature_Humidity;
+    signature[3] = 2;
+
+    signature[4] = (uint8_t)HAPFakeGatoSignature_AirPressure;
+    signature[5] = 2;
 }
 
 
@@ -118,7 +127,7 @@ bool HAPFakeGatoWeather::addEntry(HAPFakeGatoWeatherData data){
     }
 
     // ToDo: Fix?
-    _ptrTimestampLastEntry = &data.timestamp;
+    _timestampLastEntry = data.timestamp;
     
 
     (*_vectorBuffer)[_idxWrite] = data;
@@ -187,7 +196,11 @@ void HAPFakeGatoWeather::getData(const size_t count, uint8_t *data, size_t* leng
 
     if ( (tmpRequestedEntry >= _idxWrite) && ( _rolledOver == false) ){
         _transfer = false;
-        LogW("WARNING: Fakegato could not send the requested entry. The requested index does not exist!", true);                          
+        LogE("ERROR: Fakegato Weather could not send the requested entry. The requested index does not exist!", true);                          
+        LogE("   - tmpRequestedEntry=" + String(tmpRequestedEntry), true);
+        LogE("   - _requestedEntry=" + String(_requestedEntry), true);
+        LogE("   - _idxWrite=" + String(_idxWrite), true);
+        LogE("   - _rolledOver=" + String(_rolledOver), true);
         return;
     }
 
