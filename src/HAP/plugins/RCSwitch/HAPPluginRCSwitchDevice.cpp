@@ -142,9 +142,12 @@ HAPAccessory* HAPPluginRCSwitchDevice::initAccessory(){
     // 
     _fakegato.registerFakeGatoService(_accessory, "RCSwitch " + String(houseAddress) + String(deviceAddress), true);
     
-    
     _fakegato.setSerialNumber(sn);    
     _fakegato.initSchedule();
+
+    _fakegato.setCallbackTimerStart(std::bind(&HAPPluginRCSwitchDevice::switchCallback, this, std::placeholders::_1));
+    // _fakegato.setCallbackTimerEnd(std::bind(&HAPPluginRCSwitchDevice::switchOff, this));
+
 
     // auto callbackScheduleRead = std::bind(&HAPPluginRCSwitchDevice::fakeGatoScheduleReadCallback, this);
     // _fakegato.setScheduleReadCallback(callbackScheduleRead);
@@ -219,4 +222,9 @@ bool HAPPluginRCSwitchDevice::fakeGatoCallback(){
 
     // Serial.println("power: " + _curPowerValue->value());    
     return _fakegato.addEntry(_stateValue->value());
+}
+
+void HAPPluginRCSwitchDevice::switchCallback(uint16_t state){
+    LogD(HAPServer::timeString() + " " + "HAPPluginRCSwitchDevice" + "->" + String(__FUNCTION__) + " [   ] " + "Callback to switch " + String(state == 1 ? "ON" : "OFF"), true);
+    _callbackRCSwitchSend(houseAddress, deviceAddress, state);
 }

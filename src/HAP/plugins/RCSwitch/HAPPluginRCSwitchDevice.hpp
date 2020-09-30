@@ -35,6 +35,10 @@ public:
     void setEventManager(EventManager* eventManager);
     void setFakeGatoFactory(HAPFakeGatoFactory* fakegatoFactory);
 
+    // void switchOn();
+    // void switchOff();
+    void switchCallback(uint16_t state);
+
     void setRCSwitchSendCallback(std::function<void(uint8_t, uint8_t, bool)> callback){
         _callbackRCSwitchSend = callback;
     }

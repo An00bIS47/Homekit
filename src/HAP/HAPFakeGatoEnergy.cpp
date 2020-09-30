@@ -235,15 +235,17 @@ void HAPFakeGatoEnergy::scheduleWrite(String oldValue, String newValue){
         _schedule->setStatusLED(tlvEntry->value[0]);
     } 
 
+    if (tlv.hasType(HAP_FAKEGATO_SCHEDULE_TYPE_DAYS)){        
+        TLV8Entry* tlvEntry = tlv.getType(HAP_FAKEGATO_SCHEDULE_TYPE_DAYS);  
+        _schedule->decodeDays(tlvEntry->value);
+    }
+    
     if (tlv.hasType(HAP_FAKEGATO_SCHEDULE_TYPE_PROGRAMS)){        
         TLV8Entry* tlvEntry = tlv.getType(HAP_FAKEGATO_SCHEDULE_TYPE_PROGRAMS);  
         _schedule->decodePrograms(tlvEntry->value);
     }
 
-    if (tlv.hasType(HAP_FAKEGATO_SCHEDULE_TYPE_DAYS)){        
-        TLV8Entry* tlvEntry = tlv.getType(HAP_FAKEGATO_SCHEDULE_TYPE_DAYS);  
-        _schedule->decodeDays(tlvEntry->value);
-    }
+
 
     _configReadCharacteristics->setValue(_schedule->buildScheduleString());
 }
@@ -260,4 +262,25 @@ void HAPFakeGatoEnergy::initSchedule(){
 void HAPFakeGatoEnergy::setSerialNumber(String serialNumber) {
     _serialNumber = serialNumber;
     _schedule->setSerialNumber(serialNumber);
+}
+
+
+void HAPFakeGatoEnergy::handle(bool forced){        
+    if ( shouldHandle() || forced ){       
+        // This line could cause a crash 
+        // LogD(HAPServer::timeString() + " " + String(__CLASS_NAME__) + "->" + String(__FUNCTION__) + " [   ] " + "Handle fakegato ", true);         
+        
+        if (_periodicUpdates) {
+            if (_callbackAddEntry != NULL){
+                bool overwritten = !_callbackAddEntry();  
+
+                // ToDo: Persist history ??
+                if (overwritten) {
+                    LogW("A fakegato history entry was overwritten!", true);
+                }                      
+            }   
+        }                                                            
+    }
+    
+    _schedule->handle();
 }

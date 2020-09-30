@@ -18,6 +18,8 @@
 #include "HAPTLV8.hpp"
 #include <vector>
 
+#include "HAPDailyTimerFactory.hpp"
+
 // ToDo: define or enum ?
 #define HAP_FAKEGATO_SCHEDULE_TYPE_SERIALNUMBER             0x04
 #define HAP_FAKEGATO_SCHEDULE_TYPE_COMMAND_TOGGLE_SCHEDULE  0x44
@@ -131,13 +133,38 @@ public:
     String buildScheduleString();
 
     void clear();
+
+    inline void setCallbackTimerStart(std::function<void(uint16_t)> callback){
+        _callbackTimerStart = callback;
+    }
+
+    inline void setCallbackTimerEnd(std::function<void(uint16_t)> callback){
+        _callbackTimerEnd = callback;
+    }
+
+    inline void handle() {        
+        // _alarms.delay(0);
+        _timers.handle();
+    }
+
+
+    void callbackTimerStart(uint16_t state);
+    void callbackTimerEnd(uint16_t state);
+
+
 protected:
     std::vector<HAPFakeGatoScheduleProgramEvent> _programEvents; // 7
     HAPFakeGatoScheduleDays _days;  
+    HAPDailyTimerFactory _timers;
 
     bool _isActive;  
     String _serialNumber;
     uint8_t _statusLED;
+
+    void programTimers();
+    
+    std::function<void(uint16_t)> _callbackTimerStart;
+    std::function<void(uint16_t)> _callbackTimerEnd;
 };
 
 #endif /* HAPFAKEGATOSCHEDULEENERGY_HPP_ */

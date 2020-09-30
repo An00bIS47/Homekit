@@ -69,6 +69,10 @@
 #define HAP_DEBUG_FAKEGATO_DETAILED 0
 #endif
 
+#ifndef HAP_DEBUG_FAKEGATO_SCHEDULE
+#define HAP_DEBUG_FAKEGATO_SCHEDULE 1
+#endif
+
 #ifndef HAP_DEBUG_PAIRINGS
 #define HAP_DEBUG_PAIRINGS			0
 #endif
@@ -110,9 +114,9 @@
 #endif
 
 /**
- * Homekit misc
+ * Homekit pairing
  ********************************************************************/
-#define HAP_ALLOW_PAIRING_WHILE_PAIRED 1
+#define HAP_ALLOW_PAIRING_WHILE_PAIRED 1		// disable for release !!
 
 
 /**

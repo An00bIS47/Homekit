@@ -58,6 +58,18 @@ public:
 
     void initSchedule() override;
 
+    virtual inline void setCallbackTimerStart(std::function<void(uint16_t)> callback){
+        // _callbackTimerStart = callback;
+        _schedule->setCallbackTimerStart(callback);
+    }
+
+    virtual inline void setCallbackTimerEnd(std::function<void(uint16_t)> callback){
+        // _callbackTimerEnd = callback;
+        _schedule->setCallbackTimerEnd(callback);
+    }
+
+    void handle(bool forced = false) override;
+
 protected:
     // Schedules
     void scheduleRead(String oldValue, String newValue) override;
@@ -68,6 +80,9 @@ private:
     
     std::vector<HAPFakeGatoEnergyData>* _vectorBuffer; 
     HAPFakeGatoScheduleEnergy* _schedule;
+
+    // std::function<void(uint16_t)> _callbackTimerEnd;
+    // std::function<void(uint16_t)> _callbackTimerStart;
 };
 
 #endif /* HAPFAKEGATOENERGY_HPP_ */

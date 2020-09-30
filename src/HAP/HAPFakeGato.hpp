@@ -167,7 +167,7 @@ public:
 
     void registerFakeGatoService(HAPAccessory* accessory, String name, bool withSchedule = false);
     
-    void handle(bool forced = false);
+    virtual void handle(bool forced = false);
 
     virtual void    begin()     = 0;
     virtual size_t  size()      = 0;
