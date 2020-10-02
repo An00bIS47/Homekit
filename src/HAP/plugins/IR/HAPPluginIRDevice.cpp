@@ -83,11 +83,13 @@ HAPAccessory* HAPPluginIRDevice::initAccessory(){
     name += " ";
     name += resultToHexidecimal(&_capture);
 
+    String sn = HAPDeviceID::serialNumber("IR", resultToHexidecimal(&_capture));    
+
     // Create accessory if not already created
     _accessory = new HAPAccessory();
     //HAPAccessory::addInfoServiceToAccessory(_accessory, "Builtin LED", "ACME", "LED", "123123123", &identify);
     auto callbackIdentify = std::bind(&HAPPluginIRDevice::identify, this, std::placeholders::_1, std::placeholders::_2);
-    _accessory->addInfoService(name, "ACME", "IR Device", resultToHexidecimal(&_capture), callbackIdentify, "1.0");
+    _accessory->addInfoService(name, "ACME", "IR Device", sn, callbackIdentify, "1.0");
 
     // 
     // Outlet Service / Switch Service

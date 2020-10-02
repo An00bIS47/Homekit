@@ -18,8 +18,6 @@
 #include <functional>
 
 #include <ArduinoJson.h>
-#include <MD5Builder.h>
-
 
 #include "HAPAccessory.hpp"
 #include "HAPAccessorySet.hpp"
@@ -171,13 +169,6 @@ public:
 		return doc.as<JsonObject>();
 	}
 
-	inline String md5(String str) {
-		_md5.begin();
-		_md5.add(String(str));
-		_md5.calculate();
-		return _md5.toString();
-	}
-
 	inline enum HAP_PLUGIN_TYPE type(){
 		return _type;
 	}
@@ -267,9 +258,7 @@ protected:
 	
 	MemberFunctionCallable<HAPPlugin> _listenerMemberFunctionPlugin;
 	
-	HAPFakeGatoFactory*			_fakeGatoFactory;
-
-	MD5Builder 					_md5;
+	HAPFakeGatoFactory*			_fakeGatoFactory;	
 };
 
 	/* 

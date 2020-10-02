@@ -12,7 +12,7 @@
 
 #define VERSION_MAJOR       0
 #define VERSION_MINOR       0
-#define VERSION_REVISION    3
+#define VERSION_REVISION    5
 #define VERSION_BUILD       1
 
 
@@ -141,9 +141,7 @@ HAPAccessory* HAPPluginDHT::initAccessory(){
 #if HAP_PLUGIN_DHT_USE_DUMMY
 #else
 
-
 	sensor_t sensor;
-
 	_dht->temperature().getSensor(&sensor);	
 #endif
 
@@ -153,10 +151,11 @@ HAPAccessory* HAPPluginDHT::initAccessory(){
 
 	auto callbackIdentify = std::bind(&HAPPlugin::identify, this, std::placeholders::_1, std::placeholders::_2);
 #if HAP_PLUGIN_DHT_USE_DUMMY
-	String sn = md5(HAPDeviceID::deviceID() + _name);
+	String sn = HAPDeviceID::serialNumber("DHT", "dummy");    	
 	_accessory->addInfoService("DHT Sensor", "ACME", "DHT", sn, callbackIdentify, version());
 #else    
-	String sn = md5(HAPDeviceID::deviceID() + _name + String(sensor.version));
+
+	String sn = HAPDeviceID::serialNumber("DHT", String(sensor.version));    		
 	_accessory->addInfoService("DHT Sensor", "ACME", sensor.name, sn, callbackIdentify, version());
 #endif
 

@@ -13,7 +13,7 @@
 
 #define VERSION_MAJOR       0
 #define VERSION_MINOR       0
-#define VERSION_REVISION    3	// 2 = FakeGato support
+#define VERSION_REVISION    5	// 2 = FakeGato support
 #define VERSION_BUILD       1
 
 
@@ -132,11 +132,12 @@ bool HAPPluginNeoPixel::begin(){
 
 HAPAccessory* HAPPluginNeoPixel::initAccessory(){
  
+    String sn = HAPDeviceID::serialNumber("NEO", String(_gpio));
 
 	_accessory = new HAPAccessory();
 	//HAPAccessory::addInfoServiceToAccessory(_accessory, "Builtin LED", "ACME", "LED", "123123123", &identify);
     auto callbackIdentify = std::bind(&HAPPluginNeoPixel::identify, this, std::placeholders::_1, std::placeholders::_2);
-    _accessory->addInfoService("NeoPixel", "ACME", "NeoPix", "321123", callbackIdentify, version());
+    _accessory->addInfoService("NeoPixel", "ACME", "NeoPix", sn, callbackIdentify, version());
 
     HAPService* _service = new HAPService(HAP_SERVICE_LIGHTBULB);
     _accessory->addService(_service);

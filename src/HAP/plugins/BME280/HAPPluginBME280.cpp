@@ -17,7 +17,7 @@
 #define SCL_PIN				SCL
 
 #define VERSION_MAJOR       0
-#define VERSION_MINOR       3	// 2 = FakeGato support
+#define VERSION_MINOR       5	// 2 = FakeGato support
 #define VERSION_REVISION    1
 #define VERSION_BUILD       2
 
@@ -140,7 +140,7 @@ HAPAccessory* HAPPluginBME280::initAccessory(){
 #endif
 	_accessory = new HAPAccessory();
 
-	String sn = md5(HAPDeviceID::deviceID() + _name);
+	String sn = HAPDeviceID::serialNumber("BME", String(hex));
 
 	auto callbackIdentify = std::bind(&HAPPlugin::identify, this, std::placeholders::_1, std::placeholders::_2);
    	_accessory->addInfoService("Weather", "ACME", "BME280 " + String(hex), sn, callbackIdentify, version());

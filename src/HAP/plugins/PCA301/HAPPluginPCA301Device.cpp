@@ -44,8 +44,7 @@ HAPPluginPCA301Device::HAPPluginPCA301Device(uint8_t channel_, uint32_t devId_, 
 
 HAPAccessory* HAPPluginPCA301Device::initAccessory(){
 
-
-    String sn = md5(HAPDeviceID::deviceID() + name + String(devId));
+    String sn = HAPDeviceID::serialNumber("PCA", String(devId));    
 
     // Create accessory if not already created
     _accessory = new HAPAccessory();

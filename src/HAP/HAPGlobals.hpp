@@ -38,7 +38,7 @@
  * Version
  ********************************************************************/
 #define HOMEKIT_VERSION_MAJOR 		0
-#define HOMEKIT_VERSION_MINOR 		6
+#define HOMEKIT_VERSION_MINOR 		7
 #define HOMEKIT_VERSION_REVISION 	0
 
 
@@ -70,7 +70,7 @@
 #endif
 
 #ifndef HAP_DEBUG_FAKEGATO_SCHEDULE
-#define HAP_DEBUG_FAKEGATO_SCHEDULE 1
+#define HAP_DEBUG_FAKEGATO_SCHEDULE 0
 #endif
 
 #ifndef HAP_DEBUG_PAIRINGS
@@ -94,7 +94,7 @@
 #endif
 
 #ifndef HAP_DEBUG_RF24
-#define HAP_DEBUG_RF24				1
+#define HAP_DEBUG_RF24				0
 #endif
 
 #ifndef HAP_DEBUG_WEBSERVER
@@ -102,7 +102,7 @@
 #endif
 
 #ifndef HAP_DEBUG_MIFLORA
-#define HAP_DEBUG_MIFLORA			1
+#define HAP_DEBUG_MIFLORA			0
 #endif
 
 #ifndef HAP_DEBUG_IR

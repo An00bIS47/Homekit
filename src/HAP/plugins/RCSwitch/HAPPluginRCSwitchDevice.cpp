@@ -47,10 +47,7 @@ HAPPluginRCSwitchDevice::HAPPluginRCSwitchDevice(uint8_t houseAddress_, uint8_t 
 
 HAPAccessory* HAPPluginRCSwitchDevice::initAccessory(){
 
-    String sn = md5(HAPDeviceID::deviceID() + name + String(houseAddress) + String(deviceAddress));    
-
-    // deviceAdress RC - deviceAddress & houseAddress & deviceAddress
-    
+    String sn = HAPDeviceID::serialNumber("RC", String(houseAddress) + String(deviceAddress));    
 
     // Create accessory if not already created
     _accessory = new HAPAccessory();

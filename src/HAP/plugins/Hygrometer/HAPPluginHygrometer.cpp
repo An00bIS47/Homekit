@@ -34,7 +34,7 @@
 
 #define VERSION_MAJOR       0
 #define VERSION_MINOR       0
-#define VERSION_REVISION    3
+#define VERSION_REVISION    5
 #define VERSION_BUILD       1
 
 #define HAP_PLUGIN_HYGROMTER_REFERENCE      2550    // value if put in a glass of water
@@ -138,10 +138,10 @@ void HAPPluginHygrometer::setValue(int iid, String oldValue, String newValue){
 HAPAccessory* HAPPluginHygrometer::initAccessory(){
 	LogD("\nInitializing plugin: " + _name + " ...", false);
 
-	_accessory = new HAPAccessory();
-	
-	auto callbackIdentify = std::bind(&HAPPlugin::identify, this, std::placeholders::_1, std::placeholders::_2);
-	String sn = md5(HAPDeviceID::deviceID() + _name);
+	String sn = HAPDeviceID::serialNumber("HY", "001");    
+
+	_accessory = new HAPAccessory();	
+	auto callbackIdentify = std::bind(&HAPPlugin::identify, this, std::placeholders::_1, std::placeholders::_2);	
 	_accessory->addInfoService("Hygrometer", "ACME", "YL-69", sn, callbackIdentify, version());
 
 	//

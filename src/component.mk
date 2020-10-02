@@ -9,11 +9,21 @@
 
 DEBUG  		= 1
 
+# broken :(
 # BOARD		= SPARKFUN
+
+# CB3DC4
 #BOARD		= SPARKFUN2
-#BOARD		= SPARKFUN3
+
+# 134248
+# BOARD		= SPARKFUN3
+
+# 13994C
 BOARD		= SPARKFUN4
+
 # BOARD		= HELTEC
+
+# broken :(
 # BOARD		= HUZZAH
 
 ENABLE_OTA			= 1
@@ -22,7 +32,6 @@ ENABLE_TRUSTSTORE	= 1
 
 
 WOLFSSL 	= 0
-
 SRP_TEST 	= 0
 
 
