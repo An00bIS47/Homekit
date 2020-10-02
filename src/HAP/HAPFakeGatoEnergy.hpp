@@ -25,7 +25,6 @@ struct HAPFakeGatoEnergyData {
     uint8_t status;    
 };
 
-
 class HAPFakeGatoEnergy : public HAPFakeGato  {
 public:
 
@@ -85,9 +84,6 @@ private:
 
     std::vector<HAPFakeGatoEnergyData>* _vectorBuffer; 
     HAPFakeGatoScheduleEnergy* _schedule;
-
-    // std::function<void(uint16_t)> _callbackTimerEnd;
-    // std::function<void(uint16_t)> _callbackTimerStart;    
 };
 
 #endif /* HAPFAKEGATOENERGY_HPP_ */

@@ -22,6 +22,10 @@
 
 // ToDo: define or enum ?
 #define HAP_FAKEGATO_SCHEDULE_TYPE_SERIALNUMBER             0x04
+
+#define HAP_FAKEGATO_SCHEDULE_TYPE_USED_MEMORY              0x06
+#define HAP_FAKEGATO_SCHEDULE_TYPE_ROLLED_OVER_INDEX        0x07
+
 #define HAP_FAKEGATO_SCHEDULE_TYPE_COMMAND_TOGGLE_SCHEDULE  0x44
 #define HAP_FAKEGATO_SCHEDULE_TYPE_COMMAND_STATUS_LED       0x20
 #define HAP_FAKEGATO_SCHEDULE_TYPE_PROGRAMS                 0x45
@@ -105,7 +109,7 @@ class HAPFakeGatoScheduleEnergy {
 public:    
 
     HAPFakeGatoScheduleEnergy();
-    HAPFakeGatoScheduleEnergy(String serialNumber, std::function<void(uint16_t)> callbackStartTimer, std::function<void(uint16_t)> callbackEndTimer, std::function<uint32_t(void)> callbackRefTime, std::function<uint32_t(void)> callbackTimestampLastActivity);
+    HAPFakeGatoScheduleEnergy(String serialNumber, std::function<void(uint16_t)> callbackStartTimer, std::function<void(uint16_t)> callbackEndTimer, std::function<uint32_t(void)> callbackRefTime, std::function<uint32_t(void)> callbackTimestampLastActivity, std::function<uint32_t(void)> callbackTimestampLastEntry);
     ~HAPFakeGatoScheduleEnergy();
 
     void begin();
@@ -160,6 +164,18 @@ public:
         _callbackGetTimestampLastActivity = callback;
     }
 
+    inline void setCallbackGetTimestampLastEntry(std::function<uint32_t(void)> callback){
+        _callbackGetTimestampLastEntry = callback;
+    }
+
+    inline void setCallbackGetMemoryUsed(std::function<uint16_t(void)> callback){
+        _callbackGetMemoryUsed = callback;
+    }
+
+    inline void setCallbackGetRolledOverIndex(std::function<uint32_t(void)> callback){
+        _callbackGetRolledOverIndex = callback;
+    }
+
 protected:
     std::vector<HAPFakeGatoScheduleProgramEvent> _programEvents; // 7
     HAPFakeGatoScheduleDays _days;  
@@ -176,6 +192,10 @@ protected:
 
     std::function<uint32_t(void)> _callbackGetRefTime;
     std::function<uint32_t(void)> _callbackGetTimestampLastActivity;
+    std::function<uint32_t(void)> _callbackGetTimestampLastEntry;
+    
+    std::function<uint16_t(void)> _callbackGetMemoryUsed;
+    std::function<uint32_t(void)> _callbackGetRolledOverIndex;
 };
 
 #endif /* HAPFAKEGATOSCHEDULEENERGY_HPP_ */

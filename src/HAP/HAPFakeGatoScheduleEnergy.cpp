@@ -22,14 +22,22 @@ HAPFakeGatoScheduleEnergy::HAPFakeGatoScheduleEnergy(){
 
 	_callbackGetRefTime = nullptr;
 	_callbackGetTimestampLastActivity = nullptr;
+	_callbackGetTimestampLastEntry = nullptr;
+
+	_callbackGetMemoryUsed = nullptr;
+	_callbackGetRolledOverIndex = nullptr;
 }
 
-HAPFakeGatoScheduleEnergy::HAPFakeGatoScheduleEnergy(String serialNumber, std::function<void(uint16_t)> callbackStartTimer, std::function<void(uint16_t)> callbackEndTimer, std::function<uint32_t(void)> callbackRefTime, std::function<uint32_t(void)> callbackTimestampLastActivity){
+HAPFakeGatoScheduleEnergy::HAPFakeGatoScheduleEnergy(String serialNumber, std::function<void(uint16_t)> callbackStartTimer, std::function<void(uint16_t)> callbackEndTimer, std::function<uint32_t(void)> callbackRefTime, std::function<uint32_t(void)> callbackTimestampLastActivity, std::function<uint32_t(void)> callbackTimestampLastEntry){
 	_serialNumber = serialNumber;
 	_callbackTimerStart = callbackStartTimer;
 	_callbackTimerEnd = callbackEndTimer;
 	_callbackGetRefTime = callbackRefTime;
 	_callbackGetTimestampLastActivity = callbackTimestampLastActivity;
+	_callbackGetTimestampLastEntry = callbackTimestampLastEntry;
+
+	// _callbackGetMemoryUsed
+	// _callbackGetRolledOverIndex
 }
 
 HAPFakeGatoScheduleEnergy::~HAPFakeGatoScheduleEnergy(){
@@ -309,9 +317,28 @@ String HAPFakeGatoScheduleEnergy::buildScheduleString(){
     // Serial Number
     // tlv.encode(0x04, {0x42, 0x56, 0x31, 0x32, 0x4A, 0x31, 0x41, 0x30, 0x37, 0x32, 0x31, 0x32});
 	tlv.encode(HAP_FAKEGATO_SCHEDULE_TYPE_SERIALNUMBER, _serialNumber.length(), (uint8_t*)_serialNumber.c_str());    
-   
-    tlv.encode(0x06, {0xFB, 0x0A});
-    tlv.encode(0x07, {0x0C, 0x10, 0x00, 0x00});
+	
+	// Number of history entries
+    // tlv.encode(0x06, {0xFB, 0x0A});
+	ui16_to_ui8 memoryUsed;
+	if (_callbackGetMemoryUsed != nullptr) {
+		memoryUsed.ui16 = _callbackGetMemoryUsed();
+	} else {
+		memoryUsed.ui16 = 0;
+	}
+	
+	tlv.encode(HAP_FAKEGATO_SCHEDULE_TYPE_USED_MEMORY, 2, memoryUsed.ui8); 
+	
+	// Number of rolled over index    
+    // tlv.encode(0x07, {0x0C, 0x10, 0x00, 0x00});
+	ui32_to_ui8 rolledOverIndex;
+	if (_callbackGetRolledOverIndex != nullptr) {
+		rolledOverIndex.ui32 = _callbackGetRolledOverIndex();
+	} else {
+		rolledOverIndex.ui32 = 0;
+	}
+	tlv.encode(HAP_FAKEGATO_SCHEDULE_TYPE_ROLLED_OVER_INDEX, 4, rolledOverIndex.ui8); 
+
     tlv.encode(0x0B, {0x00, 0x00});
     tlv.encode(0x05, {0x00});
     tlv.encode(0x02, {0x90, 0x27, 0x00, 0x00});
@@ -365,32 +392,32 @@ String HAPFakeGatoScheduleEnergy::buildScheduleString(){
     // tlv.encode(0x60, {0x64});
 	tlv.encode(HAP_FAKEGATO_SCHEDULE_TYPE_STATUS_LED, 1, _statusLED);
 
-     // last activity On switch ?
-    // tlv.encode(0xD0, {0x52, 0x09, 0x03, 0x00});
+    // last activity On switch ?
+    // tlv.encode(0xD0, {0x99, 0x6C, 0x21, 0x00});
 	ui32_to_ui8 secsLastAct;
 	if ((_callbackGetTimestampLastActivity != nullptr) && (_callbackGetRefTime != nullptr)) {
-		secsLastAct.ui32 = HAPServer::timestamp() -_callbackGetTimestampLastActivity() - _callbackGetRefTime();
+		secsLastAct.ui32 = _callbackGetTimestampLastActivity() - _callbackGetRefTime();
 	} else {
 		secsLastAct.ui32 = 0;
 	}    
 	tlv.encode(0xD0, 4, secsLastAct.ui8); // offset ?
 
 #if HAP_DEBUG_FAKEGATO_SCHEDULE	
-	HAPHelper::array_print("secsLastAct", secsLastAct.ui8, 4);
+	// HAPHelper::array_print("secsLastAct", secsLastAct.ui8, 4);
 #endif
 
-    //  ref time / timestamp ?
+    //  EVE Time
 	//tlv.encode(0x9B, {0xFB, 0x2C, 0x19, 0x00}); // offset ?
 	ui32_to_ui8 secs;
-	if (_callbackGetRefTime != nullptr) {
-		secs.ui32 = HAPServer::timestamp() -_callbackGetTimestampLastActivity() - _callbackGetRefTime();
+	if ((_callbackGetTimestampLastEntry != nullptr) && (_callbackGetRefTime != nullptr)) {
+		secs.ui32 = _callbackGetTimestampLastEntry() - _callbackGetRefTime();
 	} else {
 		secs.ui32 = 0;
 	}    
 	tlv.encode(0x9B, 4, secs.ui8); // offset ?
 
 #if HAP_DEBUG_FAKEGATO_SCHEDULE	
-    HAPHelper::array_print("secs", secs.ui8, 4);
+	HAPHelper::array_print("secs", secs.ui8, 4);
 #endif
     
     // ending bytes?

@@ -132,7 +132,7 @@ void HAPFakeGato::handle(bool forced){
         if (_periodicUpdates) {
             if (_callbackAddEntry != NULL){
                 bool overwritten = !_callbackAddEntry();  
-
+                
                 // ToDo: Persist history ??
                 if (overwritten) {
                     LogW("A fakegato history entry was overwritten!", true);
@@ -205,7 +205,7 @@ void HAPFakeGato::updateS2R1Value(){
     
     // ToDo: Rewrite and remove union
     HAPFakeGatoInfoStart infoStart;
-    infoStart.data.evetime              = _timestampLastEntry - _refTime; // Time from last update in seconds
+    infoStart.data.evetime              = _timestampLastEntry - _refTime;       // Time from last update in seconds
     infoStart.data.negativeOffset       = 0x00;                                 // Negativ offset of reference time
     infoStart.data.refTimeLastUpdate    = _refTime - FAKEGATO_EPOCH_OFFSET;     // reference time/last Accessory time update (taken from E863F117-079E-48FF-8F27-9C2605A29F52)
     infoStart.data.sigLength            = sigLength / 2;                        // signature length -> stefdude comment

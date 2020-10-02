@@ -11,7 +11,7 @@
   
 
 HAPDailyTimerFactory::HAPDailyTimerFactory(){
-	_isEnabled = true;
+	_isEnabled = false;
 }
 
 void HAPDailyTimerFactory::handle() {
@@ -44,7 +44,7 @@ bool HAPDailyTimerFactory::isEnabled(){
 }
 
 void HAPDailyTimerFactory::addTimer(HAPDailyTimer dailyTimer){
-    _timers.push_back(dailyTimer);
+	_timers.push_back(dailyTimer);
 }
     
 

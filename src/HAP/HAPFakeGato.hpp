@@ -238,6 +238,14 @@ public:
 
     inline uint32_t getTimestampLastEntry(){
         return _timestampLastEntry;
+    }   
+
+    inline uint16_t getMemoryUsed(){
+        return _memoryUsed;
+    } 
+
+    inline uint32_t getRolledOverIndex(){
+        return _idxRead;
     }
 
     inline void setRefTime(uint32_t reftime){
@@ -306,7 +314,7 @@ protected:
     
 
     uint32_t                _idxWrite;      // Write index
-    uint32_t                _idxRead;       // Read index
+    uint32_t                _idxRead;       // Read index, used for rolled over
 
     uint32_t                _requestedEntry;
 

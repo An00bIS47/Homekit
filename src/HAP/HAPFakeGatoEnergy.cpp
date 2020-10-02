@@ -63,7 +63,8 @@ void HAPFakeGatoEnergy::begin(){
     }
 
     _schedule->setCallbackGetReftime(std::bind(&HAPFakeGatoEnergy::getTimestampRefTime, this));
-    
+    _schedule->setCallbackGetTimestampLastEntry(std::bind(&HAPFakeGatoEnergy::getTimestampLastEntry, this));
+    _schedule->setCallbackGetRolledOverIndex(std::bind(&HAPFakeGatoEnergy::getRolledOverIndex, this));
     // _configReadCharacteristics->setValue(_schedule->buildScheduleString());
 
 }
@@ -157,6 +158,9 @@ bool HAPFakeGatoEnergy::addEntry(HAPFakeGatoEnergyData data){
 
     updateS2R1Value();        
     
+    // Update schedule here for last act. 
+    _schedule->buildScheduleString();
+    
     return !_rolledOver;
 }
 
@@ -169,7 +173,7 @@ void HAPFakeGatoEnergy::getData(const size_t count, uint8_t *data, size_t* lengt
 
     if ( (tmpRequestedEntry >= _idxWrite) && ( _rolledOver == false) ){
         _transfer = false;
-        LogE("ERROR: Fakegato Energy could not send the requested entry. The requested index does not exist!", true);                          
+        LogE("ERROR 1: Fakegato Energy could not send the requested entry. The requested index does not exist!", true);                          
         LogE("   - tmpRequestedEntry=" + String(tmpRequestedEntry), true);
         LogE("   - _requestedEntry=" + String(_requestedEntry), true);
         LogE("   - _idxWrite=" + String(_idxWrite), true);
@@ -222,13 +226,15 @@ void HAPFakeGatoEnergy::getData(const size_t count, uint8_t *data, size_t* lengt
         *length = offset + HAP_FAKEGATO_DATA_LENGTH;    
         offset  = offset + HAP_FAKEGATO_DATA_LENGTH;
 
-        // _noOfEntriesSent++;
-
-        if ( (tmpRequestedEntry + 1 >= _idxWrite )  && ( _rolledOver == false) ){
+        if ( (tmpRequestedEntry >= (_idxWrite - 1))  && ( _rolledOver == false) ){
             _transfer = false;    
 
             //Serial.println(">>>>>>>>>>>> ABORT 1");                                
-            LogW("WARNING: Fakegato could not send the requested entry", true);
+            LogE("ERROR 2: Fakegato Energy could not send the requested entry. The requested index does not exist!", true);                          
+            LogE("   - tmpRequestedEntry=" + String(tmpRequestedEntry), true);
+            LogE("   - _requestedEntry=" + String(_requestedEntry), true);
+            LogE("   - _idxWrite=" + String(_idxWrite), true);
+            LogE("   - _rolledOver=" + String(_rolledOver), true);
             break;
         }
         
@@ -237,13 +243,17 @@ void HAPFakeGatoEnergy::getData(const size_t count, uint8_t *data, size_t* lengt
         tmpRequestedEntry = incrementIndex(tmpRequestedEntry);
         entryData = (*_vectorBuffer)[tmpRequestedEntry];
         
-        if ( _rolledOver == true) { 
-            if (tsOld > entryData.timestamp) {
-                _transfer = false;  
-                LogW("WARNING: Fakegato could not send the requested entry", true);                                
-                break;
-            }
-        }      
+        // if ( _rolledOver == true) { 
+        //     if (tsOld > entryData.timestamp) {
+        //         _transfer = false;  
+        //         LogE("ERROR 3: Fakegato Energy could not send the requested entry. The requested index does not exist!", true);                          
+        //         LogE("   - tmpRequestedEntry=" + String(tmpRequestedEntry), true);
+        //         LogE("   - _requestedEntry=" + String(_requestedEntry), true);
+        //         LogE("   - _idxWrite=" + String(_idxWrite), true);
+        //         LogE("   - _rolledOver=" + String(_rolledOver), true);
+        //         break;
+        //     }
+        // }      
     }         
 }
 

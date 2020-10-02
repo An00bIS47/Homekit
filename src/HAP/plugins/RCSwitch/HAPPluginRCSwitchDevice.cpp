@@ -158,7 +158,7 @@ HAPAccessory* HAPPluginRCSwitchDevice::initAccessory(){
     _fakegato.setSerialNumber(sn);    
     
     _fakegato.setCallbackTimerStart(std::bind(&HAPPluginRCSwitchDevice::switchCallback, this, std::placeholders::_1));
-    // _fakegato.setCallbackTimerEnd(std::bind(&HAPPluginRCSwitchDevice::switchOff, this));
+    // _fakegato.setCallbackTimerEnd(std::bind(&HAPPluginRCSwitchDevice::switchCallback, this));
     _fakegato.setCallbackGetTimestampLastActivity(std::bind(&HAPPluginRCSwitchDevice::getTimestampLastActivity, this));
 
     _fakegato.beginSchedule();
@@ -221,7 +221,7 @@ void HAPPluginRCSwitchDevice::changedState(bool oldValue, bool newValue){
         _timestampLastActivity = HAPServer::timestamp();
 
         // Add entry to fakegato
-        _fakegato.addEntry("0", "0", "0", "0", newValue ? "1" : "0");
+        _fakegato.addEntry("0", "0", "0", "0", newValue == true ? "1" : "0");
 
         struct HAPEvent event = HAPEvent(nullptr, _accessory->aid, _stateValue->iid, newValue ? "1" : "0");							
         _eventManager->queueEvent( EventManager::kEventNotifyController, event);        
@@ -232,7 +232,7 @@ bool HAPPluginRCSwitchDevice::fakeGatoCallback(){
     // LogD(HAPServer::timeString() + " " + "HAPPluginPCA301Device" + "->" + String(__FUNCTION__) + " [   ] " + "fakeGatoCallback()", true);
 
     // Serial.println("power: " + _curPowerValue->value());    
-    return _fakegato.addEntry("0", "0", "0", "0", _stateValue->value() ? "1" : "0");
+    return _fakegato.addEntry("0", "0", "0", "0", _stateValue->value());
 }
 
 void HAPPluginRCSwitchDevice::switchCallback(uint16_t state){
