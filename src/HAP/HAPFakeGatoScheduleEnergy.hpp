@@ -22,6 +22,10 @@
 
 // ToDo: define or enum ?
 #define HAP_FAKEGATO_SCHEDULE_TYPE_SERIALNUMBER             0x04
+
+#define HAP_FAKEGATO_SCHEDULE_TYPE_USED_MEMORY              0x06
+#define HAP_FAKEGATO_SCHEDULE_TYPE_ROLLED_OVER_INDEX        0x07
+
 #define HAP_FAKEGATO_SCHEDULE_TYPE_COMMAND_TOGGLE_SCHEDULE  0x44
 #define HAP_FAKEGATO_SCHEDULE_TYPE_COMMAND_STATUS_LED       0x20
 #define HAP_FAKEGATO_SCHEDULE_TYPE_PROGRAMS                 0x45
@@ -105,6 +109,7 @@ class HAPFakeGatoScheduleEnergy {
 public:    
 
     HAPFakeGatoScheduleEnergy();
+    HAPFakeGatoScheduleEnergy(String serialNumber, std::function<void(uint16_t)> callbackStartTimer, std::function<void(uint16_t)> callbackEndTimer, std::function<uint32_t(void)> callbackRefTime, std::function<uint32_t(void)> callbackTimestampLastActivity, std::function<uint32_t(void)> callbackTimestampLastEntry);
     ~HAPFakeGatoScheduleEnergy();
 
     void begin();
@@ -115,8 +120,8 @@ public:
 
     void encodePrograms(uint8_t* data, size_t *dataSize);
 
-    bool isActive();
-    void setActive(bool on);
+    bool isEnabled();
+    void enable(bool on);
 
     inline void setSerialNumber(String serialNumber){
         _serialNumber = serialNumber;
@@ -151,13 +156,32 @@ public:
     void callbackTimerStart(uint16_t state);
     void callbackTimerEnd(uint16_t state);
 
+    inline void setCallbackGetReftime(std::function<uint32_t(void)> callback){
+        _callbackGetRefTime = callback;
+    }
+    
+    inline void setCallbackGetTimestampLastActivity(std::function<uint32_t(void)> callback){
+        _callbackGetTimestampLastActivity = callback;
+    }
+
+    inline void setCallbackGetTimestampLastEntry(std::function<uint32_t(void)> callback){
+        _callbackGetTimestampLastEntry = callback;
+    }
+
+    inline void setCallbackGetMemoryUsed(std::function<uint16_t(void)> callback){
+        _callbackGetMemoryUsed = callback;
+    }
+
+    inline void setCallbackGetRolledOverIndex(std::function<uint32_t(void)> callback){
+        _callbackGetRolledOverIndex = callback;
+    }
 
 protected:
     std::vector<HAPFakeGatoScheduleProgramEvent> _programEvents; // 7
     HAPFakeGatoScheduleDays _days;  
     HAPDailyTimerFactory _timers;
 
-    bool _isActive;  
+    // bool _isActive;  
     String _serialNumber;
     uint8_t _statusLED;
 
@@ -165,6 +189,13 @@ protected:
     
     std::function<void(uint16_t)> _callbackTimerStart;
     std::function<void(uint16_t)> _callbackTimerEnd;
+
+    std::function<uint32_t(void)> _callbackGetRefTime;
+    std::function<uint32_t(void)> _callbackGetTimestampLastActivity;
+    std::function<uint32_t(void)> _callbackGetTimestampLastEntry;
+    
+    std::function<uint16_t(void)> _callbackGetMemoryUsed;
+    std::function<uint32_t(void)> _callbackGetRolledOverIndex;
 };
 
 #endif /* HAPFAKEGATOSCHEDULEENERGY_HPP_ */

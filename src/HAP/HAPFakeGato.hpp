@@ -76,17 +76,10 @@ extern "C" {
 #define HAP_CHARACTERISTIC_FAKEGATO_TOTAL_CONSUMPTION           "E863F10C-079E-48FF-8F27-9C2605A29F52"  // 10C
 #define HAP_CHARACTERISTIC_FAKEGATO_CURRENT_CONSUMPTION         "E863F10D-079E-48FF-8F27-9C2605A29F52"  // 10D
 #define HAP_CHARACTERISTIC_FAKEGATO_AIR_PRESSURE                "E863F10F-079E-48FF-8F27-9C2605A29F52"  // 10F
-#define HAP_CHARACTERISTIC_FAKEGATO_RESET_TOTAL                 "E863F112-079E-48FF-8F27-9C2605A29F52"  // 112  => Reset Total
-#define HAP_CHARACTERISTIC_FAKEGATO_HISTORY_STATUS              "E863F116-079E-48FF-8F27-9C2605A29F52"  // 116  => S2R1
-#define HAP_CHARACTERISTIC_FAKEGATO_HISTORY_ENTRIES             "E863F117-079E-48FF-8F27-9C2605A29F52"  // 117  => S2R2
 #define HAP_CHARACTERISTIC_FAKEGATO_OPEN_DURATION               "E863F118-079E-48FF-8F27-9C2605A29F52"  // 118
 #define HAP_CHARACTERISTIC_FAKEGATO_CLOSED_DURATION             "E863F119-079E-48FF-8F27-9C2605A29F52"  // 119
 #define HAP_CHARACTERISTIC_FAKEGATO_LAST_ACTIVATION             "E863F11A-079E-48FF-8F27-9C2605A29F52"  // 11A
-#define HAP_CHARACTERISTIC_FAKEGATO_HISTORY_REQUEST             "E863F11C-079E-48FF-8F27-9C2605A29F52"  // 11C  => S2W1
-#define HAP_CHARACTERISTIC_FAKEGATO_CONFIG_WRITE                "E863F11D-079E-48FF-8F27-9C2605A29F52"  // 11D  => Config Write
-#define HAP_CHARACTERISTIC_FAKEGATO_FIRMWARE_UPDATE             "E863F11E-079E-48FF-8F27-9C2605A29F52"  // 11E  => Firmware Update ??
 #define HAP_CHARACTERISTIC_FAKEGATO_SENSITIVITY                 "E863F120-079E-48FF-8F27-9C2605A29F52"  // 120
-#define HAP_CHARACTERISTIC_FAKEGATO_SET_TIME                    "E863F121-079E-48FF-8F27-9C2605A29F52"  // 121  => S2W2
 #define HAP_CHARACTERISTIC_FAKEGATO_ELECTRIC_CURRENT            "E863F126-079E-48FF-8F27-9C2605A29F52"  // 126
 #define HAP_CHARACTERISTIC_FAKEGATO_kVAh                        "E863F127-079E-48FF-8F27-9C2605A29F52"  // 127
 #define HAP_CHARACTERISTIC_FAKEGATO_TIMES_OPENED                "E863F129-079E-48FF-8F27-9C2605A29F52"  // 129
@@ -95,7 +88,27 @@ extern "C" {
 #define HAP_CHARACTERISTIC_FAKEGATO_VALVE_POSITION              "E863F12E-079E-48FF-8F27-9C2605A29F52"  // 12E
 #define HAP_CHARACTERISTIC_FAKEGATO_PROGRAM_DATA                "E863F12E-079E-48FF-8F27-9C2605A29F52"  // 12E
 #define HAP_CHARACTERISTIC_FAKEGATO_ELEVATION                   "E863F130-079E-48FF-8F27-9C2605A29F52"  // 130
+
+// 
+// Characteristics Common
+// 
+#define HAP_CHARACTERISTIC_FAKEGATO_RESET_TOTAL                 "E863F112-079E-48FF-8F27-9C2605A29F52"  // 112  => Reset Total
+#define HAP_CHARACTERISTIC_FAKEGATO_FIRMWARE_UPDATE             "E863F11E-079E-48FF-8F27-9C2605A29F52"  // 11E  => Firmware Update ??
+
+// 
+// Characteristics History
+// 
+#define HAP_CHARACTERISTIC_FAKEGATO_SET_TIME                    "E863F121-079E-48FF-8F27-9C2605A29F52"  // 121  => S2W2
+#define HAP_CHARACTERISTIC_FAKEGATO_HISTORY_REQUEST             "E863F11C-079E-48FF-8F27-9C2605A29F52"  // 11C  => S2W1
+#define HAP_CHARACTERISTIC_FAKEGATO_HISTORY_STATUS              "E863F116-079E-48FF-8F27-9C2605A29F52"  // 116  => S2R1
+#define HAP_CHARACTERISTIC_FAKEGATO_HISTORY_ENTRIES             "E863F117-079E-48FF-8F27-9C2605A29F52"  // 117  => S2R2
+
+// 
+// Characteristics Schedule
+// 
 #define HAP_CHARACTERISTIC_FAKEGATO_CONFIG_READ                 "E863F131-079E-48FF-8F27-9C2605A29F52"  // 131  => Config Read
+#define HAP_CHARACTERISTIC_FAKEGATO_CONFIG_WRITE                "E863F11D-079E-48FF-8F27-9C2605A29F52"  // 11D  => Config Write
+
 
 
 enum HAPFakeGatoType{
@@ -110,6 +123,48 @@ enum HAPFakeGatoType{
     HAPFakeGatoType_aqua,
     HAPFakeGatoType_aqua21,
     HAPFakeGatoType_switch,
+};
+
+enum HAPFakeGatoSignature{
+    HAPFakeGatoSignature_Temperature                = 0x01,     // Length: 2
+    HAPFakeGatoSignature_Humidity                   = 0x02,     // Length: 2
+    HAPFakeGatoSignature_AirPressure                = 0x03,     // Length: 2
+    HAPFakeGatoSignature_AirQuality                 = 0x04,
+    HAPFakeGatoSignature_PowerApparent              = 0x05,
+    HAPFakeGatoSignature_Door                       = 0x06,
+    HAPFakeGatoSignature_Power10thWh                = 0x07,     // Length: 2
+    HAPFakeGatoSignature_WaterFlow                  = 0x08,
+    HAPFakeGatoSignature_WaterTemperature           = 0x09,
+    HAPFakeGatoSignature_WaterEnergy                = 0x0A, 
+    HAPFakeGatoSignature_PowerWatt                  = 0x0B,     // Length: 2
+    HAPFakeGatoSignature_PowerVoltage               = 0x0C,     // Length: 2
+    HAPFakeGatoSignature_PowerCurrent               = 0x0D,     // Length: 2
+    HAPFakeGatoSignature_PowerOnOff                 = 0x0E,     // Length: 1
+    HAPFakeGatoSignature_VOCHeatSense               = 0x0F,
+    HAPFakeGatoSignature_ValvePercent               = 0x10,
+    HAPFakeGatoSignature_TargetTemperature          = 0x11,
+    HAPFakeGatoSignature_ThermoTarget               = 0x12,
+    HAPFakeGatoSignature_Motion                     = 0x13,
+    HAPFakeGatoSignature_Switch                     = 0x14,
+    HAPFakeGatoSignature_PowerOnOff2                = 0x15,
+    HAPFakeGatoSignature_SmokeDetected              = 0x16,
+    HAPFakeGatoSignature_CurrentPosition            = 0x17,
+    HAPFakeGatoSignature_TargetPosition             = 0x18,
+    HAPFakeGatoSignature_PositionState              = 0x19,
+    HAPFakeGatoSignature_ObstructionDetected        = 0x1A,
+    HAPFakeGatoSignature_SmokeDetectorStatus        = 0x1B,
+    HAPFakeGatoSignature_MotionActive               = 0x1C,
+    HAPFakeGatoSignature_OpenWindow                 = 0x1D,
+    // 1E unknown                                   = 0x1E,
+    HAPFakeGatoSignature_InUse                      = 0x1F,
+    HAPFakeGatoSignature_WindowState                = 0x20,
+    HAPFakeGatoSignature_PotState                   = 0x21,
+    HAPFakeGatoSignature_VOCDensity                 = 0x22,
+    HAPFakeGatoSignature_BatteryLevelMillivolts     = 0x23,
+    HAPFakeGatoSignature_StatelessSwitchEvent       = 0x24,
+    HAPFakeGatoSignature_BatteryLevelPercent        = 0x25,
+    HAPFakeGatoSignature_Lock                       = 0x26,
+    HAPFakeGatoSignature_AirPressureChange          = 0x27,
 };
 
 union ui32_to_ui8 {
@@ -177,6 +232,22 @@ public:
     virtual void    getData(const size_t count, uint8_t *data, size_t* length, uint16_t offset) = 0;
     // virtual bool    addRefTimeEntry(uint32_t timestmap = 0) = 0;
 
+    inline uint32_t getTimestampRefTime() {
+        return _refTime;
+    }
+
+    inline uint32_t getTimestampLastEntry(){
+        return _timestampLastEntry;
+    }   
+
+    inline uint16_t getMemoryUsed(){
+        return _memoryUsed;
+    } 
+
+    inline uint32_t getRolledOverIndex(){
+        return _idxRead;
+    }
+
     inline void setRefTime(uint32_t reftime){
         _refTime = reftime;
     }
@@ -213,7 +284,7 @@ public:
         _serialNumber = serialNumber;
     }
     
-    virtual void initSchedule() {};
+    virtual void beginSchedule() {};
 
 protected:
     std::function<bool()> _callbackAddEntry = NULL;  
@@ -243,12 +314,12 @@ protected:
     
 
     uint32_t                _idxWrite;      // Write index
-    uint32_t                _idxRead;       // Read index
+    uint32_t                _idxRead;       // Read index, used for rolled over
 
     uint32_t                _requestedEntry;
 
     bool                    _periodicUpdates;
-    uint32_t*               _ptrTimestampLastEntry;
+    uint32_t                _timestampLastEntry;
 
     uint32_t     		    _previousMillis;
     uint32_t     			_interval;

@@ -20,6 +20,10 @@ public:
 
     void handle();
     bool isActive(uint8_t index);
+    
+    void enable(bool on);
+    bool isEnabled();
+
     void addTimer(HAPDailyTimer dailyTimer);
     
     inline void clear(){
@@ -31,7 +35,7 @@ public:
     }
 
 protected:
-
+    bool _isEnabled;
     std::vector<HAPDailyTimer> _timers;
 };
 

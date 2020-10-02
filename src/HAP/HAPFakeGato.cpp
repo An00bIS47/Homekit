@@ -37,7 +37,7 @@ HAPFakeGato::HAPFakeGato() {
     _requestedEntry = 0;
 
 
-    _ptrTimestampLastEntry = nullptr;
+    _timestampLastEntry = 0;
 
     _periodicUpdates = false;
 
@@ -132,7 +132,7 @@ void HAPFakeGato::handle(bool forced){
         if (_periodicUpdates) {
             if (_callbackAddEntry != NULL){
                 bool overwritten = !_callbackAddEntry();  
-
+                
                 // ToDo: Persist history ??
                 if (overwritten) {
                     LogW("A fakegato history entry was overwritten!", true);
@@ -192,10 +192,10 @@ void HAPFakeGato::updateS2R1Value(){
     getSignature(signature);
 
 
-    // uint32_t eveTime = (*_ptrTimestampLastEntry) - _refTime;  
+    // uint32_t eveTime = (*_timestampLastEntry) - _refTime;  
     // Serial.println("Now: " + String(now));
-    // Serial.print("_ptrTimestampLastEntry: ");
-    // Serial.println(*_ptrTimestampLastEntry);
+    // Serial.print("_timestampLastEntry: ");
+    // Serial.println(*_timestampLastEntry);
 
     // Serial.print("_refTime: ");
     // Serial.println(_refTime - FAKEGATO_EPOCH_OFFSET);
@@ -205,7 +205,7 @@ void HAPFakeGato::updateS2R1Value(){
     
     // ToDo: Rewrite and remove union
     HAPFakeGatoInfoStart infoStart;
-    infoStart.data.evetime              = (*_ptrTimestampLastEntry) - _refTime; // Time from last update in seconds
+    infoStart.data.evetime              = _timestampLastEntry - _refTime;       // Time from last update in seconds
     infoStart.data.negativeOffset       = 0x00;                                 // Negativ offset of reference time
     infoStart.data.refTimeLastUpdate    = _refTime - FAKEGATO_EPOCH_OFFSET;     // reference time/last Accessory time update (taken from E863F117-079E-48FF-8F27-9C2605A29F52)
     infoStart.data.sigLength            = sigLength / 2;                        // signature length -> stefdude comment
@@ -362,13 +362,14 @@ void HAPFakeGato::setS2W1Characteristics(String oldValue, String newValue){
 
     // LogE("REQUESTED ENTRY: " + String(_requestedEntry) + " - ALREADY SENT: " +  String(_noOfEntriesSent), true);
 
-    if (_requestedEntry == 0) {
-        // Set reference time for EVE.app to S2R2        
-#if HAP_DEBUG_FAKEGATO        
-        Serial.println("_requestedEntry == 0 - > Set reftime from iOS device -> send entries");
-#endif        
+//     if (_requestedEntry == 0) {
+//         // Set reference time for EVE.app to S2R2        
+// #if HAP_DEBUG_FAKEGATO        
+//         Serial.println("_requestedEntry == 0 - > Set reftime from iOS device -> send entries");
+// #endif        
 
-    } else if (_requestedEntry == 1) {
+//     } else 
+    if (_requestedEntry == 0 || _requestedEntry == 1) {
         // set reftime as first entry
 #if HAP_DEBUG_FAKEGATO        
         Serial.println("_requestedEntry == 1 - > Set Reftime as 1st entry");

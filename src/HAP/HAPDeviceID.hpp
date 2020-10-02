@@ -16,15 +16,17 @@
 class HAPDeviceID {
 public:
 
-	static byte* generateID();
+	static uint8_t* generateID();
 	//static byte* deviceID();
 	//static const char* deviceID();
 
 	static String deviceID();	// mac address -> change to random
 	static String chipID();		// basically mac reverse
 
+	static String serialNumber(String type, String id);
+
 private:
-	static byte _deviceID[6];
+	static uint8_t _deviceID[6];
 };
 
 #endif /* HAPDEVICEID_HPP_ */

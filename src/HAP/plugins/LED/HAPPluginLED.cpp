@@ -26,7 +26,7 @@
 #endif
 
 #define VERSION_MAJOR       0
-#define VERSION_MINOR       3	// 2 = FakeGato support
+#define VERSION_MINOR       5	// 2 = FakeGato support
 #define VERSION_REVISION    2
 #define VERSION_BUILD       1
 
@@ -122,12 +122,13 @@ bool HAPPluginLED::begin(){
 
 
 HAPAccessory* HAPPluginLED::initAccessory(){
- 
+    
+    String sn = HAPDeviceID::serialNumber("LED", String(_gpio));
 
 	_accessory = new HAPAccessory();
 	//HAPAccessory::addInfoServiceToAccessory(_accessory, "Builtin LED", "ACME", "LED", "123123123", &identify);
     auto callbackIdentify = std::bind(&HAPPlugin::identify, this, std::placeholders::_1, std::placeholders::_2);
-    _accessory->addInfoService("Builtin LED", "ACME", "LED", "123123123", callbackIdentify, version());
+    _accessory->addInfoService("Builtin LED", "ACME", "LED", sn, callbackIdentify, version());
 
     HAPService* _service = new HAPService(HAP_SERVICE_LIGHTBULB);
     _accessory->addService(_service);

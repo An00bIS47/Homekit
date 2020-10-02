@@ -20,8 +20,10 @@ section "Log Info" {
 	}]	
 	hex $sig_len "Signature"
 
-	set usedMem [uint16 "Used Memory"]
 	
+
+
+	set usedMem [uint16 "Used Memory"]	
 	set v [bit_reverse $usedMem]
 	
 

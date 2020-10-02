@@ -103,7 +103,11 @@ std::string HAPPluginNimbleMiFloraDevice::address(){
 
 HAPAccessory* HAPPluginNimbleMiFloraDevice::initAccessory(){
     
-    String sn = md5(HAPDeviceID::deviceID() + String(_deviceAddress.c_str()));
+    String devId = _deviceAddress.c_str();
+	devId = devId.substring(8);
+	devId.replace(":", "");
+	String sn = HAPDeviceID::serialNumber("MiFlora", String(devId));    
+
     
     _accessory = new HAPAccessory();
     //HAPAccessory::addInfoServiceToAccessory(_accessory, "Builtin LED", "ACME", "LED", "123123123", &identify);

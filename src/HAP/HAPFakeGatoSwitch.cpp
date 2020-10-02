@@ -89,7 +89,7 @@ bool HAPFakeGatoSwitch::addEntry(HAPFakeGatoSwitchData data){
         _memoryUsed++;
     }
 
-    _ptrTimestampLastEntry = &data.timestamp;
+    _timestampLastEntry = data.timestamp;
     
 
     (*_vectorBuffer)[_idxWrite] = data;
@@ -168,7 +168,11 @@ void HAPFakeGatoSwitch::getData(const size_t count, uint8_t *data, size_t* lengt
 
     if ( (tmpRequestedEntry >= _idxWrite) && ( _rolledOver == false) ){
         _transfer = false;
-        LogW("WARNING: Fakegato could not send the requested entry. The requested index does not exist!", true);                                                     
+        LogE("ERROR: Fakegato Switch could not send the requested entry. The requested index does not exist!", true);                          
+        LogE("   - tmpRequestedEntry=" + String(tmpRequestedEntry), true);
+        LogE("   - _requestedEntry=" + String(_requestedEntry), true);
+        LogE("   - _idxWrite=" + String(_idxWrite), true);
+        LogE("   - _rolledOver=" + String(_rolledOver), true);
         return;
     }
 
@@ -212,7 +216,11 @@ void HAPFakeGatoSwitch::getData(const size_t count, uint8_t *data, size_t* lengt
         if ( (tmpRequestedEntry + 1 >= _idxWrite )  && ( _rolledOver == false) ){
             _transfer = false;    
 
-            LogW("WARNING: Fakegato could not send the requested entry", true);                             
+            LogE("ERROR: Fakegato Switch could not send the requested entry. The requested index does not exist!", true);                          
+            LogE("   - tmpRequestedEntry=" + String(tmpRequestedEntry), true);
+            LogE("   - _requestedEntry=" + String(_requestedEntry), true);
+            LogE("   - _idxWrite=" + String(_idxWrite), true);
+            LogE("   - _rolledOver=" + String(_rolledOver), true);                          
             break;
         }
 
@@ -225,7 +233,11 @@ void HAPFakeGatoSwitch::getData(const size_t count, uint8_t *data, size_t* lengt
         if ( _rolledOver == true) { 
             if (tsOld > entryData.timestamp) {
                 _transfer = false;  
-                LogW("WARNING: Fakegato could not send the requested entry", true);                              
+                LogE("ERROR: Fakegato Switch could not send the requested entry. The requested index does not exist!", true);                          
+                LogE("   - tmpRequestedEntry=" + String(tmpRequestedEntry), true);
+                LogE("   - _requestedEntry=" + String(_requestedEntry), true);
+                LogE("   - _idxWrite=" + String(_idxWrite), true);
+                LogE("   - _rolledOver=" + String(_rolledOver), true);                            
                 break;
             }
         }
