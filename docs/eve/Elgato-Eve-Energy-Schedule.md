@@ -36,53 +36,74 @@ The schedule is handled as `TLV8` data although exposed as `data` in the charact
 
 # Available TLV8 `types`:
 
-| Type | Description   | Energy | Energy Strip |
-| 0x00 | ??            | (/) | (/) |
-| 0x02 | ??            | (/) |     |
-| 0x03 | ??            | (/) | (/) |
-| 0x04 | Serial Number | (/) | (/) |
-| 0x05 | ??            | (/) |     |
-| 0x06 | Memory Used   | (/) |     |
-| 0x07 | Rolled Over Index  | (/) |     |
-| 0x09 | ??            |     | (/) |
-| 0x0B | ??            | (/) | (/) |
-| 0x9B | ??            |     | (/) |
-| 0x0F | ??            | (/) |     |
-| 0x19 | ??            | (/) |     |
-| 0x14 | ??            | (/) |     |
-| 0x1A | ??            | (/) |     |
-| 0x4A | ??            | (/) | (/) |
-| 0x5F | ??            | (/) |     |
-| 0x9C | ??            |     | (/) |
-| 0x0C | Hostname      |     | (/) |
-| 0x44 | Commands      | (/) | (/) |
-| 0x45 | Programs      | (/) | (/) |
-| 0x46 | Days          | (/) | (/) |
-| 0x47 | ??   	       | (/) | (/) |
-| 0x48 | ??            | (/) | (/) |
-| 0x60 | Status LED    | (/) |     |
-| 0xD0 | Last Switch Act | (/) |     |
-| 0xD2 | End mark ?    | (/) |     |
-| 0xD3 | ??            |     | (/) |
-| 0x98 | Last Update   | (/) |     |
-| 0x32 | ??            |     | (/) |
-| 0x33 | ??            |     | (/) |
-| 0xA8 | ??            |     | (/) |
+Type | Description   		| Energy 			 | Energy Strip
+-----|----------------------|--------------------|--------------
+0x00 | ??            		| :white_check_mark: | :white_check_mark: 
+0x02 | ??            		| :white_check_mark: |     
+0x03 | ??            		| :white_check_mark: | :white_check_mark: 
+0x04 | Serial Number 		| :white_check_mark: | :white_check_mark: 
+0x05 | ??            		| :white_check_mark: |     
+0x06 | Memory Used   		| :white_check_mark: |     
+0x07 | Rolled Over Index  	| :white_check_mark: |     
+0x09 | ??            		|     				 | :white_check_mark: 
+0x0B | ??            		| :white_check_mark: | :white_check_mark: 
+0x9B | ??            		|     				 | :white_check_mark: 
+0x0F | ??            		| :white_check_mark: |     
+0x19 | ??            		| :white_check_mark: |     
+0x14 | ??            		| :white_check_mark: |     
+0x1A | ??            		| :white_check_mark: |     
+0x4A | ??            		| :white_check_mark: | :white_check_mark: 
+0x5F | ??            		| :white_check_mark: |     
+0x9C | ??            		|     				 | :white_check_mark: 
+0x0C | Hostname      		|     				 | :white_check_mark: 
+0x44 | Commands      		| :white_check_mark: | :white_check_mark: 
+0x45 | Programs      		| :white_check_mark: | :white_check_mark: 
+0x46 | Days          		| :white_check_mark: | :white_check_mark: 
+0x47 | ??   	       		| :white_check_mark: | :white_check_mark: 
+0x48 | ??            		| :white_check_mark: | :white_check_mark: 
+0x60 | Status LED    		| :white_check_mark: |     
+0xD0 | Last Switch Activity | :white_check_mark: |     
+0xD2 | End mark      		| :white_check_mark: |     
+0xD3 | ??            		|     				 | :white_check_mark: 
+0x98 | Last Update   		| :white_check_mark: |     
+0x32 | ??            		|     				 | :white_check_mark: 
+0x33 | ??            		|     				 | :white_check_mark: 
+0xA8 | ??            		|     				 | :white_check_mark: 
 
 
-# End Mark ?
+# Memory Used
+
+`type` = `0x06`
+`length` = `2`
+
+Number of history entries
+
+
+
+# Rolled Over Index
+
+`type` = `0x07`
+`length` = `4`
+
+Index of oldest entry if rolled over, otherwise 0
+
+
+
+# End Mark
 
 `type` = `0xD2`
 
-This seems to be a the end mark for a tlv.
+This seems to be a the end mark for a TLV.
 The length is 0.
 
 
 # Last Switch Activity
 
 `type` = `0xD0`
+`length` = `4`
 
 Time in seconds from last switch activity 
+
 ```
 timestamp last switching activity - reference time
 ```
@@ -90,17 +111,20 @@ timestamp last switching activity - reference time
 # EVE Time
 
 `type` = `0x98`
+`length` = `4`
 
 Actual time, in seconds from last time update
+
 ```
 timestamp last update - reference time
 ```
 
 # Toggle Schedules On/Off
 
-Command to toggle schedules on/off.
+`type` = `0x44`
+`length` = `17`
 
-This command is stored in the `type` = `0x44`.
+Command to toggle schedules on/off.
 
 ## Example TLV8:
 ```
@@ -157,9 +181,12 @@ schedule ? console.log(colors.green("ON")) : console.log(colors.red("OFF"))
 
 # Set Status LED
 
-Command to set the status LED.
+`type` = `0x20`
+`length` = `1`
 
-This command is stored in the `type` = `0x20`.
+Command to set the status LED. The actual value will be given back in `type` = `0x60`
+
+
 
 ## Example TLV8:
 ```
@@ -246,7 +273,9 @@ for (var i = 0; i < array.length; i++) {
 
 # Programs
 
-Programs are stored in the `type` = `0x45`. 
+`type` = `0x45`
+`length` = `variable`
+
 There can be 7 programs (for each day 1) and up to 15 timers per program.
 
 There are 4 different types of timers:
@@ -425,7 +454,10 @@ programs: 1
 
 # Days
 
-Days are stored in the `type` = `0x46`.
+`type` = `0x46`
+`length` = `84`
+
+Active Days of each program
 
 ## Example TLV8:
 ```
