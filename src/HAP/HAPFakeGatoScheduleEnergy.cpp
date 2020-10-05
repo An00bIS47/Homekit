@@ -270,42 +270,50 @@ void HAPFakeGatoScheduleEnergy::clear(){
 }
 
 void HAPFakeGatoScheduleEnergy::fromJson(JsonObject &root){
+	
+	if (root["timer"].isNull()) return;
 
+	enable(root["timer"]["enabled"].as<bool>());
+	_days = HAPFakeGatoScheduleDays(root["timer"]["days"].as<uint32_t>());
+	
+	String dataStr = root["timer"]["programs"].as<String>();
+	
+	uint8_t data[dataStr.length() / 2];
+	HAPHelper::hexToBin(data, dataStr.c_str(), dataStr.length());
+	
+	decodePrograms(data);
+	
 }
 
 
-void HAPFakeGatoScheduleEnergy::toJson(JsonObject &root){
-/* 
+JsonObject HAPFakeGatoScheduleEnergy::toJson(){
+	/*
+		"days": uint32_t,
+		"programs": "0503....."
+	*/
+	const size_t capacity = 256;
+	DynamicJsonDocument doc(capacity);
 
-    HAPFakeGatoScheduleTimerType   type;
+	if (_programEvents.size() == 0) {
+	    doc.shrinkToFit();
+    	return doc.as<JsonObject>();
+	}
+	
+	doc["enabled"] = isEnabled();
+	doc["days"] = _days.daysnumber();
 
-    uint8_t     hour;
-    uint8_t     minute;
-    int32_t     offset;
+	size_t dataSize = 0;
+	encodePrograms(nullptr, &dataSize);
+	uint8_t data[dataSize];
+	encodePrograms(data, &dataSize);
 
-    bool        state;
-    HAPFakeGatoScheduleSunriseType sunrise; 
+	// HAPHelper::array_print("CONFIG SAVE data", data, dataSize);
 
-	"programs": [
-		{
-			"id": 1,
-			"active": true
-			"days": ["mon","tue", "wed", "thu", "fri", "sat", "sun"],
-			"timers": [
-				{
-					"type": 1,			-> needed
-					"hour": 10,
-					"minute": 20,
-					"offset": 26800,	-> needed
-					"state": true,		-> needed
-					"sunrise": 1		-> needed
-				}
-			]
-		}
-	]
+	char hexString[(dataSize * 2) + 1];
+	HAPHelper::binToHex(data, dataSize, hexString, (dataSize * 2) + 1);
 
-	=> ~ 14kB Data needed ... :(
-*/
+	doc["programs"] = hexString;
+	return doc.as<JsonObject>();
 }
 
 String HAPFakeGatoScheduleEnergy::buildScheduleString(){
@@ -417,7 +425,7 @@ String HAPFakeGatoScheduleEnergy::buildScheduleString(){
 	tlv.encode(0x9B, 4, secs.ui8); // offset ?
 
 #if HAP_DEBUG_FAKEGATO_SCHEDULE	
-	HAPHelper::array_print("secs", secs.ui8, 4);
+	// HAPHelper::array_print("secs", secs.ui8, 4);
 #endif
     
     // ending bytes?
@@ -433,73 +441,15 @@ String HAPFakeGatoScheduleEnergy::buildScheduleString(){
     memcpy(out + decodedLen, endBytes, 2);
     decodedLen = decodedLen + 2;
 
+#if HAP_DEBUG_FAKEGATO_SCHEDULE	
     HAPHelper::array_print("tlv", out, decodedLen);
+#endif
 
 	return base64::encode(out, decodedLen);
 }
 
 void HAPFakeGatoScheduleEnergy::programTimers() {
 	
-	
-	
-	
-	// mon
-	// if (_days.mon != 0){
-	// 	for (size_t i = 0; i < _programEvents[_days.mon].timerEvents.size(); i++) {
-	// 		HAPFakeGatoScheduleTimerEvent tEvent = _programEvents[_days.mon].timerEvents[i];			
-	// 		_alarms.alarmRepeat(dowMonday, tEvent.hour, tEvent.minute, 0, (tEvent.state == true ? std::bind(&HAPFakeGatoScheduleEnergy::switchOn,this) : std::bind(&HAPFakeGatoScheduleEnergy::switchOff,this)));
-	// 	}				
-	// }
-
-	// // tue
-	// if (_days.tue != 0){
-	// 	for (size_t i = 0; i < _programEvents[_days.tue].timerEvents.size(); i++) {
-	// 		HAPFakeGatoScheduleTimerEvent tEvent = _programEvents[_days.tue].timerEvents[i];			
-	// 		_alarms.alarmRepeat(dowTuesday, tEvent.hour, tEvent.minute, 0, (tEvent.state == true ? std::bind(&HAPFakeGatoScheduleEnergy::switchOn,this) : std::bind(&HAPFakeGatoScheduleEnergy::switchOff,this)));
-	// 	}				
-	// }
-
-	// // wed
-	// if (_days.wed != 0){
-	// 	for (size_t i = 0; i < _programEvents[_days.wed].timerEvents.size(); i++) {
-	// 		HAPFakeGatoScheduleTimerEvent tEvent = _programEvents[_days.wed].timerEvents[i];			
-	// 		_alarms.alarmRepeat(dowWednesday, tEvent.hour, tEvent.minute, 0, (tEvent.state == true ? std::bind(&HAPFakeGatoScheduleEnergy::switchOn,this) : std::bind(&HAPFakeGatoScheduleEnergy::switchOff,this)));
-	// 	}				
-	// }
-
-	// // thu
-	// if (_days.thu != 0){
-	// 	for (size_t i = 0; i < _programEvents[_days.thu].timerEvents.size(); i++) {
-	// 		HAPFakeGatoScheduleTimerEvent tEvent = _programEvents[_days.thu].timerEvents[i];			
-	// 		_alarms.alarmRepeat(dowThursday, tEvent.hour, tEvent.minute, 0, (tEvent.state == true ? std::bind(&HAPFakeGatoScheduleEnergy::switchOn,this) : std::bind(&HAPFakeGatoScheduleEnergy::switchOff,this)));
-	// 	}				
-	// }
-
-	// // fri
-	// if (_days.fri != 0){
-	// 	for (size_t i = 0; i < _programEvents[_days.fri].timerEvents.size(); i++) {
-	// 		HAPFakeGatoScheduleTimerEvent tEvent = _programEvents[_days.fri].timerEvents[i];			
-	// 		_alarms.alarmRepeat(dowFriday, tEvent.hour, tEvent.minute, 0, (tEvent.state == true ? std::bind(&HAPFakeGatoScheduleEnergy::switchOn,this) : std::bind(&HAPFakeGatoScheduleEnergy::switchOff,this)));
-	// 	}				
-	// }
-
-	// // sat
-	// if (_days.sat != 0){
-	// 	for (size_t i = 0; i < _programEvents[_days.sat].timerEvents.size(); i++) {
-	// 		HAPFakeGatoScheduleTimerEvent tEvent = _programEvents[_days.sat].timerEvents[i];			
-	// 		_alarms.alarmRepeat(dowSaturday, tEvent.hour, tEvent.minute, 0, (tEvent.state == true ? std::bind(&HAPFakeGatoScheduleEnergy::switchOn,this) : std::bind(&HAPFakeGatoScheduleEnergy::switchOff,this)));
-	// 	}				
-	// }
-
-	// // sun
-	// if (_days.thu != 0){
-	// 	for (size_t i = 0; i < _programEvents[_days.sun].timerEvents.size(); i++) {
-	// 		HAPFakeGatoScheduleTimerEvent tEvent = _programEvents[_days.sun].timerEvents[i];			
-	// 		_alarms.alarmRepeat(dowSunday, tEvent.hour, tEvent.minute, 0, (tEvent.state == true ? std::bind(&HAPFakeGatoScheduleEnergy::switchOn,this) : std::bind(&HAPFakeGatoScheduleEnergy::switchOff,this)));
-	// 	}				
-	// }
-
-
 	for (size_t i = 0; i < _programEvents.size(); i++){
 		
 #if HAP_DEBUG_FAKEGATO_SCHEDULE		

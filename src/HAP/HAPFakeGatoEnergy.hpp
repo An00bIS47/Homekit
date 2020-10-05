@@ -72,7 +72,16 @@ public:
     inline void setCallbackGetTimestampLastActivity(std::function<uint32_t(void)> callback){
         _schedule->setCallbackGetTimestampLastActivity(callback);
     }
+
+    JsonObject scheduleToJson();
+    void scheduleFromJson(JsonObject &root);
+
     
+    inline void setCallbackSaveConfig(std::function<void(void)> callback){
+        _callbackSaveConfig = callback;
+    }
+
+
 protected:
     // Schedules
     void scheduleRead(String oldValue, String newValue) override;
@@ -81,9 +90,12 @@ protected:
 
 
 private:
+    bool _shouldSave;
 
     std::vector<HAPFakeGatoEnergyData>* _vectorBuffer; 
     HAPFakeGatoScheduleEnergy* _schedule;
+
+    std::function<void(void)> _callbackSaveConfig;    
 };
 
 #endif /* HAPFAKEGATOENERGY_HPP_ */

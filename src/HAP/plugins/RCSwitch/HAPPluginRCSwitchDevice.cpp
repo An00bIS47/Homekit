@@ -152,11 +152,13 @@ HAPAccessory* HAPPluginRCSwitchDevice::initAccessory(){
     // 
     _fakegato.registerFakeGatoService(_accessory, "RCSwitch " + String(houseAddress) + String(deviceAddress), true);
     
-    _fakegato.setSerialNumber(sn);    
-    
+    // Fakegato Schedule
+    _fakegato.setSerialNumber(sn);        
     _fakegato.setCallbackTimerStart(std::bind(&HAPPluginRCSwitchDevice::switchCallback, this, std::placeholders::_1));
     // _fakegato.setCallbackTimerEnd(std::bind(&HAPPluginRCSwitchDevice::switchCallback, this));
     _fakegato.setCallbackGetTimestampLastActivity(std::bind(&HAPPluginRCSwitchDevice::getTimestampLastActivity, this));
+    
+    _fakegato.setCallbackSaveConfig(std::bind(&HAPPluginRCSwitchDevice::saveConfig, this));
 
     _fakegato.beginSchedule();
 
@@ -240,4 +242,18 @@ void HAPPluginRCSwitchDevice::switchCallback(uint16_t state){
 
 uint32_t HAPPluginRCSwitchDevice::getTimestampLastActivity(){
     return _timestampLastActivity;
+}
+
+JsonObject HAPPluginRCSwitchDevice::scheduleToJson(){
+    return _fakegato.scheduleToJson();
+}
+
+void HAPPluginRCSwitchDevice::scheduleFromJson(JsonObject &root){
+    _fakegato.scheduleFromJson(root);
+}
+
+
+void HAPPluginRCSwitchDevice::saveConfig(){ 
+    LogE(HAPServer::timeString() + " " + "HAPPluginRCSwitchDevice" + "->" + String(__FUNCTION__) + " [   ] " + "Update config event", true);		
+    _eventManager->queueEvent( EventManager::kEventUpdatedConfig, HAPEvent());
 }

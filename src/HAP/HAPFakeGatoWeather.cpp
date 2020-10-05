@@ -247,22 +247,22 @@ void HAPFakeGatoWeather::getData(const size_t count, uint8_t *data, size_t* leng
             break;
         }
 
-        
         uint32_t tsOld = entryData.timestamp;
         
         tmpRequestedEntry = incrementIndex(tmpRequestedEntry);
         entryData = (*_vectorBuffer)[tmpRequestedEntry];
         
-        // if ( _rolledOver == true) { 
-        //     if (tsOld > entryData.timestamp) {
-        //         _transfer = false;  
-        //         LogE("ERROR: Fakegato Weather could not send the requested entry. The requested index does not exist!", true);                          
-        //         LogE("   - tmpRequestedEntry=" + String(tmpRequestedEntry), true);
-        //         LogE("   - _requestedEntry=" + String(_requestedEntry), true);
-        //         LogE("   - _idxWrite=" + String(_idxWrite), true);
-        //         LogE("   - _rolledOver=" + String(_rolledOver), true);                              
-        //         break;
-        //     }
-        // }
+        
+        if ( _rolledOver == true) { 
+            if (tsOld > entryData.timestamp) {
+                _transfer = false;  
+                LogE("ERROR: Fakegato Weather could not send the requested entry. The requested index does not exist!", true);                          
+                LogE("   - tmpRequestedEntry=" + String(tmpRequestedEntry), true);
+                LogE("   - _requestedEntry=" + String(_requestedEntry), true);
+                LogE("   - _idxWrite=" + String(_idxWrite), true);
+                LogE("   - _rolledOver=" + String(_rolledOver), true);                              
+                break;
+            }
+        }
     }             
 }
