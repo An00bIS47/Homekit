@@ -267,17 +267,7 @@ void HAPPluginRCSwitch::setConfigImpl(JsonObject root){
 
             int index = indexOfDevice(newDevice);
             if ( index == -1 ){
-                _devices.push_back(newDevice);
-                
-                // newDevice->setFakeGatoFactory(_fakeGatoFactory);
-                // newDevice->setEventManager(_eventManager);
-                
-                // auto callbackSend = std::bind(&HAPPluginRCSwitch::sendDeviceCallback, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);        
-                // newDevice->setRCSwitchSendCallback(callbackSend);
-
-                // _accessorySet->addAccessory(newDevice->initAccessory());
-
-                
+                _devices.push_back(newDevice);                                
             } else {
                 _devices[index] = newDevice;
             }         
