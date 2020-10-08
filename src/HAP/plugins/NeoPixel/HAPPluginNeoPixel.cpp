@@ -25,122 +25,72 @@ HAPPluginNeoPixel::HAPPluginNeoPixel(){
     _interval = HAP_PLUGIN_NEOPIXEL_INTERVAL;
     _previousMillis = 0;
     _isOn = false;
-    _gpio = DATA_PIN;
+    _gpio = NEOPIXEL_DATA_PIN;
 
     _version.major      = VERSION_MAJOR;
     _version.minor      = VERSION_MINOR;
     _version.revision   = VERSION_REVISION;
     _version.build      = VERSION_BUILD;
+
+    _hue                = nullptr;
+    _saturation         = nullptr; 
+    _brightnessState    = nullptr;
+    _powerState         = nullptr;
 }
 
 void HAPPluginNeoPixel::changePower(bool oldValue, bool newValue) {
     LogE(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Setting iid " + String(_powerState->iid) +  " oldValue: " + oldValue + " -> newValue: " + newValue, true);
 
+    _isOn = newValue;
     if (!newValue) {
-        // digitalWrite(_gpio, HIGH);     // dont know why to put low here, maybe because of SPI ?  
-        _pixels->clear();     
+        _pixels[0] = CRGB::Black;
+        FastLED.show();             
     } else {
-        _pixels->show();
+        setPixelColor(_hue->value().toInt(), _saturation->value().toInt(), _brightnessState->value().toInt());
     }    
 }
 
-#if HAP_PLUGIN_NEOPIXEL_ENABLE_BRIGHTNESS	
 
 void HAPPluginNeoPixel::changeBrightness(int oldValue, int newValue){
     printf("New brightness state: %d\n", newValue);
-    
-    // ToDo: Brightness from Homekit in % -> change to 0 - 255
-    uint8_t valSat = map((uint8_t)_saturation->value().toInt(), 0, 100, 0, 255);
-    uint8_t valBrightness = map(newValue, 0, 100, 0, 255);
-    uint16_t valHue = (_hue->value().toInt() * HUE_MULTIPLICATOR);
 
-    LogE(">>> NOW NOWN OWN OW NOWN OWN OWNWO", true);
-    Serial.printf("hue: %d, sat: %d, bri: %d\n", valHue, valSat, valBrightness);
-
-    uint32_t rgbcolor = _pixels->gamma32(_pixels->ColorHSV(valHue, valSat, valBrightness));
-    _pixels->setPixelColor(0, rgbcolor);
-
-    _pixels->show();
+    setPixelColor(_hue->value().toInt(), _saturation->value().toInt(), newValue);    
 }   
 
-#endif
 
 void HAPPluginNeoPixel::changeHue(float oldValue, float newValue){
     printf("New hue state: %.2f\n", newValue);    
 
-    // ToDo: Hue from Homekit in arcdegress -> change to 0 - 65536
-    uint8_t valSat = map((uint8_t)_saturation->value().toInt(), 0, 100, 0, 255);
-    uint8_t valBrightness = map(_brightnessState->value().toInt(), 0, 100, 0, 255);
-    uint16_t valHue = (newValue * HUE_MULTIPLICATOR);
-    
-    LogE(">>> NOW NOWN OWN OW NOWN OWN OWNWO", true);
-    Serial.printf("hue: %d, sat: %d, bri: %d\n", valHue, valSat, valBrightness);
-
-    uint32_t rgbcolor = _pixels->gamma32(_pixels->ColorHSV(valHue, valSat, valBrightness));
-    _pixels->setPixelColor(0, rgbcolor);
-
-    _pixels->show();
+    setPixelColor((uint16_t)newValue, _saturation->value().toInt(), _brightnessState->value().toInt());
 }
 
 
 
 void HAPPluginNeoPixel::changeSaturation(float oldValue, float newValue){
     printf("New saturation state: %.2F\n", newValue);
-    
-    rgb_t rgb;
 
-    // ToDo: Saturation from Homekit in % -> change to 0 - 255
-    uint8_t valSat = map((uint8_t)newValue, 0, 100, 0, 255);
-    uint8_t valBrightness = map(_brightnessState->value().toInt(), 0, 100, 0, 255);
-    uint16_t valHue = (_hue->value().toInt() * HUE_MULTIPLICATOR);
-    LogE(">>> NOW NOWN OWN OW NOWN OWN OWNWO", true);
-    Serial.printf("hue: %d, sat: %d, bri: %d\n", valHue, valSat, valBrightness);
-
-    uint32_t rgbcolor = _pixels->gamma32(_pixels->ColorHSV(valHue, valSat, valBrightness));
-    _pixels->setPixelColor(0, rgbcolor);
-
-    _pixels->show();
+    setPixelColor(_hue->value().toInt(), (uint8_t)newValue, _brightnessState->value().toInt());
 }
 
 
-void HAPPluginNeoPixel::handleImpl(bool forced){
-    
-    // LogD(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Handle plguin [" + String(_interval) + "]", true);
-
-    // if (_isOn) {            
-    //     _pixels->setPixelColor(0, _pixels->Color(0, 255, 0));
-    //     setValue(_powerState->iid, "1", "0");
-    // } else {
-    //     _pixels->setPixelColor(0, _pixels->Color(255, 0, 0));          
-    //     setValue(_powerState->iid, "0", "1");
-    // }
-
-    // _pixels->show();
-
-    // Add event
-    // struct HAPEvent event = HAPEvent(nullptr, _accessory->aid, _powerState->iid, _powerState->value());							
-    // _eventManager->queueEvent( EventManager::kEventNotifyController, event);
-
-#if HAP_PLUGIN_NEOPIXEL_ENABLE_BRIGHTNESS	
-    // uint32_t freeMem = ESP.getFreeHeap();        
-    // uint8_t percentage = ( freeMem * 100) / 245000;        
-    
-    // setValue(_brightnessState->iid, _brightnessState->value(), String(percentage));
-
-    // Add event
-    // struct HAPEvent eventB = HAPEvent(nullptr, _accessory->aid, _brightnessState->iid, _brightnessState->value());							
-    // _eventManager->queueEvent( EventManager::kEventNotifyController, eventB);
-#endif        
+void HAPPluginNeoPixel::handleImpl(bool forced){       
 
 }
 
-bool HAPPluginNeoPixel::begin(){
+void HAPPluginNeoPixel::setPixelColor(uint16_t hueDegree, uint8_t satPercent, uint8_t briPercent){
+        uint8_t hue = map(hueDegree << 7, 0, 46080, 0, 255);
+        uint8_t sat = map(satPercent << 2, 0, 400, 0, 255);
+        uint8_t bri = map(briPercent << 2, 0, 400, 0, 255);
 
-    _pixels = new Adafruit_NeoPixel(NUM_LEDS, DATA_PIN, HAP_PLUGIN_NEOPIXEL_FORMAT);
-    _pixels->begin();    
-    _pixels->setBrightness(50);
-    _pixels->clear();
-    
+        CHSV hvsColor = CHSV(hue, sat, bri);
+        _pixels[0] = hvsColor;
+        FastLED.show();
+}
+
+bool HAPPluginNeoPixel::begin(){    
+    FastLED.addLeds<NEOPIXEL, NEOPIXEL_DATA_PIN>(_pixels, NUM_LEDS);  // GRB ordering is assumed
+    _pixels[0] = CRGB::Black;
+    FastLED.show();   
 
     return true;
 }
@@ -173,13 +123,12 @@ HAPAccessory* HAPPluginNeoPixel::initAccessory(){
     _powerState->valueChangeFunctionCall = callbackPowerState;
     _accessory->addCharacteristics(_service, _powerState);
 
-#if HAP_PLUGIN_NEOPIXEL_ENABLE_BRIGHTNESS	    
+
     _brightnessState = new intCharacteristics(HAP_CHARACTERISTIC_BRIGHTNESS, permission_read|permission_write|permission_notify, 0, 100, 1, unit_percentage);        
     _brightnessState->setValue("50");
     auto callbackBrightness = std::bind(&HAPPluginNeoPixel::changeBrightness, this, std::placeholders::_1, std::placeholders::_2);        
     _brightnessState->valueChangeFunctionCall = callbackBrightness;
     _accessory->addCharacteristics(_service, _brightnessState);    
-#endif
 
 
     //
@@ -219,13 +168,13 @@ HAPConfigValidationResult HAPPluginNeoPixel::validateConfig(JsonObject object){
     if (result.valid == false) {
         return result;
     }
-    result.valid = false;
+    // result.valid = false;
     
     // plugin._name.gpio
-    if (object.containsKey("gpio") && !object["gpio"].is<uint8_t>()) {
-        result.reason = "plugins." + _name + ".gpio is not an integer";
-        return result;
-    }
+    // if (object.containsKey("gpio") && !object["gpio"].is<uint8_t>()) {
+    //     result.reason = "plugins." + _name + ".gpio is not an integer";
+    //     return result;
+    // }
 
     result.valid = true;
     return result;
@@ -235,7 +184,7 @@ JsonObject HAPPluginNeoPixel::getConfigImpl(){
     LogD(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Get config implementation", true);
 
     DynamicJsonDocument doc(128);
-    doc["gpio"] = _gpio;
+    // doc["gpio"] = _gpio;
 
 #if HAP_DEBUG_CONFIG
     serializeJson(doc, Serial);
@@ -249,8 +198,8 @@ JsonObject HAPPluginNeoPixel::getConfigImpl(){
 void HAPPluginNeoPixel::setConfigImpl(JsonObject root){
 
 
-    if (root.containsKey("gpio")){
-        // LogD(" -- password: " + String(root["password"]), true);
-        _gpio = root["gpio"].as<uint8_t>();
-    }
+    // if (root.containsKey("gpio")){
+    //     // LogD(" -- password: " + String(root["password"]), true);
+    //     _gpio = root["gpio"].as<uint8_t>();
+    // }
 }
