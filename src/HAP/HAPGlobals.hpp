@@ -176,9 +176,9 @@
 #define HAP_ENABLE_WEBSERVER		1		// Enable Webinterface
 #endif										// Default: 1
 
-#define HAP_ENABLE_WEBSERVER_CORE_0	0		// Run webserver on core 0 in a seperate task
-											// default 0 - Still work-in-progress
-											// currently could causes heap caps failures if used with BLE
+// #define HAP_ENABLE_WEBSERVER_CORE_0	0		// Run webserver on core 0 in a seperate task
+// 											// default 0 - Still work-in-progress
+// 											// currently could causes heap caps failures if used with BLE
 
 
 #define HAP_WEBSERVER_USE_JWT 		0		// use JWT for access
@@ -232,8 +232,6 @@
 #define HAP_CAPTIVE_AP_IP			"192.168.0.1"
 #define HAP_CAPTIVE_AP_SSID			"Homekit Captive Portal"	// ssid of the access point
 #define HAP_CAPTIVE_TITLE			"Homekit Captive Portal"	// Title of the webpage for captive portal
-
-
 
 
 /**

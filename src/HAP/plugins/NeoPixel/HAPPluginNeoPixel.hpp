@@ -28,7 +28,12 @@ struct rgb_t {
 	uint8_t r;
 	uint8_t g;
 	uint8_t b;
-	uint8_t w;
+
+	rgb_t(){
+		r = 0;
+		g = 0;
+		b = 0;
+	}
 }; 
 
 class HAPPluginNeoPixel: public HAPPlugin {
@@ -38,10 +43,6 @@ public:
 	HAPAccessory* initAccessory() override;
 	
 	bool begin();
-
-	void setValue(int iid, String oldValue, String newValue);
-
-	String getValue(int iid);
 
 	void identify(bool oldValue, bool newValue);
 
@@ -59,9 +60,7 @@ public:
 	HAPConfigValidationResult validateConfig(JsonObject object);
 	JsonObject getConfigImpl();
 	void setConfigImpl(JsonObject root);
-
-
-	static void hsi2rgb(float H, float S, float I, rgb_t* rgbw);
+	
 private:	
 	//HAPAccessory*			_accessory;
 	// HAPService*				_service;	

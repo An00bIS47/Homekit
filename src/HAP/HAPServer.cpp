@@ -272,6 +272,7 @@ bool HAPServer::begin(bool resume) {
 
 	// WiFi
 	_wifi.begin(&_config, std::bind(&HAPServer::begin, this, std::placeholders::_1), hostname);	
+	
 	// if captive portal, return here	
 	if (_config.config()["wifi"]["mode"].as<uint8_t>() == (uint8_t)HAP_WIFI_MODE_AP){
 		free(hostname);
@@ -484,7 +485,6 @@ bool HAPServer::begin(bool resume) {
   	// 
   	// Loading fakegato factory
   	// 
-
 	// Setting Reference Time to FakeGato
 	LogI( "Setting EVE reference time ...", true);
 	_fakeGatoFactory.setRefTime(_config.config()["fakegato"]["reftime"].as<uint32_t>());

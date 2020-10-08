@@ -10,6 +10,7 @@
 
 #define HAP_PLUGIN_NEOPIXEL_INTERVAL 1000	
 
+#define HUE_MULTIPLICATOR   182.04
 
 #define VERSION_MAJOR       0
 #define VERSION_MINOR       0
@@ -33,44 +34,51 @@ HAPPluginNeoPixel::HAPPluginNeoPixel(){
 }
 
 void HAPPluginNeoPixel::changePower(bool oldValue, bool newValue) {
-    LogD(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Setting iid " + String(_powerState->iid) +  " oldValue: " + oldValue + " -> newValue: " + newValue, true);
+    LogE(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Setting iid " + String(_powerState->iid) +  " oldValue: " + oldValue + " -> newValue: " + newValue, true);
 
-    if (newValue == true) {
+    if (!newValue) {
         // digitalWrite(_gpio, HIGH);     // dont know why to put low here, maybe because of SPI ?  
+        _pixels->clear();     
     } else {
-        // digitalWrite(_gpio, LOW);
-    }      
-    _pixels->show();
+        _pixels->show();
+    }    
 }
 
 #if HAP_PLUGIN_NEOPIXEL_ENABLE_BRIGHTNESS	
 
 void HAPPluginNeoPixel::changeBrightness(int oldValue, int newValue){
     printf("New brightness state: %d\n", newValue);
+    
+    // ToDo: Brightness from Homekit in % -> change to 0 - 255
+    uint8_t valSat = map((uint8_t)_saturation->value().toInt(), 0, 100, 0, 255);
+    uint8_t valBrightness = map(newValue, 0, 100, 0, 255);
+    uint16_t valHue = (_hue->value().toInt() * HUE_MULTIPLICATOR);
 
-    rgb_t rgb;
+    LogE(">>> NOW NOWN OWN OW NOWN OWN OWNWO", true);
+    Serial.printf("hue: %d, sat: %d, bri: %d\n", valHue, valSat, valBrightness);
 
-    hsi2rgb(_hue->value().toFloat(), newValue, _brightnessState->value().toFloat(), &rgb);
+    uint32_t rgbcolor = _pixels->gamma32(_pixels->ColorHSV(valHue, valSat, valBrightness));
+    _pixels->setPixelColor(0, rgbcolor);
 
-    Serial.printf("r: %d - g: %d - b: %d \n", rgb.r, rgb.g, rgb.b);
-
-
-    _pixels->setPixelColor(0, _pixels->Color(rgb.r, rgb.b, rgb.g));
     _pixels->show();
 }   
 
 #endif
 
 void HAPPluginNeoPixel::changeHue(float oldValue, float newValue){
-    printf("New hue state: %.2f\n", newValue);
-    rgb_t rgb;
+    printf("New hue state: %.2f\n", newValue);    
 
-    hsi2rgb(newValue, _saturation->value().toFloat(), _brightnessState->value().toFloat(), &rgb);
+    // ToDo: Hue from Homekit in arcdegress -> change to 0 - 65536
+    uint8_t valSat = map((uint8_t)_saturation->value().toInt(), 0, 100, 0, 255);
+    uint8_t valBrightness = map(_brightnessState->value().toInt(), 0, 100, 0, 255);
+    uint16_t valHue = (newValue * HUE_MULTIPLICATOR);
     
-    Serial.printf("r: %d - g: %d - b: %d \n", rgb.r, rgb.g, rgb.b);
-    
-    _pixels->setPixelColor(0, _pixels->Color(rgb.r, rgb.b, rgb.g));
-    // _hue->setValue(String(newValue));
+    LogE(">>> NOW NOWN OWN OW NOWN OWN OWNWO", true);
+    Serial.printf("hue: %d, sat: %d, bri: %d\n", valHue, valSat, valBrightness);
+
+    uint32_t rgbcolor = _pixels->gamma32(_pixels->ColorHSV(valHue, valSat, valBrightness));
+    _pixels->setPixelColor(0, rgbcolor);
+
     _pixels->show();
 }
 
@@ -80,12 +88,17 @@ void HAPPluginNeoPixel::changeSaturation(float oldValue, float newValue){
     printf("New saturation state: %.2F\n", newValue);
     
     rgb_t rgb;
-    hsi2rgb(_hue->value().toFloat(), _saturation->value().toFloat(), newValue, &rgb);
 
-    Serial.printf("r: %d - g: %d - b: %d \n", rgb.r, rgb.g, rgb.b);
-    _pixels->setPixelColor(0, _pixels->Color(rgb.r, rgb.b, rgb.g));
+    // ToDo: Saturation from Homekit in % -> change to 0 - 255
+    uint8_t valSat = map((uint8_t)newValue, 0, 100, 0, 255);
+    uint8_t valBrightness = map(_brightnessState->value().toInt(), 0, 100, 0, 255);
+    uint16_t valHue = (_hue->value().toInt() * HUE_MULTIPLICATOR);
+    LogE(">>> NOW NOWN OWN OW NOWN OWN OWNWO", true);
+    Serial.printf("hue: %d, sat: %d, bri: %d\n", valHue, valSat, valBrightness);
 
-    // _brightnessState->setValue(String(newValue));
+    uint32_t rgbcolor = _pixels->gamma32(_pixels->ColorHSV(valHue, valSat, valBrightness));
+    _pixels->setPixelColor(0, rgbcolor);
+
     _pixels->show();
 }
 
@@ -124,7 +137,11 @@ void HAPPluginNeoPixel::handleImpl(bool forced){
 bool HAPPluginNeoPixel::begin(){
 
     _pixels = new Adafruit_NeoPixel(NUM_LEDS, DATA_PIN, HAP_PLUGIN_NEOPIXEL_FORMAT);
-    _pixels->begin();
+    _pixels->begin();    
+    _pixels->setBrightness(50);
+    _pixels->clear();
+    
+
     return true;
 }
 
@@ -157,9 +174,7 @@ HAPAccessory* HAPPluginNeoPixel::initAccessory(){
     _accessory->addCharacteristics(_service, _powerState);
 
 #if HAP_PLUGIN_NEOPIXEL_ENABLE_BRIGHTNESS	    
-    _brightnessState = new intCharacteristics(HAP_CHARACTERISTIC_BRIGHTNESS, permission_read|permission_write|permission_notify, 0, 100, 1, unit_percentage);
-        //_brightnessState->valueChangeFunctionCall = &changeBrightness;
-
+    _brightnessState = new intCharacteristics(HAP_CHARACTERISTIC_BRIGHTNESS, permission_read|permission_write|permission_notify, 0, 100, 1, unit_percentage);        
     _brightnessState->setValue("50");
     auto callbackBrightness = std::bind(&HAPPluginNeoPixel::changeBrightness, this, std::placeholders::_1, std::placeholders::_2);        
     _brightnessState->valueChangeFunctionCall = callbackBrightness;
@@ -192,65 +207,6 @@ HAPAccessory* HAPPluginNeoPixel::initAccessory(){
 	return _accessory;
 }
 
-
-void HAPPluginNeoPixel::setValue(int iid, String oldValue, String newValue){
-    LogD(HAPServer::timeString() + " " + "HAPPluginNeoPixel" + "->" + String(__FUNCTION__) + " [   ] " + "Setting iid " + String(iid) +  " oldValue: " + oldValue + " -> newValue: " + newValue, true);
-
-     if (iid == _powerState->iid) {
-        
-        // if (newValue == "1"){
-        //     _isOn = true;
-        // } else {
-        //     _isOn = false;
-        // }    
-
-        // _powerState->setValue(newValue);
-    }
-
-    else if (iid == _hue->iid) {    
-
-    }
-
-    else if (iid == _saturation->iid) { 
-
-    }
-
-#if HAP_PLUGIN_NEOPIXEL_ENABLE_BRIGHTNESS	    
-     else if (iid == _brightnessState->iid) {
-
-    }
-#endif
-
-    else {
-        // not a known iid 
-        //  return w/o event
-        return;
-    }
-
-    
-
-    struct HAPEvent event = HAPEvent(nullptr, _accessory->aid, iid, newValue);							
-    _eventManager->queueEvent( EventManager::kEventNotifyController, event);
-}
-
-
-
-String HAPPluginNeoPixel::getValue(int iid){
-    LogE(HAPServer::timeString() + " " + "HAPPluginNeoPixel" + "->" + String(__FUNCTION__) + " [   ] " + "Getting iid " + String(iid), true);
-    if (iid == _powerState->iid) {
-        return _powerState->value();
-    } 
-    else if (iid == _brightnessState->iid) {
-        return _brightnessState->value();
-    }
-    else if (iid == _hue->iid) {
-        return _hue->value();
-    }
-    else if (iid == _saturation->iid) {
-        return _saturation->value();
-    }
-    return "";
-}
 
 void HAPPluginNeoPixel::identify(bool oldValue, bool newValue) {
     printf("Start Identify Light from member\n");
@@ -297,37 +253,4 @@ void HAPPluginNeoPixel::setConfigImpl(JsonObject root){
         // LogD(" -- password: " + String(root["password"]), true);
         _gpio = root["gpio"].as<uint8_t>();
     }
-}
-
-
-//http://blog.saikoled.com/post/44677718712/how-to-convert-from-hsi-to-rgb-white
-void HAPPluginNeoPixel::hsi2rgb(float H, float S, float I, rgb_t* rgbw) {    
-    
-    uint8_t r, g, b;
-    
-    H = fmod(H,360); // cycle H around to 0-360 degrees
-    H = 3.14159*H/(float)180; // Convert to radians.
-    S = S>0?(S<1?S:1):0; // clamp S and I to interval [0,1]
-    I = I>0?(I<1?I:1):0;
-        
-    // Math! Thanks in part to Kyle Miller.
-    if(H < 2.09439) {
-        r = 255*I/3*(1+S*cos(H)/cos(1.047196667-H));
-        g = 255*I/3*(1+S*(1-cos(H)/cos(1.047196667-H)));
-        b = 255*I/3*(1-S);
-    } else if(H < 4.188787) {
-        H = H - 2.09439;
-        g = 255*I/3*(1+S*cos(H)/cos(1.047196667-H));
-        b = 255*I/3*(1+S*(1-cos(H)/cos(1.047196667-H)));
-        r = 255*I/3*(1-S);
-    } else {
-        H = H - 4.188787;
-        b = 255*I/3*(1+S*cos(H)/cos(1.047196667-H));
-        r = 255*I/3*(1+S*(1-cos(H)/cos(1.047196667-H)));
-        g = 255*I/3*(1-S);
-    }
-    rgbw->r = r;
-    rgbw->g = g;
-    rgbw->b = b;
-	rgbw->w = 0;           // white channel is not used
 }
