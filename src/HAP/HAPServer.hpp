@@ -28,22 +28,17 @@
 
 #include "HAPClient.hpp"
 #include "HAPAccessorySet.hpp"
-
 #include "HAPVerifyContext.hpp"
-
 #include "HAPVersion.hpp"
-
-
-#include "HAPPlugins.hpp"
-#include "Plugins/Plugins.hpp"
-
-#include "EventManager.h"
-
 #include "HAPWebServer.hpp"
 #include "HAPConfig.hpp"
-
 #include "HAPWiFiHelper.hpp"
 #include "HAPTLV8Types.hpp"
+#include "HAPPlugins.hpp"
+#include "Plugins/Plugins.hpp"
+#include "HAPFakegatoFactory.hpp"
+
+#include "EventManager.h"
 
 #if HAP_KEYSTORE_ENABLED
 #include "HAPKeystore.hpp"
@@ -63,7 +58,8 @@ hap.__setBrand(__FLAGGED_BRAND);
 #include "HAPUpdate.hpp"
 #endif
 
-#include "HAPFakegatoFactory.hpp"
+
+
 
 
 #if HAP_PRINT_QRCODE
@@ -328,7 +324,8 @@ private:
 
 	bool sendEvent(HAPClient* hapClient, String response);
 
-
+	static void IRAM_ATTR handleButtonInterrupt();
+	static void taskButtonRead( void* parameter);
 	//
 	// encrpytion / decryption
 	//
