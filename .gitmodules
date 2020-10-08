@@ -19,9 +19,6 @@
 [submodule "components/Adafruit_Sensor"]
 	path = components/Adafruit_Sensor
 	url = https://github.com/adafruit/Adafruit_Sensor.git
-[submodule "components/Adafruit_NeoPixel"]
-	path = components/Adafruit_NeoPixel
-	url = https://github.com/adafruit/Adafruit_NeoPixel.git
 [submodule "components/rc-switch"]
 	path = components/rc-switch
 	url = https://github.com/sui77/rc-switch.git
