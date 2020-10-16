@@ -88,7 +88,7 @@ public:
     HAPConfigValidationResult parse(String jsonString, bool dryRun = false);
     HAPConfigValidationResult parse(const uint8_t* jsonString, size_t length, bool dryRun);
 
-
+    void setWifiMode(uint8_t mode);
     void addNetwork(String ssid, String password);
     void addNetwork(const char* ssid, const char* password);
 

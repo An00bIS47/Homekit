@@ -91,7 +91,8 @@ public:
 	bool loadKeys(uint8_t *ltpk, uint8_t *ltsk);
 
 	bool removePairing(const uint8_t *id);
-
+	bool removeAllPairings();
+	
 	void print();
 
 	bool add(const uint8_t* id, const uint8_t* key, bool isAdmin);

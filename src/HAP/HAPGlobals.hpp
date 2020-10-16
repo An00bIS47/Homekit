@@ -23,7 +23,12 @@
 #define HAP_MANUFACTURER			"An00bIS47"
 #define HAP_MODELL_NAME				"Huzzah32"
 #define HAP_RESET_EEPROM 			0
+#define HAP_BUTTON_PIN 				0       // PIN of onboard button 
 
+
+#define HAP_PIXEL_INDICATOR_ENABLED 1
+#define HAP_PIXEL_INDICATOR_PIN		A0		// PIN of the NeoPixel inidicator pin for wifi connection etc
+#define HAP_PIXEL_INIDICATOR_BRIGHTNESS 75
 
 /**
  * H.A.P.
@@ -123,10 +128,12 @@
  * WiFi
  ********************************************************************/
 #ifndef HAP_WIFI_MODE_DEFAULT
-#define HAP_WIFI_MODE_DEFAULT			2	// 0 = HAPWiFiModeAccessPoint	
+#define HAP_WIFI_MODE_DEFAULT			1	// 0 = HAPWiFiModeAccessPoint	
 #endif										// 1 = HAPWiFiModeMulti
 											// 2 = HAPWiFiModeWPS			-> push button only
 											// 3 = HAPWiFiModeSmartConfig	-> not working with ios13 ?
+											// 4 = HAPWiFiModeBLEProv	
+											// 5 = HAPWiFiModeAPProv	
 
 #define HAP_WIFI_CONNECTION_MAX_RETRIES 5	// max retries for connection error 
                                             // before switching back to default mode
@@ -456,6 +463,12 @@
 // reduce fakegato buffer
 #undef HAP_FAKEGATO_BUFFER_SIZE
 #define HAP_FAKEGATO_BUFFER_SIZE 512
+#endif
+
+// shut off pixel indicator if using neo pixel
+#if HAP_PLUGIN_USE_NEOPIXEL
+#undef HAP_PIXEL_INDICATOR_ENABLED
+#define HAP_PIXEL_INDICATOR_ENABLED 0
 #endif
 
 /**

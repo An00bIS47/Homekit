@@ -35,10 +35,11 @@ View the QR code for pairing and the sensor values on an SSD1306 OLED Display.
 
 
 #### MiFlora
-Connects MiFlora Flower bluetooth devices to Homekit. This plugin exposes a temperature, moisture, fertility and light itensity sensor with EVE history support.
+Connects MiFlora Flower bluetooth devices to Homekit via Nimble. This plugin exposes a temperature, moisture, fertility and light itensity sensor with EVE history support.
+
 
 #### RCSwitch
-Exposes multiple Intertechno outlets as a switch with EVE history support. 
+Exposes multiple RC outlets as a outlet with EVE history and schedule support. 
 
 
 #### InfluxDB
@@ -47,8 +48,6 @@ Uploads every x seconds the values of each characteristics to an influxdb server
 
 #### LED
 Exposes the blinking buildin LED as Light to Homekit.
-
-
 
 
 ### EVE History
@@ -66,7 +65,7 @@ Currently the following services supported EVE history
 
 
 ## Required Versions
-* esp-idf v3.3.x
+* esp-idf v4.x.x
 * arduino-esp32 v1.0.4
 
 
@@ -104,20 +103,19 @@ COMPONENT_SRCDIRS:=.
 COMPONENT_ADD_INCLUDEDIRS:=.
 ```
 
-or 
+or if the source files are located in the folder `src`
 
 ```
 COMPONENT_SRCDIRS:=src
 COMPONENT_ADD_INCLUDEDIRS:=src
 ```
-depending where the source files of the libraries are located.
 
 
 ## SDK configuration
 
 There seems to be a bug with `Enable hardware MPI (bignum) acceleration` so you have to disable it when working with `mbedtls srp` (default)
 
-Add the following defines to `$IDF_PATH/components/mbedtls/port/include/mbedtls/esp_config.h` to fix linker errors regarding HKDF and POLY1305CHACHA20.
+Add (or replace) the following defines to `$IDF_PATH/components/mbedtls/port/include/mbedtls/esp_config.h` to fix linker errors regarding HKDF and POLY1305CHACHA20.
 
 ```c++
 #define MBEDTLS_HKDF_C
@@ -130,11 +128,11 @@ This seems to change with v4.0 of the esp-idf but it is still required for v3.3.
 
 ## WiFi Provisioning
 
-There are several ways to provide WiFi credentials. It uses `WiFiMulti`, so you can provide multiple WiFi credentials. 
+There are several ways to provide WiFi credentials. It uses `WiFiMulti`, so you can provide multiple WiFi credentials.
 
 Currently supported methods are:
     * WPS (Push Button)
-    * via `WiFiCredentials.hpp` or compile time CFLAG
+    * via `WiFiCredentials.hpp` or compile time FLAG
     * BLE Provisioning (under construction)
     * Access Point Provisioning (under construction)
     * Captive Portal (under construction)
@@ -146,7 +144,7 @@ Add the following to the end of the file `src/component.mk`
 CPPFLAGS += -DHAP_WIFI_DEFAULT_MODE=2
 ```
 
-### Compile-time CFLAG
+### Compile-time FLAG
 Add the following to the end of the file `src/component.mk`
 ```
 CPPFLAGS += -DHAP_WIFI_DEFAULT_MODE=1
@@ -192,7 +190,6 @@ under construction
 ### Captive Portal
 
 under construction
-
 
 
 ## Working example
@@ -270,7 +267,7 @@ COMPONENT_EMBED_FILES += $(PROJECT_PATH)/certs/server_privatekey.der
 COMPONENT_EMBED_FILES += $(PROJECT_PATH)/certs/server_publickey.der
 ```
 
-### Template
+### HTML Template
 
 The webserver uses a template for the webpages stored here `www/index.html`.
 
@@ -352,6 +349,7 @@ This example uses Berlin as time zone and Apple's SNTP server.
 ## Update
 
 To update the firmware on the device, it supports multiple ways to this. 
+
 
 ### Arduino OTA
 
@@ -442,15 +440,16 @@ Filename: paritions.csv
 
 The partition table is defined as follows:
 
-| Name     | Type  | Subtype  | Offset    | Size      |
-|----------|-------|----------|-----------|-----------|
-| otadata  | data  | ota      | 0xD000    | 8K        |
-| phy_init | data  | phy      | 0xF000    | 4K        |
-| ota_0    | app   | ota_0    | 0x10000   | 3192K     |
-| ota_1    | app   | ota_1    |           | 3192K     |
-| nvs_key  | data  | nvs_keys |           | 4K        |
-| nvs      | data  | nvs      |           | 32K       |
-
+| Name       | Type  | Subtype  | Offset    | Size      |
+|------------|-------|----------|-----------|-----------|
+| otadata    | data  | ota      | 0xD000    | 8K        |
+| phy_init   | data  | phy      | 0xF000    | 4K        |
+| ota_0      | app   | ota_0    | 0x10000   | 3192K     |
+| ota_1      | app   | ota_1    |           | 3192K     |
+| nvs_key    | data  | nvs_keys |           | 4K        |
+| nvs        | data  | nvs      |           | 32K       |
+| keystore_0 | data  | nvs      |           | 32K       |
+| keystore_1 | data  | nvs      |           | 32K       |
 
 ### 16MB Flash
 
@@ -458,19 +457,17 @@ Filename: paritions16.csv
 
 The partition table is defined as follows:
 
-| Name     | Type  | Subtype  | Offset    | Size      |
-|----------|-------|----------|-----------|-----------|
-| otadata  | data  | ota      | 0xD000    | 8K        |
-| phy_init | data  | phy      | 0xF000    | 4K        |
-| ota_0    | app   | ota_0    | 0x10000   | 6384K     |
-| ota_1    | app   | ota_1    |           | 6384K     |
-| nvs_key  | data  | nvs_keys |           | 4K        |
-| nvs      | data  | nvs      |           | 32K       |
-| spiffs   | data  | spiffs   |           | 2048K     |
-
-
-
-
+| Name       | Type  | Subtype  | Offset    | Size      |
+|------------|-------|----------|-----------|-----------|
+| otadata    | data  | ota      | 0xD000    | 8K        |
+| phy_init   | data  | phy      | 0xF000    | 4K        |
+| ota_0      | app   | ota_0    | 0x10000   | 6384K     |
+| ota_1      | app   | ota_1    |           | 6384K     |
+| nvs_key    | data  | nvs_keys |           | 4K        |
+| nvs        | data  | nvs      |           | 32K       |
+| keystore_0 | data  | nvs      |           | 32K       |
+| keystore_1 | data  | nvs      |           | 32K       |
+| spiffs     | data  | spiffs   |           | 2048K     |
 
 
 ## Plugins
@@ -492,8 +489,8 @@ To enable a plugin, change the defines in `src/HAP/HAPGlobals.hpp`
 #define HAP_PLUGIN_USE_SWITCH		0
 #endif
 
-#ifndef HAP_PLUGIN_USE_MIFLORA2
-#define HAP_PLUGIN_USE_MIFLORA2		0
+#ifndef HAP_PLUGIN_USE_MIFLORA
+#define HAP_PLUGIN_USE_MIFLORA		0
 #endif
 
 #ifndef HAP_PLUGIN_USE_SSD1331
@@ -537,13 +534,34 @@ CPPFLAGS += -DHAP_PLUGIN_USE_BME280=1
 CPPFLAGS += -DHAP_PLUGIN_USE_LED=1
 ```
 
+## On-Board Button
+
+The on-board button can be used for:
+* single press: Cycle through the different WiFi modes
+* double press: Set WiFi mode to default
+* hold: Delete config
+* long hold: Delete all pairings and delete config (Factory reset)
+
+
+## Indicator NeoPixel
+
+If enabled, a NeoPixel is used for indicating which WiFi mode in use.
+
+Once online it will blink 3 times with the color green (0x00FF00) and will go off.
+
+Defined colors for the specific WiFi mode:
+* Access Point: cyan (0x00FFFF)
+* Multi: magenta (0xFF00FF)
+* WPS: yellow (0xFFFF00)
+* SmartConfig: orange (0xFFA500)
+* BLE provisioning: blue (0x0000FF)
+* AP provisioning: purple (0x780078)
+
 
 ## Cryptography
 
 This project uses by default mbedtls and libsodium for cryptography. 
 WolfSSL is also support but commented out in the makefile. (will be removed completely)
-
-
 
 
 ## Used Libraries

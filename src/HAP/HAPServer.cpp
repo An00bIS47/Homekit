@@ -14,8 +14,9 @@
 #include "HAPHelper.hpp"
 #include "HAPBonjour.hpp"
 #include "HAPDeviceID.hpp"
-
+#include "HAPButton.hpp"
 #include "HAPEncryption.hpp"
+
 
 #include "../WiFiCredentials.hpp"
 
@@ -66,16 +67,6 @@ static heap_trace_record_t trace_record[HAP_DEBUG_HEAP_NUM_RECORDS]; // This buf
 
 
 
-#define BUTTONPIN 0
-#define DEBOUNCETIME 10
-
-volatile int numberOfButtonInterrupts = 0;
-volatile bool lastState;
-volatile uint32_t debounceTimeout = 0;
-
-// For setting up critical sections (enableinterrupts and disableinterrupts not available)
-// used to disable and interrupt interrupts
-portMUX_TYPE mux = portMUX_INITIALIZER_UNLOCKED;
 
 
 //
@@ -89,10 +80,7 @@ HAPServer::HAPServer(uint16_t port, uint8_t maxClients)
 , __HOMEKIT_SIGNATURE("\x25\x48\x4f\x4d\x45\x4b\x49\x54\x5f\x45\x53\x50\x33\x32\x5f\x46\x57\x25")
 {
 	_port = port;
-
-	_previousMillis = 0;
-
-	
+	_previousMillis = 0;	
 
 #if HAP_DEBUG
 	_previousMillisHeap = 0;	
@@ -114,8 +102,7 @@ HAPServer::HAPServer(uint16_t port, uint8_t maxClients)
 	_srpInitialized = false;
 #endif
 
-	_isInPairingMode = false;
-	
+	_isInPairingMode = false;	
 	_homekitFailedLoginAttempts = 0;
 }
 
@@ -137,18 +124,6 @@ bool HAPServer::begin(bool resume) {
 #if HAP_DEBUG_HEAP
 	ESP_ERROR_CHECK( heap_trace_init_standalone(trace_record, HAP_DEBUG_HEAP_NUM_RECORDS) );
 #endif
-
-
-	// Now set up two tasks to run independently.
-	xTaskCreatePinnedToCore(
-		taskButtonRead
-		,  "TaskBlink"   // A name just for humans
-		,  1024  // This stack size can be checked & adjusted by reading the Stack Highwater
-		,  NULL
-		,  2  // Priority, with 3 (configMAX_PRIORITIES - 1) being the highest, and 0 being the lowest.
-		,  NULL 
-		,  CONFIG_ARDUINO_RUNNING_CORE);
-
 
 	int error_code = 0;
 	
@@ -179,6 +154,28 @@ bool HAPServer::begin(bool resume) {
 			LogV("OK", true);
 		}
 		HAPLogger::setLogLevel(_config.config()["homekit"]["loglevel"].as<uint8_t>());
+
+
+		// Button Task
+		xTaskCreatePinnedToCore(
+			taskButtonRead
+			,  "TaskButton"   	// A name just for humans
+			,  1024  		  	// This stack size can be checked & adjusted by reading the Stack Highwater
+			,  (void*)this		// parameter of the task
+			,  0  				// Priority, with 3 (configMAX_PRIORITIES - 1) being the highest, and 0 being the lowest.
+			,  NULL 			// task handle
+			,  CONFIG_ARDUINO_RUNNING_CORE == 0 ? 1 : 0
+			);
+
+
+#if HAP_PIXEL_INDICATOR_ENABLED
+		// ToDo: Pixel Indicator
+		_pixelIndicator.begin();		
+		// // show pixel indicator color
+		// Serial.print("WIFI MODE: ");
+		// Serial.println(_config.config()["wifi"]["mode"].as<uint8_t>());
+		_pixelIndicator.setColor(_wifi.getColorForMode((enum HAP_WIFI_MODE)_config.config()["wifi"]["mode"].as<uint8_t>()));
+#endif
 
 #if HAP_DEBUG
 
@@ -288,11 +285,13 @@ bool HAPServer::begin(bool resume) {
 #endif
 #endif
 
+
+
 	// Hostname
 	char* hostname = (char*) malloc(sizeof(char) * strlen(HAP_HOSTNAME_PREFIX) + 8);
-	sprintf(hostname, "%s-%02X%02X%02X", HAP_HOSTNAME_PREFIX, baseMac[3], baseMac[4], baseMac[5]);
+	sprintf(hostname, "%s-%02X%02X%02X", HAP_HOSTNAME_PREFIX, baseMac[3], baseMac[4], baseMac[5]);	
 
-	// WiFi
+	// WiFi	
 	_wifi.begin(&_config, std::bind(&HAPServer::begin, this, std::placeholders::_1), hostname);	
 	
 	// if captive portal, return here	
@@ -300,7 +299,10 @@ bool HAPServer::begin(bool resume) {
 		free(hostname);
 		return true;
 	}	
-
+	// ToDo: Pixel Indicator
+#if HAP_PIXEL_INDICATOR_ENABLED
+	_pixelIndicator.off();
+#endif	
 	
 #if HAP_NTP_ENABLED
 	LogI( "Starting NTP client ...", false);
@@ -710,27 +712,16 @@ bool HAPServer::begin(bool resume) {
 	// Handle any events that are in the queue
 	_eventManager.processEvent();	
 
+#if HAP_PIXEL_INDICATOR_ENABLED
+	_pixelIndicator.confirmWithColor(HAPColorGreen);
+#endif
+
 	return true;
 }
 
 
 bool HAPServer::updateServiceTxt() {
-	/*
-	mdns_txt_item_t hapTxtData[8] = {
-        {(char*)"c#"    ,(char*)"2"},                   // c# - Configuration number
-        {(char*)"ff"    ,(char*)"0"},                   // ff - feature flags
-        {(char*)"id"    ,(char*)"11:22:33:44:55:66"},   				// id - unique identifier
-        {(char*)"md"	,(char*)"Huzzah32"},            // md - model name
-        {(char*)"pv"    ,(char*)"1.0"},                 // pv - protocol version
-        {(char*)"s#"    ,(char*)"1"},                   // s# - state number
-        {(char*)"sf"    ,(char*)"1"},                   // sf - Status flag
-        {(char*)"ci"    ,(char*)"2"}                    // ci - Accessory category indicator
-    }; 
 
-    return mDNSExt.addServiceTxtSet((char*)"_hap", "_tcp", 8, hapTxtData);
-
-
-    */
 #if HAP_GENERATE_XHM
 	mdns_txt_item_t hapTxtData[9];
 #else
@@ -840,6 +831,12 @@ void HAPServer::handle() {
 	    Heap(_clients.size(), _eventManager.getNumEventsInQueue());
 	}
 #endif
+
+
+#if HAP_PIXEL_INDICATOR_ENABLED
+	_pixelIndicator.handle();
+#endif
+
 
 	if ( (_wifi.captiveInitialized()) && (_config.config()["wifi"]["mode"].as<uint8_t>() == (uint8_t)HAP_WIFI_MODE_AP) ){
 		_wifi.handle();
@@ -1316,61 +1313,6 @@ void HAPServer::parseRequest(HAPClient* hapClient, const char* msg, size_t msg_l
 
 	//return bodyData;
 }
-
-
-
-// // ToDo: Move to hapClient ?
-// /**
-//  * @brief 
-//  * 
-//  * @param message 
-//  * @param length 
-//  * @param encrypted_len 
-//  * @param key 
-//  * @param encryptCount 
-//  * @return char* 
-//  */
-// char* HAPServer::encrypt(uint8_t *message, size_t length, int* encrypted_len, uint8_t* key, uint16_t encryptCount) {
-
-	
-// 	char* encrypted = (char*) calloc(1, length + (length / HAP_ENCRYPTION_BUFFER_SIZE + 1) * (HAP_ENCRYPTION_AAD_SIZE + CHACHA20_POLY1305_AUTH_TAG_LENGTH) + 1);
-
-// 	uint8_t nonce[12] = {0,};
-// 	uint8_t* decrypted_ptr = (uint8_t*)message;
-// 	uint8_t* encrypted_ptr = (uint8_t*)encrypted;
-
-// 	int err_code = 0;
-
-// 	while (length > 0) {
-// 		int chunk_len = (length < HAP_ENCRYPTION_BUFFER_SIZE) ? length : HAP_ENCRYPTION_BUFFER_SIZE;
-// 		length -= chunk_len;
-
-// 		uint8_t aad[HAP_ENCRYPTION_AAD_SIZE];
-// 		aad[0] = chunk_len % 256;
-// 		aad[1] = chunk_len / 256;
-
-// 		memcpy(encrypted_ptr, aad, HAP_ENCRYPTION_AAD_SIZE);
-// 		encrypted_ptr += HAP_ENCRYPTION_AAD_SIZE;
-// 		*encrypted_len += HAP_ENCRYPTION_AAD_SIZE;
-
-// 		nonce[4] = encryptCount % 256;
-// 		nonce[5] = encryptCount++ / 256;
-
-// 		err_code = chacha20_poly1305_encrypt_with_nonce(nonce, key, aad, HAP_ENCRYPTION_AAD_SIZE, decrypted_ptr, chunk_len, encrypted_ptr);	
-
-// 		if (err_code != 0 ) {
-// 			LogE("[ERROR] Encrypting failed!", true);
-// 		}
-
-// 		decrypted_ptr += chunk_len;
-// 		encrypted_ptr += chunk_len + CHACHA20_POLY1305_AUTH_TAG_LENGTH;
-// 		*encrypted_len += (chunk_len + CHACHA20_POLY1305_AUTH_TAG_LENGTH);
-// 	}
-
-
-// 	//_pairSetup->encryptCount = 0;
-// 	return encrypted;
-// }
 
 void HAPServer::sendErrorTLV(HAPClient* hapClient, uint8_t state, uint8_t error){
 	TLV8 response;
@@ -4155,70 +4097,84 @@ void HAPServer::listDir(FS &fs, const char * dirname, uint8_t levels) {
 #endif
 
 
-// Interrupt Service Routine - Keep it short!
-void IRAM_ATTR HAPServer::handleButtonInterrupt() {
-	portENTER_CRITICAL_ISR(&mux);
-	numberOfButtonInterrupts++;
-	lastState = digitalRead(BUTTONPIN);
-	debounceTimeout = xTaskGetTickCount(); //version of millis() that works from interrupt
-	portEXIT_CRITICAL_ISR(&mux);
+void HAPServer::callbackClick(){
+	Serial.println("CALLBACK CLICK!");
+	Serial.print("current wifi mode: ");
+	Serial.println((uint8_t)_wifi.getNextMode());
+
+#if HAP_PIXEL_INDICATOR_ENABLED	
+	CRGB col = _wifi.getColorForMode(_wifi.getNextMode());
+#endif		
+	
+	_config.setWifiMode((uint8_t)_wifi.getNextMode());
+	_eventManager.queueEvent( EventManager::kEventUpdatedConfig, HAPEvent());
+
+#if HAP_PIXEL_INDICATOR_ENABLED	
+	_pixelIndicator.confirmWithColor(col);
+#endif		
+}
+
+void HAPServer::callbackDoubleClick(){
+	Serial.println("CALLBACK DOUBLE CLICK!");
+	Serial.print("Set default wifi mode: ");
+	Serial.println(HAP_WIFI_MODE_DEFAULT);
+
+	_config.setWifiMode((uint8_t)HAP_WIFI_MODE_DEFAULT);
+	_eventManager.queueEvent( EventManager::kEventUpdatedConfig, HAPEvent());
+
+#if HAP_PIXEL_INDICATOR_ENABLED	
+	CRGB col = _wifi.getColorForMode((HAP_WIFI_MODE)HAP_WIFI_MODE_DEFAULT);
+	_pixelIndicator.confirmWithColor(col);
+#endif
+
+}
+
+void HAPServer::callbackHold(){
+	Serial.println("CALLBACK HOLD!");
+	Serial.println("Delete config");
+    _config->begin();
+    _config->save();
+
+#if HAP_PIXEL_INDICATOR_ENABLED	
+	_pixelIndicator.confirmWithColor(CRGB::Green);
+#endif
+}
+
+void HAPServer::callbackLongHold(){
+	Serial.println("CALLBACK LONG HOLD!");
+	Serial.println("Delete all pairings");
+	
+	_accessorySet->getPairings()->removeAllPairings();
+
+#if HAP_PIXEL_INDICATOR_ENABLED	
+	_pixelIndicator.confirmWithColor(CRGB::Red);
+#endif
 }
 
 
-void HAPServer::taskButtonRead( void * parameter)
-{
-	String taskMessage = "Debounced ButtonRead Task running on core ";
-	taskMessage = taskMessage + xPortGetCoreID();
-	Serial.println(taskMessage);
+void HAPServer::taskButtonRead(void* pvParameters){
 
-	// set up button Pin
-	pinMode (BUTTONPIN, INPUT);
-	pinMode(BUTTONPIN, INPUT_PULLUP);  // Pull up to 3.3V on input - some buttons already have this done
+	HAPServer* foo = reinterpret_cast<HAPServer*>(pvParameters);
+	HAPButton button;
 
-	attachInterrupt(digitalPinToInterrupt(BUTTONPIN), handleButtonInterrupt, FALLING);
+	auto callbackClick = std::bind(&HAPServer::callbackClick, foo);
+	button.setCallbackClick(callbackClick);
 
-	uint32_t saveDebounceTimeout;
-	bool saveLastState;
-	int save;
+	auto callbackDoubleClick = std::bind(&HAPServer::callbackDoubleClick, foo);
+	button.setCallbackDoubleClick(callbackDoubleClick);
 
-	// Enter RTOS Task Loop
-	while (1) {
+	auto callbackHold = std::bind(&HAPServer::callbackHold, foo);
+	button.setCallbackHold(callbackHold);
 
-		portENTER_CRITICAL_ISR(&mux); // so that value of numberOfButtonInterrupts,l astState are atomic - Critical Section
-		save  = numberOfButtonInterrupts;
-		saveDebounceTimeout = debounceTimeout;
-		saveLastState  = lastState;
-		portEXIT_CRITICAL_ISR(&mux); // end of Critical Section
-
-		bool currentState = digitalRead(BUTTONPIN);
-
-		// This is the critical IF statement
-		// if Interrupt Has triggered AND Button Pin is in same state AND the debounce time has expired THEN you have the button push!
-		//
-		if ((save != 0) //interrupt has triggered
-			&& (currentState == saveLastState) // pin is still in the same state as when intr triggered
-			&& (millis() - saveDebounceTimeout > DEBOUNCETIME ))
-			{ // and it has been low for at least DEBOUNCETIME, then valid keypress
-			
-			if (currentState == LOW){
-				Serial.printf("Button is pressed and debounced, current tick=%lu\n", millis());
-			} else {
-				Serial.printf("Button is released and debounced, current tick=%lu\n", millis());
-			}
-			
-			Serial.printf("Button Interrupt Triggered %d times, current State=%u, time since last trigger %lums\n", save, currentState, millis() - saveDebounceTimeout);
-			
-			portENTER_CRITICAL_ISR(&mux); // can't change it unless, atomic - Critical section
-			numberOfButtonInterrupts = 0; // acknowledge keypress and reset interrupt counter
-			portEXIT_CRITICAL_ISR(&mux);
+	auto callbackLongHold = std::bind(&HAPServer::callbackLongHold, foo);
+	button.setCallbackLongHold(callbackLongHold);
 
 
-			// vTaskDelay(10 / portTICK_PERIOD_MS);
-		}
-
-		vTaskDelay(10 / portTICK_PERIOD_MS);
-
+	while(1){
+		button.dispatchEvents();
+		yield();
 	}
 }
+
 
 HAPServer hap;

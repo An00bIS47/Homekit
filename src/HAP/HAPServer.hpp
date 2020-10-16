@@ -26,6 +26,10 @@
 
 #include <ArduinoJson.h>
 
+#if HAP_PIXEL_INDICATOR_ENABLED
+#include "HAPIndicatorPixel.hpp"
+#endif
+
 #include "HAPClient.hpp"
 #include "HAPAccessorySet.hpp"
 #include "HAPVerifyContext.hpp"
@@ -35,7 +39,7 @@
 #include "HAPWiFiHelper.hpp"
 #include "HAPTLV8Types.hpp"
 #include "HAPPlugins.hpp"
-#include "Plugins/Plugins.hpp"
+#include "plugins/Plugins.hpp"
 #include "HAPFakegatoFactory.hpp"
 
 #include "EventManager.h"
@@ -309,9 +313,6 @@ private:
 	void handleClientDisconnect(HAPClient hapClient);
 
 
-
-
-
 	//
 	// Sending responses
 	// 
@@ -324,24 +325,25 @@ private:
 
 	bool sendEvent(HAPClient* hapClient, String response);
 
-	static void IRAM_ATTR handleButtonInterrupt();
-	static void taskButtonRead( void* parameter);
+#if HAP_PIXEL_INDICATOR_ENABLED
+	// ToDo: Pixel Indicator
+	HAPIndicatorPixel _pixelIndicator;
+#endif
+
+	// 
+	// Button
 	//
-	// encrpytion / decryption
-	//
-	// char* encrypt(uint8_t *message, size_t length, int* encrypted_len, uint8_t* key, uint16_t encryptCount);
-	// int decryt(uint8_t* encrypted, int len, char* decrypted, uint8_t** saveptr);
+	static void taskButtonRead(void* pvParameters);
+	void callbackClick();
+	void callbackDoubleClick();
+	void callbackHold();
+	void callbackLongHold();
 
 	//
 	// TLV8 Encoding 
 	//
 	static bool encode(HAPClient* hapClient);
 	
-
-	// int32_t getValueForCharacteristics(int aid, int iid, char* out, size_t* outSize);
-	// characteristics* getCharacteristics(int aid, int iid);
-
-
 	const char* __HOMEKIT_SIGNATURE;
 };
 
