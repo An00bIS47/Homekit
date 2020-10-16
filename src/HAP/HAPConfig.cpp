@@ -698,3 +698,7 @@ void HAPConfig::addNetwork(const char* ssid, const char* password){
 size_t HAPConfig::measureLength(){
     return measureJson(_config);
 }
+
+void HAPConfig::setWifiMode(uint8_t mode){
+    _config["wifi"]["mode"] = mode;
+}

@@ -91,6 +91,7 @@ public:
 	bool loadKeys(uint8_t *ltpk, uint8_t *ltsk);
 
 	bool removePairing(const uint8_t *id);
+	void removeAllPairings();
 
 	void print();
 

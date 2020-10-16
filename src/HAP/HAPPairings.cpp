@@ -288,3 +288,9 @@ bool HAPPairings::isAdmin(const uint8_t *id){
 	}
 	return false;
 }
+
+
+void HAPPairings::removeAllPairings(){
+	pairings.clear();
+	resetEEPROM();
+}

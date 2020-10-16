@@ -26,24 +26,23 @@
 
 #include <ArduinoJson.h>
 
+#if HAP_PIXEL_INDICATOR_ENABLED
+#include "HAPIndicatorPixel.hpp"
+#endif
+
 #include "HAPClient.hpp"
 #include "HAPAccessorySet.hpp"
-
 #include "HAPVerifyContext.hpp"
-
 #include "HAPVersion.hpp"
-
-
-#include "HAPPlugins.hpp"
-#include "Plugins/Plugins.hpp"
-
-#include "EventManager.h"
-
 #include "HAPWebServer.hpp"
 #include "HAPConfig.hpp"
-
 #include "HAPWiFiHelper.hpp"
 #include "HAPTLV8Types.hpp"
+#include "HAPPlugins.hpp"
+#include "plugins/Plugins.hpp"
+#include "HAPFakegatoFactory.hpp"
+
+#include "EventManager.h"
 
 #if HAP_KEYSTORE_ENABLED
 #include "HAPKeystore.hpp"
@@ -63,7 +62,8 @@ hap.__setBrand(__FLAGGED_BRAND);
 #include "HAPUpdate.hpp"
 #endif
 
-#include "HAPFakegatoFactory.hpp"
+
+
 
 
 #if HAP_PRINT_QRCODE
@@ -190,6 +190,9 @@ protected:
 	void handleEventUpdatedConfig(int eventCode, struct HAPEvent eventParam);
 	void handleEventRebootNow(int eventCode, struct HAPEvent eventParam);
 
+	void handleEventConfigReset(int eventCode, struct HAPEvent eventParam);
+	void handleEventDeleteAllPairings(int eventCode, struct HAPEvent eventParam);
+
 	bool stopEvents();
 	void stopEvents(bool value);
 
@@ -201,7 +204,8 @@ protected:
 	MemberFunctionCallable<HAPServer> listenerNotificaton;	
 	MemberFunctionCallable<HAPServer> listenerRebootNow;	
 
-	
+	MemberFunctionCallable<HAPServer> listenerConfigReset;	
+	MemberFunctionCallable<HAPServer> listenerDeleteAllPairings;	
 
 #if HAP_UPDATE_ENABLE_OTA || HAP_UPDATE_ENABLE_FROM_WEB 	
 	HAPUpdate _updater;
@@ -313,9 +317,6 @@ private:
 	void handleClientDisconnect(HAPClient hapClient);
 
 
-
-
-
 	//
 	// Sending responses
 	// 
@@ -328,23 +329,25 @@ private:
 
 	bool sendEvent(HAPClient* hapClient, String response);
 
+#if HAP_PIXEL_INDICATOR_ENABLED
+	// ToDo: Pixel Indicator
+	HAPIndicatorPixel _pixelIndicator;
+#endif
 
+	// 
+	// Button
 	//
-	// encrpytion / decryption
-	//
-	// char* encrypt(uint8_t *message, size_t length, int* encrypted_len, uint8_t* key, uint16_t encryptCount);
-	// int decryt(uint8_t* encrypted, int len, char* decrypted, uint8_t** saveptr);
+	static void taskButtonRead(void* pvParameters);
+	void callbackClick();
+	void callbackDoubleClick();
+	void callbackHold();
+	void callbackLongHold();
 
 	//
 	// TLV8 Encoding 
 	//
 	static bool encode(HAPClient* hapClient);
 	
-
-	// int32_t getValueForCharacteristics(int aid, int iid, char* out, size_t* outSize);
-	// characteristics* getCharacteristics(int aid, int iid);
-
-
 	const char* __HOMEKIT_SIGNATURE;
 };
 

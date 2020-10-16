@@ -133,7 +133,7 @@ public:
     static uint8_t encodeProgramCount(uint8_t programCount);    
 
     void fromJson(JsonObject &root);
-    void toJson(JsonObject &root);
+    JsonObject toJson();
 
     String buildScheduleString();
 
@@ -176,6 +176,8 @@ public:
         _callbackGetRolledOverIndex = callback;
     }
 
+
+
 protected:
     std::vector<HAPFakeGatoScheduleProgramEvent> _programEvents; // 7
     HAPFakeGatoScheduleDays _days;  
@@ -195,7 +197,7 @@ protected:
     std::function<uint32_t(void)> _callbackGetTimestampLastEntry;
     
     std::function<uint16_t(void)> _callbackGetMemoryUsed;
-    std::function<uint32_t(void)> _callbackGetRolledOverIndex;
+    std::function<uint32_t(void)> _callbackGetRolledOverIndex;    
 };
 
 #endif /* HAPFAKEGATOSCHEDULEENERGY_HPP_ */

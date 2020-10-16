@@ -45,7 +45,11 @@ public:
         _callbackRCSwitchSend = callback;
     }
 
-    
+    JsonObject scheduleToJson();
+    void scheduleFromJson(JsonObject &root);
+
+    void saveConfig();
+
     uint8_t             houseAddress;
     uint8_t             deviceAddress;
     String              name;
@@ -74,15 +78,6 @@ private:
     void changedState(bool oldValue, bool newValue);
    
     bool fakeGatoCallback();  
-
-    MD5Builder 				_md5;
-
-    inline String md5(String str) {
-		_md5.begin();
-		_md5.add(String(str));
-		_md5.calculate();
-		return _md5.toString();
-	}
 };
 
 #endif /* HAPPLUGINRCSWITCHDEVICE_HPP_ */

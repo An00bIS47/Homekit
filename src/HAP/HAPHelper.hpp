@@ -36,6 +36,8 @@ public:
 	
 	static void binToHex(const unsigned char * in, size_t insz, char * out, size_t outsz);
 
+	static int hexToBin(unsigned char *data, const char* hexstring, size_t len);
+
 	// DEPRECATED functions causing memory leaks	
 	static uint8_t* hexToBin(const char* string) __attribute__ ((deprecated));	
 	static char* toHex(const unsigned char * in, size_t insz) __attribute__ ((deprecated));	

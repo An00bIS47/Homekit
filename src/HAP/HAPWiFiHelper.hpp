@@ -21,6 +21,10 @@
 #include "HAPGlobals.hpp"
 #include "HAPConfig.hpp"
 
+#if HAP_PIXEL_INDICATOR_ENABLED
+#include "HAPIndicatorPixelColors.hpp"
+#endif
+
 using namespace httpsserver;
 
 enum HAP_WIFI_MODE {
@@ -44,6 +48,16 @@ public:
 
 	static bool captiveInitialized();
 	static void handle();
+
+#if HAP_PIXEL_INDICATOR_ENABLED
+	// static uint32_t getColorForMode(enum HAP_WIFI_MODE mode);
+	// static RgbColor getColorForMode(enum HAP_WIFI_MODE mode);
+	static CRGB getColorForMode(enum HAP_WIFI_MODE mode);
+#endif
+
+	static HAP_WIFI_MODE getNextMode();
+	static HAP_WIFI_MODE getNextMode(enum HAP_WIFI_MODE mode);
+	static HAP_WIFI_MODE getCurrentMode();
 
 private:
 	

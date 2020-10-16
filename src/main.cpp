@@ -16,33 +16,33 @@
 
 
 
-#if HAP_ENABLE_WEBSERVER_CORE_0
-#include "HAP/HAPWebServer.hpp"
-HAPWebServer* _webserver;
-#endif
+// #if HAP_ENABLE_WEBSERVER_CORE_0
+// #include "HAP/HAPWebServer.hpp"
+// HAPWebServer* _webserver;
+// #endif
 
 
 
-// unsigned long previousMillis = 0;
+// // unsigned long previousMillis = 0;
 
-// const long interval = 1000;
+// // const long interval = 1000;
 
-#if HAP_ENABLE_WEBSERVER_CORE_0
-void taskWebserver( void * parameter )
-{
-	_webserver = new HAPWebServer();
-	_webserver->setAccessorySet(hap.getAccessorySet());
-	_webserver->begin();
+// #if HAP_ENABLE_WEBSERVER_CORE_0
+// void taskWebserver( void * parameter )
+// {
+// 	_webserver = new HAPWebServer();
+// 	_webserver->setAccessorySet(hap.getAccessorySet());
+// 	_webserver->begin();
 
-    while( true ){
-        _webserver->handle();
-        delay(1);		
-    }
+//     while( true ){
+//         _webserver->handle();
+//         delay(1);		
+//     }
  
-    // Serial.println("Ending task 1");
-    // vTaskDelete( NULL );
-}
-#endif
+//     // Serial.println("Ending task 1");
+//     // vTaskDelete( NULL );
+// }
+// #endif
 
 
 void setup(){
@@ -61,23 +61,21 @@ void setup(){
 	// Start homekit
 	hap.begin();
 
-#if HAP_ENABLE_WEBSERVER_CORE_0
-	xTaskCreatePinnedToCore(
-					taskWebserver,   /* Function to implement the task */
-                    "coreTask", /* Name of the task */
-                    8192,      	/* Stack size in words */
-                    NULL,       /* Task input parameter */
-                    1,          /* Priority of the task */
-                    NULL,       /* Task handle. */
-                    0);  		/* Core where the task should run */
-#endif
+// #if HAP_ENABLE_WEBSERVER_CORE_0
+// 	xTaskCreatePinnedToCore(
+// 					taskWebserver,   /* Function to implement the task */
+//                     "coreTask", /* Name of the task */
+//                     8192,      	/* Stack size in words */
+//                     NULL,       /* Task input parameter */
+//                     1,          /* Priority of the task */
+//                     NULL,       /* Task handle. */
+//                     0);  		/* Core where the task should run */
+// #endif
 	
 }
 
 void loop(){
-
 	hap.handle();
-
 }
 
 

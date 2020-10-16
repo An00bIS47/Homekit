@@ -34,6 +34,8 @@ HAPFakeGatoEnergy::HAPFakeGatoEnergy(){
 
 
     _schedule = nullptr;    
+    _shouldSave = false;
+    _callbackSaveConfig = nullptr;
 
     begin(); 
 } 
@@ -243,26 +245,26 @@ void HAPFakeGatoEnergy::getData(const size_t count, uint8_t *data, size_t* lengt
         tmpRequestedEntry = incrementIndex(tmpRequestedEntry);
         entryData = (*_vectorBuffer)[tmpRequestedEntry];
         
-        // if ( _rolledOver == true) { 
-        //     if (tsOld > entryData.timestamp) {
-        //         _transfer = false;  
-        //         LogE("ERROR 3: Fakegato Energy could not send the requested entry. The requested index does not exist!", true);                          
-        //         LogE("   - tmpRequestedEntry=" + String(tmpRequestedEntry), true);
-        //         LogE("   - _requestedEntry=" + String(_requestedEntry), true);
-        //         LogE("   - _idxWrite=" + String(_idxWrite), true);
-        //         LogE("   - _rolledOver=" + String(_rolledOver), true);
-        //         break;
-        //     }
-        // }      
+        if ( _rolledOver == true) { 
+            if (tsOld > entryData.timestamp) {
+                _transfer = false;  
+                LogE("ERROR 3: Fakegato Energy could not send the requested entry. The requested index does not exist!", true);                          
+                LogE("   - tmpRequestedEntry=" + String(tmpRequestedEntry), true);
+                LogE("   - _requestedEntry=" + String(_requestedEntry), true);
+                LogE("   - _idxWrite=" + String(_idxWrite), true);
+                LogE("   - _rolledOver=" + String(_rolledOver), true);
+                break;
+            }
+        }      
     }         
 }
 
 void HAPFakeGatoEnergy::scheduleRead(String oldValue, String newValue){
-    LogE(HAPServer::timeString() + " " + String(__CLASS_NAME__) + "->" + String(__FUNCTION__) + " [   ] " + "Schedule Read " + _name + " ..." , true);
+    LogD(HAPServer::timeString() + " " + String(__CLASS_NAME__) + "->" + String(__FUNCTION__) + " [   ] " + "Schedule Read " + _name + " ..." , true);
 }
 
 void HAPFakeGatoEnergy::scheduleWrite(String oldValue, String newValue){
-    LogE(HAPServer::timeString() + " " + String(__CLASS_NAME__) + "->" + String(__FUNCTION__) + " [   ] " + "Schedule Write " + _name + " ..." , true);
+    LogD(HAPServer::timeString() + " " + String(__CLASS_NAME__) + "->" + String(__FUNCTION__) + " [   ] " + "Schedule Write " + _name + " ..." , true);
 
     size_t outputLength = 0;        
     mbedtls_base64_decode(NULL, NULL, &outputLength, (const uint8_t*)newValue.c_str(), newValue.length());
@@ -270,14 +272,17 @@ void HAPFakeGatoEnergy::scheduleWrite(String oldValue, String newValue){
 
     mbedtls_base64_decode(decoded, sizeof(decoded), &outputLength, (const uint8_t*)newValue.c_str(), newValue.length());    
 
+#if HAP_DEBUG_FAKEGATO_SCHEDULE	
     HAPHelper::array_print("decoded", decoded, outputLength);    
+#endif
 
     TLV8 tlv;
     tlv.encode(decoded, outputLength);
 
     if (tlv.hasType(HAP_FAKEGATO_SCHEDULE_TYPE_COMMAND_TOGGLE_SCHEDULE)){        
-        TLV8Entry* tlvEntry = tlv.getType(HAP_FAKEGATO_SCHEDULE_TYPE_COMMAND_TOGGLE_SCHEDULE);  
+        TLV8Entry* tlvEntry = tlv.getType(HAP_FAKEGATO_SCHEDULE_TYPE_COMMAND_TOGGLE_SCHEDULE);                        
         _schedule->enable(_schedule->decodeToggleOnOff(tlvEntry->value));
+        _shouldSave = true; 
     } 
 
     if (tlv.hasType(HAP_FAKEGATO_SCHEDULE_TYPE_COMMAND_STATUS_LED)){        
@@ -288,14 +293,21 @@ void HAPFakeGatoEnergy::scheduleWrite(String oldValue, String newValue){
     if (tlv.hasType(HAP_FAKEGATO_SCHEDULE_TYPE_DAYS)){        
         TLV8Entry* tlvEntry = tlv.getType(HAP_FAKEGATO_SCHEDULE_TYPE_DAYS);  
         _schedule->decodeDays(tlvEntry->value);
+        _shouldSave = true; 
     }
     
     if (tlv.hasType(HAP_FAKEGATO_SCHEDULE_TYPE_PROGRAMS)){        
         TLV8Entry* tlvEntry = tlv.getType(HAP_FAKEGATO_SCHEDULE_TYPE_PROGRAMS);  
         _schedule->decodePrograms(tlvEntry->value);
+        _shouldSave = true; 
     }
 
     _configReadCharacteristics->setValue(_schedule->buildScheduleString());
+
+    if (_shouldSave){
+        _callbackSaveConfig();
+    }
+
 }
 
 void HAPFakeGatoEnergy::beginSchedule(){
@@ -326,4 +338,12 @@ void HAPFakeGatoEnergy::handle(bool forced){
     }
     
     _schedule->handle();
+}
+
+JsonObject HAPFakeGatoEnergy::scheduleToJson(){
+    return _schedule->toJson();
+}
+
+void HAPFakeGatoEnergy::scheduleFromJson(JsonObject &root){
+    _schedule->fromJson(root);
 }

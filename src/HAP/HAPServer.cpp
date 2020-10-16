@@ -14,8 +14,9 @@
 #include "HAPHelper.hpp"
 #include "HAPBonjour.hpp"
 #include "HAPDeviceID.hpp"
-
+#include "HAPButton.hpp"
 #include "HAPEncryption.hpp"
+
 
 #include "../WiFiCredentials.hpp"
 
@@ -67,6 +68,7 @@ static heap_trace_record_t trace_record[HAP_DEBUG_HEAP_NUM_RECORDS]; // This buf
 
 
 
+
 //
 // init static variables
 //
@@ -78,10 +80,7 @@ HAPServer::HAPServer(uint16_t port, uint8_t maxClients)
 , __HOMEKIT_SIGNATURE("\x25\x48\x4f\x4d\x45\x4b\x49\x54\x5f\x45\x53\x50\x33\x32\x5f\x46\x57\x25")
 {
 	_port = port;
-
-	_previousMillis = 0;
-
-	
+	_previousMillis = 0;	
 
 #if HAP_DEBUG
 	_previousMillisHeap = 0;	
@@ -103,10 +102,8 @@ HAPServer::HAPServer(uint16_t port, uint8_t maxClients)
 	_srpInitialized = false;
 #endif
 
-	_isInPairingMode = false;
-	
+	_isInPairingMode = false;	
 	_homekitFailedLoginAttempts = 0;
-
 }
 
 HAPServer::~HAPServer() {
@@ -157,6 +154,28 @@ bool HAPServer::begin(bool resume) {
 			LogV("OK", true);
 		}
 		HAPLogger::setLogLevel(_config.config()["homekit"]["loglevel"].as<uint8_t>());
+
+
+		// Button Task
+		xTaskCreatePinnedToCore(
+			taskButtonRead
+			,  "TaskButton"   	// A name just for humans
+			,  1024  		  	// This stack size can be checked & adjusted by reading the Stack Highwater
+			,  (void*)this		// parameter of the task
+			,  0  				// Priority, with 3 (configMAX_PRIORITIES - 1) being the highest, and 0 being the lowest.
+			,  NULL 			// task handle
+			,  CONFIG_ARDUINO_RUNNING_CORE == 0 ? 1 : 0
+			);
+
+
+#if HAP_PIXEL_INDICATOR_ENABLED
+		// ToDo: Pixel Indicator
+		_pixelIndicator.begin();		
+		// // show pixel indicator color
+		// Serial.print("WIFI MODE: ");
+		// Serial.println(_config.config()["wifi"]["mode"].as<uint8_t>());
+		_pixelIndicator.setColor(_wifi.getColorForMode((enum HAP_WIFI_MODE)_config.config()["wifi"]["mode"].as<uint8_t>()));
+#endif
 
 #if HAP_DEBUG
 
@@ -266,18 +285,24 @@ bool HAPServer::begin(bool resume) {
 #endif
 #endif
 
+
+
 	// Hostname
 	char* hostname = (char*) malloc(sizeof(char) * strlen(HAP_HOSTNAME_PREFIX) + 8);
-	sprintf(hostname, "%s-%02X%02X%02X", HAP_HOSTNAME_PREFIX, baseMac[3], baseMac[4], baseMac[5]);
+	sprintf(hostname, "%s-%02X%02X%02X", HAP_HOSTNAME_PREFIX, baseMac[3], baseMac[4], baseMac[5]);	
 
-	// WiFi
+	// WiFi	
 	_wifi.begin(&_config, std::bind(&HAPServer::begin, this, std::placeholders::_1), hostname);	
+	
 	// if captive portal, return here	
 	if (_config.config()["wifi"]["mode"].as<uint8_t>() == (uint8_t)HAP_WIFI_MODE_AP){
 		free(hostname);
 		return true;
 	}	
-
+	// ToDo: Pixel Indicator
+#if HAP_PIXEL_INDICATOR_ENABLED
+	_pixelIndicator.off();
+#endif	
 	
 #if HAP_NTP_ENABLED
 	LogI( "Starting NTP client ...", false);
@@ -387,10 +412,24 @@ bool HAPServer::begin(bool resume) {
   	listenerConfigUpdated.mf = &HAPServer::handleEventUpdatedConfig;
 	_eventManager.addListener( EventManager::kEventUpdatedConfig, &listenerConfigUpdated );  	  	
 
-	// kEventUpdatedConfig
+	// kEventRebootNow
 	listenerRebootNow.mObj = this;
   	listenerRebootNow.mf = &HAPServer::handleEventRebootNow;
 	_eventManager.addListener( EventManager::kEventRebootNow, &listenerRebootNow );  	  	
+
+
+	// kEventConfigReset
+	listenerConfigReset.mObj = this;
+  	listenerConfigReset.mf = &HAPServer::handleEventConfigReset;
+	_eventManager.addListener( EventManager::kEventConfigReset, &listenerConfigReset );  
+
+
+	// kEventDeleteAllPairings
+	listenerDeleteAllPairings.mObj = this;
+  	listenerDeleteAllPairings.mf = &HAPServer::handleEventDeleteAllPairings;
+	_eventManager.addListener( EventManager::kEventRemoveAllPairings, &listenerDeleteAllPairings );  
+
+
 
 	LogI( " OK", true);
 
@@ -484,7 +523,6 @@ bool HAPServer::begin(bool resume) {
   	// 
   	// Loading fakegato factory
   	// 
-
 	// Setting Reference Time to FakeGato
 	LogI( "Setting EVE reference time ...", true);
 	_fakeGatoFactory.setRefTime(_config.config()["fakegato"]["reftime"].as<uint32_t>());
@@ -688,27 +726,16 @@ bool HAPServer::begin(bool resume) {
 	// Handle any events that are in the queue
 	_eventManager.processEvent();	
 
+#if HAP_PIXEL_INDICATOR_ENABLED
+	_pixelIndicator.confirmWithColor(HAPColorGreen);
+#endif
+
 	return true;
 }
 
 
 bool HAPServer::updateServiceTxt() {
-	/*
-	mdns_txt_item_t hapTxtData[8] = {
-        {(char*)"c#"    ,(char*)"2"},                   // c# - Configuration number
-        {(char*)"ff"    ,(char*)"0"},                   // ff - feature flags
-        {(char*)"id"    ,(char*)"11:22:33:44:55:66"},   				// id - unique identifier
-        {(char*)"md"	,(char*)"Huzzah32"},            // md - model name
-        {(char*)"pv"    ,(char*)"1.0"},                 // pv - protocol version
-        {(char*)"s#"    ,(char*)"1"},                   // s# - state number
-        {(char*)"sf"    ,(char*)"1"},                   // sf - Status flag
-        {(char*)"ci"    ,(char*)"2"}                    // ci - Accessory category indicator
-    }; 
 
-    return mDNSExt.addServiceTxtSet((char*)"_hap", "_tcp", 8, hapTxtData);
-
-
-    */
 #if HAP_GENERATE_XHM
 	mdns_txt_item_t hapTxtData[9];
 #else
@@ -818,6 +845,12 @@ void HAPServer::handle() {
 	    Heap(_clients.size(), _eventManager.getNumEventsInQueue());
 	}
 #endif
+
+
+#if HAP_PIXEL_INDICATOR_ENABLED
+	_pixelIndicator.handle();
+#endif
+
 
 	if ( (_wifi.captiveInitialized()) && (_config.config()["wifi"]["mode"].as<uint8_t>() == (uint8_t)HAP_WIFI_MODE_AP) ){
 		_wifi.handle();
@@ -1294,61 +1327,6 @@ void HAPServer::parseRequest(HAPClient* hapClient, const char* msg, size_t msg_l
 
 	//return bodyData;
 }
-
-
-
-// // ToDo: Move to hapClient ?
-// /**
-//  * @brief 
-//  * 
-//  * @param message 
-//  * @param length 
-//  * @param encrypted_len 
-//  * @param key 
-//  * @param encryptCount 
-//  * @return char* 
-//  */
-// char* HAPServer::encrypt(uint8_t *message, size_t length, int* encrypted_len, uint8_t* key, uint16_t encryptCount) {
-
-	
-// 	char* encrypted = (char*) calloc(1, length + (length / HAP_ENCRYPTION_BUFFER_SIZE + 1) * (HAP_ENCRYPTION_AAD_SIZE + CHACHA20_POLY1305_AUTH_TAG_LENGTH) + 1);
-
-// 	uint8_t nonce[12] = {0,};
-// 	uint8_t* decrypted_ptr = (uint8_t*)message;
-// 	uint8_t* encrypted_ptr = (uint8_t*)encrypted;
-
-// 	int err_code = 0;
-
-// 	while (length > 0) {
-// 		int chunk_len = (length < HAP_ENCRYPTION_BUFFER_SIZE) ? length : HAP_ENCRYPTION_BUFFER_SIZE;
-// 		length -= chunk_len;
-
-// 		uint8_t aad[HAP_ENCRYPTION_AAD_SIZE];
-// 		aad[0] = chunk_len % 256;
-// 		aad[1] = chunk_len / 256;
-
-// 		memcpy(encrypted_ptr, aad, HAP_ENCRYPTION_AAD_SIZE);
-// 		encrypted_ptr += HAP_ENCRYPTION_AAD_SIZE;
-// 		*encrypted_len += HAP_ENCRYPTION_AAD_SIZE;
-
-// 		nonce[4] = encryptCount % 256;
-// 		nonce[5] = encryptCount++ / 256;
-
-// 		err_code = chacha20_poly1305_encrypt_with_nonce(nonce, key, aad, HAP_ENCRYPTION_AAD_SIZE, decrypted_ptr, chunk_len, encrypted_ptr);	
-
-// 		if (err_code != 0 ) {
-// 			LogE("[ERROR] Encrypting failed!", true);
-// 		}
-
-// 		decrypted_ptr += chunk_len;
-// 		encrypted_ptr += chunk_len + CHACHA20_POLY1305_AUTH_TAG_LENGTH;
-// 		*encrypted_len += (chunk_len + CHACHA20_POLY1305_AUTH_TAG_LENGTH);
-// 	}
-
-
-// 	//_pairSetup->encryptCount = 0;
-// 	return encrypted;
-// }
 
 void HAPServer::sendErrorTLV(HAPClient* hapClient, uint8_t state, uint8_t error){
 	TLV8 response;
@@ -3891,6 +3869,29 @@ void HAPServer::handleEventRebootNow(int eventCode, struct HAPEvent eventParam){
 	ESP.restart();
 }
 
+void HAPServer::handleEventConfigReset(int eventCode, struct HAPEvent eventParam){
+
+	LogI( "Delete config!", true);
+
+    _config.begin();
+    _config.save();
+
+#if HAP_PIXEL_INDICATOR_ENABLED	
+	_pixelIndicator.blinkWithColor(CRGB::Orange, 5);
+#endif	
+}
+
+void HAPServer::handleEventDeleteAllPairings(int eventCode, struct HAPEvent eventParam){
+
+	LogI( "Delete all pairings!", true);
+
+	_accessorySet->getPairings()->removeAllPairings();
+
+#if HAP_PIXEL_INDICATOR_ENABLED	
+	_pixelIndicator.blinkWithColor(CRGB::Red, 5);
+#endif
+}
+
 
 void HAPServer::handleEvents( int eventCode, struct HAPEvent eventParam )
 {
@@ -4131,6 +4132,78 @@ void HAPServer::listDir(FS &fs, const char * dirname, uint8_t levels) {
     }
 }
 #endif
+
+
+void HAPServer::callbackClick(){
+	Serial.print("CALLBACK CLICK! - ");
+	Serial.print("current wifi mode: ");
+	Serial.println((uint8_t)_wifi.getNextMode());
+
+#if HAP_PIXEL_INDICATOR_ENABLED	
+	CRGB col = _wifi.getColorForMode(_wifi.getNextMode());
+#endif		
+	
+	_config.setWifiMode((uint8_t)_wifi.getNextMode());
+	_eventManager.queueEvent( EventManager::kEventUpdatedConfig, HAPEvent());
+
+#if HAP_PIXEL_INDICATOR_ENABLED	
+	_pixelIndicator.confirmWithColor(col);
+#endif		
+}
+
+void HAPServer::callbackDoubleClick(){
+	Serial.print("CALLBACK DOUBLE CLICK! - ");
+	Serial.print("Set default wifi mode: ");
+	Serial.println(HAP_WIFI_MODE_DEFAULT);
+
+	_config.setWifiMode((uint8_t)HAP_WIFI_MODE_DEFAULT);
+	_eventManager.queueEvent( EventManager::kEventUpdatedConfig, HAPEvent());
+
+#if HAP_PIXEL_INDICATOR_ENABLED	
+	CRGB col = _wifi.getColorForMode((HAP_WIFI_MODE)HAP_WIFI_MODE_DEFAULT);
+	_pixelIndicator.confirmWithColor(col);
+#endif
+
+}
+
+void HAPServer::callbackHold(){
+	Serial.print("CALLBACK HOLD! - ");
+	Serial.println("Delete config");
+
+	_eventManager.queueEvent( EventManager::kEventConfigReset, HAPEvent());
+}
+
+void HAPServer::callbackLongHold(){
+	Serial.print("CALLBACK LONG HOLD! - ");
+	Serial.println("Delete all pairings");
+	
+	_eventManager.queueEvent( EventManager::kEventRemoveAllPairings, HAPEvent());
+}
+
+
+void HAPServer::taskButtonRead(void* pvParameters){
+
+	HAPServer* foo = reinterpret_cast<HAPServer*>(pvParameters);
+	HAPButton button;
+
+	auto callbackClick = std::bind(&HAPServer::callbackClick, foo);
+	button.setCallbackClick(callbackClick);
+
+	auto callbackDoubleClick = std::bind(&HAPServer::callbackDoubleClick, foo);
+	button.setCallbackDoubleClick(callbackDoubleClick);
+
+	auto callbackHold = std::bind(&HAPServer::callbackHold, foo);
+	button.setCallbackHold(callbackHold);
+
+	auto callbackLongHold = std::bind(&HAPServer::callbackLongHold, foo);
+	button.setCallbackLongHold(callbackLongHold);
+
+
+	while(1){
+		button.dispatchEvents();
+		yield();
+	}
+}
 
 
 HAPServer hap;

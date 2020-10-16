@@ -26,7 +26,6 @@
 #include "HAPWebServerBodyParserURLEncoded.hpp"
 
 enum HAP_WIFI_MODE HAPWiFiHelper::_mode;
-
 WiFiMulti HAPWiFiHelper::_wifiMulti;
 HAPConfig* HAPWiFiHelper::_config;
 esp_wps_config_t HAPWiFiHelper::_wpsConfig;
@@ -599,3 +598,102 @@ void HAPWiFiHelper::eventHandler(system_event_t *sys_event, wifi_prov_event_t *p
 }
 
 #endif
+
+#if HAP_PIXEL_INDICATOR_ENABLED
+// uint32_t HAPWiFiHelper::getColorForMode(const HAP_WIFI_MODE mode){
+// 	switch (mode) {
+// 		case HAP_WIFI_MODE_AP:
+// 			// return CRGB::Cyan;
+// 			return HAPColorCyan;
+// 		case HAP_WIFI_MODE_WPS:
+// 			// return CRGB::Yellow;
+// 			return HAPColorYellow;
+// 		case HAP_WIFI_MODE_MULTI:
+// 			// return CRGB::Magenta;
+// 			return HAPColorMagenta;
+// 		case HAP_WIFI_MODE_SMARTCONFIG:
+// 			// return CRGB::Orange;
+// 			return HAPColorOrange;
+// 		case HAP_WIFI_MODE_BLE_PROV:
+// 			// return CRGB::Blue;		
+// 			return HAPColorBlue;
+// 		case HAP_WIFI_MODE_AP_PROV:
+// 			// return CRGB::Violet;
+// 			return HAPColorPurple;
+
+// 		default:
+// 			// return CRGB::Black;
+// 			return HAPColorBlack;
+// 	}
+// }
+
+// RgbColor HAPWiFiHelper::getColorForMode(const HAP_WIFI_MODE mode){
+// 	switch (mode) {
+// 		case HAP_WIFI_MODE_AP:
+// 			// return CRGB::Cyan;
+// 			return HAPColorCyan;
+// 		case HAP_WIFI_MODE_WPS:
+// 			// return CRGB::Yellow;
+// 			return HAPColorYellow;
+// 		case HAP_WIFI_MODE_MULTI:
+// 			// return CRGB::Magenta;
+// 			return HAPColorMagenta;
+// 		case HAP_WIFI_MODE_SMARTCONFIG:
+// 			// return CRGB::Orange;
+// 			return HAPColorOrange;
+// 		case HAP_WIFI_MODE_BLE_PROV:
+// 			// return CRGB::Blue;		
+// 			return HAPColorBlue;
+// 		case HAP_WIFI_MODE_AP_PROV:
+// 			// return CRGB::Violet;
+// 			return HAPColorPurple;
+
+// 		default:
+// 			// return CRGB::Black;
+// 			return HAPColorBlack;
+// 	}
+// }
+
+CRGB HAPWiFiHelper::getColorForMode(const HAP_WIFI_MODE mode){
+	switch (mode) {
+		case HAP_WIFI_MODE_AP:
+			// return CRGB::Cyan;
+			return HAPColorCyan;
+		case HAP_WIFI_MODE_WPS:
+			// return CRGB::Yellow;
+			return HAPColorYellow;
+		case HAP_WIFI_MODE_MULTI:
+			// return CRGB::Magenta;
+			return HAPColorMagenta;
+		case HAP_WIFI_MODE_SMARTCONFIG:
+			// return CRGB::Orange;
+			return HAPColorOrange;
+		case HAP_WIFI_MODE_BLE_PROV:
+			// return CRGB::Blue;		
+			return HAPColorBlue;
+		case HAP_WIFI_MODE_AP_PROV:
+			// return CRGB::Violet;
+			return HAPColorPurple;
+
+		default:
+			// return CRGB::Black;
+			return HAPColorBlack;
+	}
+}
+#endif
+
+HAP_WIFI_MODE HAPWiFiHelper::getCurrentMode(){
+	return (enum HAP_WIFI_MODE)_config->config()["wifi"]["mode"].as<uint8_t>();
+}
+
+HAP_WIFI_MODE HAPWiFiHelper::getNextMode(){
+	uint8_t curMode = _config->config()["wifi"]["mode"].as<uint8_t>();
+	uint8_t nextMode = (curMode + 1) % 6;
+
+	return (enum HAP_WIFI_MODE)nextMode;
+}
+
+HAP_WIFI_MODE HAPWiFiHelper::getNextMode(enum HAP_WIFI_MODE mode){
+	uint8_t nextMode = ((uint8_t)mode + 1) % 6;
+	return (enum HAP_WIFI_MODE)nextMode;
+}

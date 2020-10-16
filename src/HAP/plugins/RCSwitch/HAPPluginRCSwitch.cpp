@@ -167,7 +167,40 @@ HAPConfigValidationResult HAPPluginRCSwitch::validateConfig(JsonObject object){
                 result.reason = "plugins." + _name + ".devices." + String(count) + ".name is too long";
                 return result;
             } 
+        }   
+
+        // plugin._name.devices.count.timer
+        if (value.containsKey("timer") && !value["timer"].is<JsonObject>() && !value["timer"].isNull()) {
+            result.reason = "plugins." + _name + ".devices.timer is not an object";
+            return result;
         }        
+
+        if (value["timer"].containsKey("enabled") && !value["timer"]["enabled"].is<bool>()) {
+            result.reason = "plugins." + _name + ".devices.timer.enabled is not a bool";
+            return result;
+        }
+
+        if (value["timer"].containsKey("days") && !value["timer"]["days"].is<uint32_t>()) {
+            result.reason = "plugins." + _name + ".devices.timer.enabled is not an uint32_t";
+            return result;
+        }        
+
+        if (value["timer"].containsKey("programs") && !value["timer"]["programs"].is<String>()) {
+            result.reason = "plugins." + _name + ".devices.timer.enabled is not a string";
+            return result;
+        }
+
+        // const char* data = value["timer"]["programs"].as<const char*>();
+        // if ( (data[0] != '0') && (data[1] != '5') && (data[4] != '0') && (data[5] != '0')) {
+        //     result.reason = "plugins." + _name + ".devices.timer.programs is not valid program";
+        //     return result;
+        // }
+
+        // if ( (data[2] == '0') && (data[3] == '1') ) {
+        //     result.reason = "plugins." + _name + ".devices.timer.programs - program count is 0";
+        //     return result;
+        // }
+
         count++;
     }
 
@@ -183,15 +216,20 @@ JsonObject HAPPluginRCSwitch::getConfigImpl(){
     JsonArray devices = doc.createNestedArray("devices");
 
     for (auto& dev : _devices){
-        JsonObject devices_ = devices.createNestedObject();
-        devices_["houseAddress"]   = dev->houseAddress;
-        devices_["deviceAddress"]  = dev->deviceAddress;
-        devices_["name"]    = dev->name;
+        JsonObject device_ = devices.createNestedObject();
+        device_["houseAddress"]   = dev->houseAddress;
+        device_["deviceAddress"]  = dev->deviceAddress;
+        device_["name"]    = dev->name;     
+
+        // get schedules
+        if (!dev->scheduleToJson().isNull()){
+            device_["timer"] = dev->scheduleToJson();           
+        }        
     }
 
     
 #if HAP_DEBUG_CONFIG
-    serializeJson(doc, Serial);
+    serializeJsonPretty(doc, Serial);
     Serial.println();
 #endif
 
@@ -206,7 +244,7 @@ void HAPPluginRCSwitch::setConfigImpl(JsonObject root){
 
 
     if (root.containsKey("devices")){        
-        for (JsonVariant dev : root["devices"].as<JsonArray>()) {
+        for (JsonObject dev : root["devices"].as<JsonArray>()) {
 
 #if HAP_DEBUG_RCSWITCH
             LogD(" -- device " + String(count) + ": house "     + dev["houseAddress"].as<String>()   , true);                    
@@ -221,26 +259,19 @@ void HAPPluginRCSwitch::setConfigImpl(JsonObject root){
                 dev["deviceAddress"].as<uint8_t>(),
                 dev["name"].as<String>()
             );
+            
+            // set schedules
+            if (dev.containsKey("timer") && !dev["timer"].isNull()) {                
+                newDevice->scheduleFromJson(dev);      
+            }            
 
             int index = indexOfDevice(newDevice);
             if ( index == -1 ){
-                _devices.push_back(newDevice);
-                
-                // newDevice->setFakeGatoFactory(_fakeGatoFactory);
-                // newDevice->setEventManager(_eventManager);
-                
-                // auto callbackSend = std::bind(&HAPPluginRCSwitch::sendDeviceCallback, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);        
-                // newDevice->setRCSwitchSendCallback(callbackSend);
-
-                // _accessorySet->addAccessory(newDevice->initAccessory());
-
-                
+                _devices.push_back(newDevice);                                
             } else {
                 _devices[index] = newDevice;
             }         
-        }
-
-        
+        }        
     }
 }
 

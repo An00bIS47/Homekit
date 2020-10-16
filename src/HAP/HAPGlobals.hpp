@@ -23,7 +23,12 @@
 #define HAP_MANUFACTURER			"An00bIS47"
 #define HAP_MODELL_NAME				"Huzzah32"
 #define HAP_RESET_EEPROM 			0
+#define HAP_BUTTON_PIN 				0       // PIN of onboard button 
 
+
+#define HAP_PIXEL_INDICATOR_ENABLED 1
+#define HAP_PIXEL_INDICATOR_PIN		A0		// PIN of the NeoPixel inidicator pin for wifi connection etc
+#define HAP_PIXEL_INIDICATOR_BRIGHTNESS 75
 
 /**
  * H.A.P.
@@ -70,7 +75,7 @@
 #endif
 
 #ifndef HAP_DEBUG_FAKEGATO_SCHEDULE
-#define HAP_DEBUG_FAKEGATO_SCHEDULE 0
+#define HAP_DEBUG_FAKEGATO_SCHEDULE 1
 #endif
 
 #ifndef HAP_DEBUG_PAIRINGS
@@ -127,6 +132,8 @@
 #endif										// 1 = HAPWiFiModeMulti
 											// 2 = HAPWiFiModeWPS			-> push button only
 											// 3 = HAPWiFiModeSmartConfig	-> not working with ios13 ?
+											// 4 = HAPWiFiModeBLEProv	
+											// 5 = HAPWiFiModeAPProv	
 
 #define HAP_WIFI_CONNECTION_MAX_RETRIES 5	// max retries for connection error 
                                             // before switching back to default mode
@@ -176,9 +183,9 @@
 #define HAP_ENABLE_WEBSERVER		1		// Enable Webinterface
 #endif										// Default: 1
 
-#define HAP_ENABLE_WEBSERVER_CORE_0	0		// Run webserver on core 0 in a seperate task
-											// default 0 - Still work-in-progress
-											// currently could causes heap caps failures if used with BLE
+// #define HAP_ENABLE_WEBSERVER_CORE_0	0		// Run webserver on core 0 in a seperate task
+// 											// default 0 - Still work-in-progress
+// 											// currently could causes heap caps failures if used with BLE
 
 
 #define HAP_WEBSERVER_USE_JWT 		0		// use JWT for access
@@ -232,8 +239,6 @@
 #define HAP_CAPTIVE_AP_IP			"192.168.0.1"
 #define HAP_CAPTIVE_AP_SSID			"Homekit Captive Portal"	// ssid of the access point
 #define HAP_CAPTIVE_TITLE			"Homekit Captive Portal"	// Title of the webpage for captive portal
-
-
 
 
 /**
@@ -458,6 +463,12 @@
 // reduce fakegato buffer
 #undef HAP_FAKEGATO_BUFFER_SIZE
 #define HAP_FAKEGATO_BUFFER_SIZE 512
+#endif
+
+// shut off pixel indicator if using neo pixel
+#if HAP_PLUGIN_USE_NEOPIXEL
+#undef HAP_PIXEL_INDICATOR_ENABLED
+#define HAP_PIXEL_INDICATOR_ENABLED 0
 #endif
 
 /**

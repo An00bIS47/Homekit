@@ -41,6 +41,6 @@ String HAPDeviceID::chipID(){
 
 String HAPDeviceID::serialNumber(String type, String id){
     char serialNumber[6 + 2 + type.length() + id.length()];
-    sprintf(serialNumber, "%02X%02X%02X-%s-%s", _deviceID[4], _deviceID[5], _deviceID[6], type.c_str(), id.c_str());
+    sprintf(serialNumber, "%02X%02X%02X-%s-%s", _deviceID[3], _deviceID[4], _deviceID[5], type.c_str(), id.c_str());
     return String(serialNumber);
 }
