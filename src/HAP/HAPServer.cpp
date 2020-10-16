@@ -412,10 +412,24 @@ bool HAPServer::begin(bool resume) {
   	listenerConfigUpdated.mf = &HAPServer::handleEventUpdatedConfig;
 	_eventManager.addListener( EventManager::kEventUpdatedConfig, &listenerConfigUpdated );  	  	
 
-	// kEventUpdatedConfig
+	// kEventRebootNow
 	listenerRebootNow.mObj = this;
   	listenerRebootNow.mf = &HAPServer::handleEventRebootNow;
 	_eventManager.addListener( EventManager::kEventRebootNow, &listenerRebootNow );  	  	
+
+
+	// kEventConfigReset
+	listenerConfigReset.mObj = this;
+  	listenerConfigReset.mf = &HAPServer::handleEventConfigReset;
+	_eventManager.addListener( EventManager::kEventConfigReset, &listenerConfigReset );  
+
+
+	// kEventDeleteAllPairings
+	listenerDeleteAllPairings.mObj = this;
+  	listenerDeleteAllPairings.mf = &HAPServer::handleEventDeleteAllPairings;
+	_eventManager.addListener( EventManager::kEventRemoveAllPairings, &listenerDeleteAllPairings );  
+
+
 
 	LogI( " OK", true);
 
@@ -3855,6 +3869,29 @@ void HAPServer::handleEventRebootNow(int eventCode, struct HAPEvent eventParam){
 	ESP.restart();
 }
 
+void HAPServer::handleEventConfigReset(int eventCode, struct HAPEvent eventParam){
+
+	LogI( "Delete config!", true);
+
+    _config.begin();
+    _config.save();
+
+#if HAP_PIXEL_INDICATOR_ENABLED	
+	_pixelIndicator.blinkWithColor(CRGB::Orange, 5);
+#endif	
+}
+
+void HAPServer::handleEventDeleteAllPairings(int eventCode, struct HAPEvent eventParam){
+
+	LogI( "Delete all pairings!", true);
+
+	_accessorySet->getPairings()->removeAllPairings();
+
+#if HAP_PIXEL_INDICATOR_ENABLED	
+	_pixelIndicator.blinkWithColor(CRGB::Red, 5);
+#endif
+}
+
 
 void HAPServer::handleEvents( int eventCode, struct HAPEvent eventParam )
 {
@@ -4098,7 +4135,7 @@ void HAPServer::listDir(FS &fs, const char * dirname, uint8_t levels) {
 
 
 void HAPServer::callbackClick(){
-	Serial.println("CALLBACK CLICK!");
+	Serial.print("CALLBACK CLICK! - ");
 	Serial.print("current wifi mode: ");
 	Serial.println((uint8_t)_wifi.getNextMode());
 
@@ -4115,7 +4152,7 @@ void HAPServer::callbackClick(){
 }
 
 void HAPServer::callbackDoubleClick(){
-	Serial.println("CALLBACK DOUBLE CLICK!");
+	Serial.print("CALLBACK DOUBLE CLICK! - ");
 	Serial.print("Set default wifi mode: ");
 	Serial.println(HAP_WIFI_MODE_DEFAULT);
 
@@ -4130,25 +4167,17 @@ void HAPServer::callbackDoubleClick(){
 }
 
 void HAPServer::callbackHold(){
-	Serial.println("CALLBACK HOLD!");
+	Serial.print("CALLBACK HOLD! - ");
 	Serial.println("Delete config");
-    _config->begin();
-    _config->save();
 
-#if HAP_PIXEL_INDICATOR_ENABLED	
-	_pixelIndicator.confirmWithColor(CRGB::Green);
-#endif
+	_eventManager.queueEvent( EventManager::kEventConfigReset, HAPEvent());
 }
 
 void HAPServer::callbackLongHold(){
-	Serial.println("CALLBACK LONG HOLD!");
+	Serial.print("CALLBACK LONG HOLD! - ");
 	Serial.println("Delete all pairings");
 	
-	_accessorySet->getPairings()->removeAllPairings();
-
-#if HAP_PIXEL_INDICATOR_ENABLED	
-	_pixelIndicator.confirmWithColor(CRGB::Red);
-#endif
+	_eventManager.queueEvent( EventManager::kEventRemoveAllPairings, HAPEvent());
 }
 
 

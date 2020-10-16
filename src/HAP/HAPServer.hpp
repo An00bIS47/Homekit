@@ -190,6 +190,9 @@ protected:
 	void handleEventUpdatedConfig(int eventCode, struct HAPEvent eventParam);
 	void handleEventRebootNow(int eventCode, struct HAPEvent eventParam);
 
+	void handleEventConfigReset(int eventCode, struct HAPEvent eventParam);
+	void handleEventDeleteAllPairings(int eventCode, struct HAPEvent eventParam);
+
 	bool stopEvents();
 	void stopEvents(bool value);
 
@@ -201,7 +204,8 @@ protected:
 	MemberFunctionCallable<HAPServer> listenerNotificaton;	
 	MemberFunctionCallable<HAPServer> listenerRebootNow;	
 
-	
+	MemberFunctionCallable<HAPServer> listenerConfigReset;	
+	MemberFunctionCallable<HAPServer> listenerDeleteAllPairings;	
 
 #if HAP_UPDATE_ENABLE_OTA || HAP_UPDATE_ENABLE_FROM_WEB 	
 	HAPUpdate _updater;

@@ -197,6 +197,8 @@ public:
         kEventHomekitStarted            = 100,
         kEventIncrementConfigNumber     = 101,
         kEventUpdatedConfig             = 102,
+        kEventConfigReset               = 103,
+
         
         kEventNotifyController          = 110,
         kEventNotifyAccessory           = 111,
@@ -212,6 +214,7 @@ public:
         kEventVerifyComplete            = 132,
 
         kEventAllPairingsRemoved        = 140,
+        kEventRemoveAllPairings         = 141,
 
         kEventErrorOccurred             = 254,
         kEventRebootNow                 = 255
