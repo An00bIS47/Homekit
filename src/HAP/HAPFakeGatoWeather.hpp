@@ -12,8 +12,9 @@
 #include <Arduino.h>
 #include "HAPFakeGato.hpp"
 
-struct HAPFakeGatoWeatherData {
+struct HAPFakeGatoWeatherData {    
     uint32_t timestamp;     // unix
+    uint8_t  bitmask;
     // bool     setRefTime;    
 
     uint16_t temperature;
@@ -45,8 +46,8 @@ public:
     void getSignature(uint8_t* signature) override;
 
     
-    bool addEntry(uint32_t timestamp, String stringTemperature, String stringHumidity, String stringPressure);
-    bool addEntry(String stringTemperature, String stringHumidity, String stringPressure = "0");    
+    bool addEntry(uint8_t bitmask, uint32_t timestamp, String stringTemperature, String stringHumidity, String stringPressure);
+    bool addEntry(uint8_t bitmask, String stringTemperature, String stringHumidity, String stringPressure);    
     bool addEntry(HAPFakeGatoWeatherData data);
     void getData(const size_t count, uint8_t *data, size_t *length, uint16_t offset) override;
 

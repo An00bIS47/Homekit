@@ -41,7 +41,7 @@ bool HAPPluginDHT::begin(){
 	LogD(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Begin()", true);
 #if HAP_PLUGIN_DHT_USE_DUMMY
 	LogI("Using DHT dummy!", true);
-	randomSeed(analogRead(0));
+	randomSeed(analogRead(DHTPIN));
 #else
 	_dht = new DHT_Unified(DHTPIN, DHTTYPE);
 	_dht->begin();
@@ -207,10 +207,10 @@ HAPAccessory* HAPPluginDHT::initAccessory(){
 	_humidityValue->setValue("0.0");
 
 	auto callbackChangeHum = std::bind(&HAPPluginDHT::changeHum, this, std::placeholders::_1, std::placeholders::_2);
-	//_humidityValue->valueChangeFunctionCall = std::bind(&changeHum);
 	_humidityValue->valueChangeFunctionCall = callbackChangeHum;
 	// _accessory->addCharacteristics(humidityService, _humidityValue);
 	_accessory->addCharacteristics(temperatureService, _humidityValue);
+	
 
 #if HAP_PLUGIN_DHT_USE_PRESSURE
 	//
@@ -274,8 +274,8 @@ void HAPPluginDHT::setConfigImpl(JsonObject root){
 bool HAPPluginDHT::fakeGatoCallback(){	
 	// return _fakegato.addEntry(_temperatureValue->value(), _humidityValue->value(), _pressureValue->value());
 #if HAP_PLUGIN_DHT_USE_PRESSURE	
-	return _fakegato.addEntry(_temperatureValue->value(), _humidityValue->value(), _pressureValue->value());
+	return _fakegato.addEntry(0x07, _temperatureValue->value(), _humidityValue->value(), _pressureValue->value());
 #else
-	return _fakegato.addEntry(_temperatureValue->value(), _humidityValue->value(), "0");
+	return _fakegato.addEntry(0x06, _temperatureValue->value(), _humidityValue->value(), "0");
 #endif
 }

@@ -88,24 +88,30 @@ void HAPFakeGatoEnergy::getSignature(uint8_t* signature){
     // memcpy(signature + 2 + 2 + 2, s4.ui8, 2);
     // // *length = signatureLength();    
 
+
+    // bitmask for all: 11111 = 0x1F
     signature[0] = (uint8_t)HAPFakeGatoSignature_PowerWatt;
     signature[1] = 2;
 
+    // bitmask for all - HAPFakeGatoSignature_PowerWatt: 01111 = 0x0F
     signature[2] = (uint8_t)HAPFakeGatoSignature_PowerVoltage;
     signature[3] = 2;
 
+    // bitmask for all - HAPFakeGatoSignature_PowerWatt - HAPFakeGatoSignature_PowerVoltage: 00111 = 0x07
     signature[4] = (uint8_t)HAPFakeGatoSignature_PowerCurrent;
     signature[5] = 2;
 
+    // bitmask for HAPFakeGatoSignature_Power10thWh - HAPFakeGatoSignature_PowerOnOff: 00011 = 0x03
     signature[6] = (uint8_t)HAPFakeGatoSignature_Power10thWh;
     signature[7] = 2;
 
+    // bitmask for HAPFakeGatoSignature_PowerOnOff: 00001 = 0x01
     signature[8] = (uint8_t)HAPFakeGatoSignature_PowerOnOff;
     signature[9] = 1;
 }
 
 
-bool HAPFakeGatoEnergy::addEntry(String powerWatt, String powerVoltage, String powerCurrent, String stringPower10th, String status){        
+bool HAPFakeGatoEnergy::addEntry(uint8_t bitmask, String powerWatt, String powerVoltage, String powerCurrent, String stringPower10th, String status){        
 
     LogD(HAPServer::timeString() + " " + String(__CLASS_NAME__) + "->" + String(__FUNCTION__) + " [   ] " + "Adding entry for " + _name + " [size=" + String(size()) + "]: power10th=" + stringPower10th, true);
     
@@ -117,6 +123,7 @@ bool HAPFakeGatoEnergy::addEntry(String powerWatt, String powerVoltage, String p
 
     HAPFakeGatoEnergyData data = (HAPFakeGatoEnergyData){
         HAPServer::timestamp(),
+        bitmask,
         valuePowerWatt,
         valuePowerVoltage,
         valuePowerCurrent,
@@ -189,7 +196,6 @@ void HAPFakeGatoEnergy::getData(const size_t count, uint8_t *data, size_t* lengt
     for (int i = 0; i < count; i++){
         
         uint8_t size = HAP_FAKEGATO_DATA_LENGTH;
-        uint8_t typ = HAP_FAKEGATO_TYPE_ENERGY;
         memcpy(data + offset, (uint8_t *)&size, 1);
 
         ui32_to_ui8 eC;
@@ -200,7 +206,7 @@ void HAPFakeGatoEnergy::getData(const size_t count, uint8_t *data, size_t* lengt
         secs.ui32 = entryData.timestamp - _refTime;
         memcpy(data + offset + 1 + 4, secs.ui8, 4);
         
-        memcpy(data + offset + 1 + 4 + 4, (uint8_t*)&typ, 1);
+        memcpy(data + offset + 1 + 4 + 4, (uint8_t*)entryData.bitmask, 1);
 
         // PowerWatt
         memset(data + offset + 1 + 4 + 4 + 1, 0x00, 2);

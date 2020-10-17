@@ -16,6 +16,7 @@
 
 struct HAPFakeGatoEnergyData {
     uint32_t timestamp;     // unix
+    uint8_t bitmask;
     // bool     setRefTime;    
 
     uint16_t powerWatt;
@@ -51,7 +52,7 @@ public:
 
     void setSerialNumber(String serialNumber);
     
-    bool addEntry(String powerWatt, String powerVoltage, String powerCurrent, String stringPower10th, String status);    
+    bool addEntry(uint8_t bitmask, String powerWatt, String powerVoltage, String powerCurrent, String stringPower10th, String status);    
     bool addEntry(HAPFakeGatoEnergyData data);
     void getData(const size_t count, uint8_t *data, size_t *length, uint16_t offset) override;
 

@@ -328,7 +328,7 @@ void HAPFakeGato::setS2W1Characteristics(String oldValue, String newValue){
     uint8_t decoded[outputLength];
 
 #if HAP_DEBUG_FAKEGATO    
-    Serial.print("Outoutlength: ");
+    Serial.print("Outputlength: ");
     Serial.println(outputLength);
     Serial.println(sizeof(decoded));
 #endif

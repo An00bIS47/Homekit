@@ -51,6 +51,12 @@ private:
 
 	floatCharacteristics*	_humidityValue;
 
+#if HAP_HYGROMETER_LEAK_SENSOR_ENABLED	
+	uint8Characteristics*	_leakSensor;	
+#endif
+
+	bool _leakSensorEnabled;
+	
 	bool fakeGatoCallback();
 
 	HAPFakeGatoWeather _fakegato;

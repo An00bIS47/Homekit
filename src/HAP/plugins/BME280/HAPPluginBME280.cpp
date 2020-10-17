@@ -385,5 +385,5 @@ bool HAPPluginBME280::begin(){
 
 bool HAPPluginBME280::fakeGatoCallback(){	
 	// return _fakegato.addEntry(_temperatureValue->value(), _humidityValue->value(), _pressureValue->value());
-	return _fakegato.addEntry(_temperatureValue->value(), _humidityValue->value(), _pressureValue->value());
+	return _fakegato.addEntry(0x07, _temperatureValue->value(), _humidityValue->value(), _pressureValue->value());
 }

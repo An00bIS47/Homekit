@@ -239,7 +239,7 @@ void HAPPluginRF24DeviceDHT::changeMeasureMode(uint8_t oldValue, uint8_t newValu
 
 bool HAPPluginRF24DeviceDHT::fakeGatoCallback(){	
 	// return _fakegato.addEntry(_temperatureValue->value(), _humidityValue->value(), _pressureValue->value());
-	return _fakegato.addEntry(_temperatureValue->value(), _humidityValue->value(), "0");
+	return _fakegato.addEntry(0x06, _temperatureValue->value(), _humidityValue->value(), "0");
 }
 
 

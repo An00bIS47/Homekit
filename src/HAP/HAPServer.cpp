@@ -104,6 +104,8 @@ HAPServer::HAPServer(uint16_t port, uint8_t maxClients)
 
 	_isInPairingMode = false;	
 	_homekitFailedLoginAttempts = 0;
+
+	_taskButtonHandle = NULL;
 }
 
 HAPServer::~HAPServer() {
@@ -156,18 +158,6 @@ bool HAPServer::begin(bool resume) {
 		HAPLogger::setLogLevel(_config.config()["homekit"]["loglevel"].as<uint8_t>());
 
 
-		// Button Task
-		xTaskCreatePinnedToCore(
-			taskButtonRead
-			,  "TaskButton"   	// A name just for humans
-			,  1024  		  	// This stack size can be checked & adjusted by reading the Stack Highwater
-			,  (void*)this		// parameter of the task
-			,  0  				// Priority, with 3 (configMAX_PRIORITIES - 1) being the highest, and 0 being the lowest.
-			,  NULL 			// task handle
-			,  CONFIG_ARDUINO_RUNNING_CORE == 0 ? 1 : 0
-			);
-
-
 #if HAP_PIXEL_INDICATOR_ENABLED
 		// ToDo: Pixel Indicator
 		_pixelIndicator.begin();		
@@ -176,6 +166,18 @@ bool HAPServer::begin(bool resume) {
 		// Serial.println(_config.config()["wifi"]["mode"].as<uint8_t>());
 		_pixelIndicator.setColor(_wifi.getColorForMode((enum HAP_WIFI_MODE)_config.config()["wifi"]["mode"].as<uint8_t>()));
 #endif
+
+
+		// Button Task
+		xTaskCreatePinnedToCore(
+			taskButtonRead
+			,  "TaskButton"   		// A name just for humans
+			,  2048  		  		// This stack size can be checked & adjusted 
+			,  (void*)this			// parameter of the task
+			,  0  					// Priority, with 3 (configMAX_PRIORITIES - 1) being the highest, and 0 being the lowest.
+			,  &_taskButtonHandle 	// task handle
+			,  CONFIG_ARDUINO_RUNNING_CORE == 0 ? 1 : 0
+			);
 
 #if HAP_DEBUG
 
@@ -843,6 +845,15 @@ void HAPServer::handle() {
 	    // save the last time you blinked the LED
 	    _previousMillisHeap = millis();
 	    Heap(_clients.size(), _eventManager.getNumEventsInQueue());
+		
+		// ToDo: remove 
+		Serial.print("Task Button Handle: ");
+		Serial.println(_taskButtonHandle == NULL ? "NULL" : "not NULL");
+		if (_taskButtonHandle != NULL){
+			Serial.print("Task State: ");
+			Serial.println(eTaskGetState(_taskButtonHandle));
+		}
+		
 	}
 #endif
 
@@ -861,13 +872,6 @@ void HAPServer::handle() {
 	// Handle new clients
 	WiFiClient client = _server.available();
 	if (client) {
-
-#if HAP_DEBUG_HEAP        
-    	LogE("+++++++++++++++++++ " + String(__CLASS_NAME__) + "->" + String(__FUNCTION__) + " start", true);
-    	HAPLogger::logFreeHeap(0,0, COLOR_MAGENTA);
-		// ESP_ERROR_CHECK( heap_trace_init_standalone(trace_record, HAP_DEBUG_HEAP_NUM_RECORDS) );
-		ESP_ERROR_CHECK( heap_trace_start(HEAP_TRACE_LEAKS) );
-#endif
 
 		HAPClient hapClient;
 
@@ -949,10 +953,6 @@ void HAPServer::handle() {
 
 	// Handle any events that are in the queue
 	_eventManager.processEvent();	
-
-
-
-
 }
 
 #if HAP_NTP_ENABLED
@@ -4199,9 +4199,9 @@ void HAPServer::taskButtonRead(void* pvParameters){
 	button.setCallbackLongHold(callbackLongHold);
 
 
-	while(1){
+	for(;;){
 		button.dispatchEvents();
-		yield();
+		vTaskDelay(1);
 	}
 }
 

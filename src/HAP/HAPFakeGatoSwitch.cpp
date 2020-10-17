@@ -193,7 +193,6 @@ void HAPFakeGatoSwitch::getData(const size_t count, uint8_t *data, size_t* lengt
 #endif
 
         uint8_t size = HAP_FAKEGATO_DATA_LENGTH;
-        uint8_t typ = HAP_FAKEGATO_TYPE_SWITCH;
         memcpy(data + offset, (uint8_t *)&size, 1);
 
         ui32_to_ui8 eC;
@@ -204,7 +203,8 @@ void HAPFakeGatoSwitch::getData(const size_t count, uint8_t *data, size_t* lengt
         secs.ui32 = entryData.timestamp - _refTime;
         memcpy(data + offset + 1 + 4, secs.ui8, 4);
         
-        memcpy(data + offset + 1 + 4 + 4, (uint8_t*)&typ, 1);
+        uint8_t bitmask = 0x01;
+        memcpy(data + offset + 1 + 4 + 4, (uint8_t*)&bitmask, 1);
         
         uint8_t status   = entryData.status;
         memcpy(data + offset + 1 + 4 + 4 + 1, (uint8_t*)&status, 1);

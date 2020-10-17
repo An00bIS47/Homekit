@@ -16,8 +16,13 @@
  ********************************************************************/
 #define HAP_LOGLEVEL				LogLevel::DEBUG
 
+#ifndef HAP_PIN_CODE
 #define HAP_PIN_CODE 				"031-45-712"
+#endif
+
+#ifndef HAP_SETUP_ID
 #define HAP_SETUP_ID 				"UPFT"
+#endif
 
 #define HAP_HOSTNAME_PREFIX			"esp32"
 #define HAP_MANUFACTURER			"An00bIS47"
@@ -31,7 +36,7 @@
 #define HAP_PIXEL_INIDICATOR_BRIGHTNESS 75
 
 /**
- * H.A.P.
+ * Homekit Accessory Protocol
  ********************************************************************/
 #define HOMEKIT_PROTOKOL_VERSION			"1.0"
 #define HOMEKIT_CONFIGURATION_NUMBER 		1		// Internal - keep value at 1
@@ -628,12 +633,22 @@ STR(HAP_PLUGIN_USE_BME280)
 /**
  * Plugin configuration
  ********************************************************************/
+
+// 
+// MiFlora
+// 
 #define HAP_PLUGIN_MIFLORA_MAX_DEVICES     			10
 #define HAP_PLUGIN_MIFLORA_SCAN_DURATION    		3       // Max duration of BLE scan (in seconds)
-#define HAP_PLUGIN_MIFLORA_RETRY       				5
-#define HAP_PLUGIN_MIFLORA_ENABLE_SCANNER 			1
+#define HAP_PLUGIN_MIFLORA_RETRY       				5		// number of retries to connect to sensor
+#define HAP_PLUGIN_MIFLORA_ENABLE_SCANNER 			1		// enable ble scanner to detect mifloras
 
-#define HAP_PLUGIN_MIFLORA_ENABLE_HISTORY			1
-#define HAP_PLUGIN_MIFLORA_HISTORY_BATCH_SIZE		8
+#define HAP_PLUGIN_MIFLORA_ENABLE_HISTORY			1		// download history from sensor and provide it via fakegato
+#define HAP_PLUGIN_MIFLORA_HISTORY_BATCH_SIZE		7		// Number of history entries to catch in one try
+															// keep this below 8
+// 
+// Hygrometer
+// 
+#define HAP_HYGROMETER_LEAK_SENSOR_ENABLED  		0		// enable leak sensor for hygrometer
+#define HAP_HYGROMETER_LEAK_PERCENTAGE				35		// Level when a "leak" notification is triggered
 
 #endif /* HAPGLOBALS_HPP_ */

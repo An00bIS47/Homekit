@@ -31,81 +31,82 @@ HAPButton::HAPButton(){
     _callbackDoubleClick    = nullptr;
     _callbackHold           = nullptr;
     _callbackLongHold       = nullptr;
+
+    pinMode(HAP_BUTTON_PIN, INPUT);
 }
 
 
 HAPBUTTON_STATE HAPButton::checkButton() {    
-   HAPBUTTON_STATE event = HAPBUTTON_STATE_UNKNOWN;
+    HAPBUTTON_STATE event = HAPBUTTON_STATE_UNKNOWN;
 
-   _buttonVal = digitalRead(HAP_BUTTON_PIN);
+    _buttonVal = digitalRead(HAP_BUTTON_PIN);
    
-   // Button pressed down
-   if (_buttonVal == LOW && _buttonLast == HIGH && (millis() - _upTime) > _debounce) {
-       _downTime = millis();
-       _ignoreUp = false;
-       _waitForUp = false;
-       _singleOK = true;
-       _holdEventPast = false;
-       _longHoldEventPast = false;
-       if ((millis()-_upTime) < _DCgap && _DConUp == false && _DCwaiting == true) {
-           _DConUp = true;
-       } else {
-       	   _DConUp = false;
-       	   _DCwaiting = false;
-       }
+    // Button pressed down
+    if (_buttonVal == LOW && _buttonLast == HIGH && (millis() - _upTime) > _debounce) {
+        _downTime = millis();
+        _ignoreUp = false;
+        _waitForUp = false;
+        _singleOK = true;
+        _holdEventPast = false;
+        _longHoldEventPast = false;
+        if ((millis()-_upTime) < _DCgap && _DConUp == false && _DCwaiting == true) {
+            _DConUp = true;
+        } else {
+            _DConUp = false;
+            _DCwaiting = false;
+        }
        	
-   } else if (_buttonVal == HIGH && _buttonLast == LOW && (millis() - _downTime) > _debounce)    {
-   		// Button released        
-       if (!_ignoreUp) {
-           _upTime = millis();
-           if (_DConUp == false) _DCwaiting = true;
-           else {
-               event = HAPBUTTON_STATE_DOUBLE_CLICK;
-               _DConUp = false;
-               _DCwaiting = false;
-               _singleOK = false;
-           }
-       }
-   }
+    } else if (_buttonVal == HIGH && _buttonLast == LOW && (millis() - _downTime) > _debounce)    {
+            // Button released        
+        if (!_ignoreUp) {
+            _upTime = millis();
+            if (_DConUp == false) _DCwaiting = true;
+            else {
+                event = HAPBUTTON_STATE_DOUBLE_CLICK;
+                _DConUp = false;
+                _DCwaiting = false;
+                _singleOK = false;
+            }
+        }
+    }
 
-   // Test for normal click event: _DCgap expired
-   if ( _buttonVal == HIGH && (millis()-_upTime) >= _DCgap && _DCwaiting == true && _DConUp == false && _singleOK == true && event != 2) {
-       event = HAPBUTTON_STATE_CLICK;
-       _DCwaiting = false;
-   }
+    // Test for normal click event: _DCgap expired
+    if ( _buttonVal == HIGH && (millis()-_upTime) >= _DCgap && _DCwaiting == true && _DConUp == false && _singleOK == true && event != 2) {
+        event = HAPBUTTON_STATE_CLICK;
+        _DCwaiting = false;
+    }
 
-   // Test for hold
-   if (_buttonVal == LOW && (millis() - _downTime) >= _holdTime) {
-       // Trigger "normal" hold
-       if (!_holdEventPast){
-           event = HAPBUTTON_STATE_HOLD;
-           _waitForUp = true;
-           _ignoreUp = true;
-           _DConUp = false;
-           _DCwaiting = false;
-           //_downTime = millis();
-           _holdEventPast = true;
-       }
-       // Trigger "long" hold
-       if ((millis() - _downTime) >= _longHoldTime){
-           if (!_longHoldEventPast){
-               event = HAPBUTTON_STATE_LONG_HOLD;
-               _longHoldEventPast = true;
-           }
-       }
-   }
+    // Test for hold
+    if (_buttonVal == LOW && (millis() - _downTime) >= _holdTime) {
+        // Trigger "normal" hold
+        if (!_holdEventPast){
+            event = HAPBUTTON_STATE_HOLD;
+            _waitForUp = true;
+            _ignoreUp = true;
+            _DConUp = false;
+            _DCwaiting = false;
+            //_downTime = millis();
+            _holdEventPast = true;
+        }
+        // Trigger "long" hold
+        if ((millis() - _downTime) >= _longHoldTime){
+            if (!_longHoldEventPast){
+                event = HAPBUTTON_STATE_LONG_HOLD;
+                _longHoldEventPast = true;
+            }
+        }
+    }
 
-    
-   _buttonLast = _buttonVal;
-   return event;
+    _buttonLast = _buttonVal;
+    return event;
 }
 
 void HAPButton::dispatchEvents() {
-   // Get button event and act accordingly
-   HAPBUTTON_STATE b = checkButton();
-   if (b == HAPBUTTON_STATE_CLICK && _callbackClick) _callbackClick();
-   if (b == HAPBUTTON_STATE_DOUBLE_CLICK && _callbackDoubleClick) _callbackDoubleClick();
-   if (b == HAPBUTTON_STATE_HOLD && _callbackHold) _callbackHold();
-   if (b == HAPBUTTON_STATE_LONG_HOLD && _callbackLongHold) _callbackLongHold();
+    // Get button event and act accordingly
+    HAPBUTTON_STATE b = checkButton();
+    if (b == HAPBUTTON_STATE_CLICK && _callbackClick) _callbackClick();
+    if (b == HAPBUTTON_STATE_DOUBLE_CLICK && _callbackDoubleClick) _callbackDoubleClick();
+    if (b == HAPBUTTON_STATE_HOLD && _callbackHold) _callbackHold();
+    if (b == HAPBUTTON_STATE_LONG_HOLD && _callbackLongHold) _callbackLongHold();
 }
 

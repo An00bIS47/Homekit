@@ -46,6 +46,7 @@
 #else
 #include <DHT.h>
 #include <DHT_U.h>
+#endif
 
 #ifndef DHTPIN
 #define DHTPIN 		A8 	// 15
@@ -55,7 +56,7 @@
 #define DHTTYPE    	DHT22
 #endif
 
-#endif
+
 
 // #if HAP_PLUGIN_DHT_USE_PRESSURE
 #include "HAPFakeGatoWeather.hpp"
