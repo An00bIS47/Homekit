@@ -276,6 +276,6 @@ bool HAPPluginDHT::fakeGatoCallback(){
 #if HAP_PLUGIN_DHT_USE_PRESSURE	
 	return _fakegato.addEntry(0x07, _temperatureValue->value(), _humidityValue->value(), _pressureValue->value());
 #else
-	return _fakegato.addEntry(0x06, _temperatureValue->value(), _humidityValue->value(), "0");
+	return _fakegato.addEntry(0x07, _temperatureValue->value(), _humidityValue->value(), "0");
 #endif
 }

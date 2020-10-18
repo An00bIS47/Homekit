@@ -272,7 +272,7 @@ void HAPPluginHygrometer::setConfigImpl(JsonObject root){
 
 
 bool HAPPluginHygrometer::fakeGatoCallback(){		
-	return _fakegato.addEntry(0x02, "0", _humidityValue->value(), "0");
+	return _fakegato.addEntry(0x01, "0", _humidityValue->value(), "0");
 }
 
 

@@ -49,16 +49,29 @@ void HAPFakeGatoWeather::begin(){
 
 int HAPFakeGatoWeather::signatureLength(){
     return HAP_FAKEGATO_SIGNATURE_LENGTH;
+    // ToDo: Hygrometer test
+    // return 1;
 }
 
 void HAPFakeGatoWeather::getSignature(uint8_t* signature){
 
-    signature[4] = (uint8_t)HAPFakeGatoSignature_Temperature;
-    signature[5] = 2;  
+    signature[0] = (uint8_t)HAPFakeGatoSignature_Temperature;
+    signature[1] = 2;
 
     signature[2] = (uint8_t)HAPFakeGatoSignature_Humidity;
     signature[3] = 2;
+    
+    signature[4] = (uint8_t)HAPFakeGatoSignature_AirPressure;
+    signature[5] = 2;  
 
+    // ToDo: Hygrometer test
+    // signature[1] = (uint8_t)HAPFakeGatoSignature_Humidity;
+    // signature[2] = 2;    
+
+#if HAP_DEBUG_FAKEGATO   
+    LogE(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><", true);
+    HAPHelper::array_print("Fakegato signature", signature, 6);
+#endif
 
 }
 
@@ -68,9 +81,15 @@ bool HAPFakeGatoWeather::addEntry(uint8_t bitmask, String stringTemperature, Str
 
     LogD(HAPServer::timeString() + " " + String(__CLASS_NAME__) + "->" + String(__FUNCTION__) + " [   ] " + "Adding entry for " + _name + " [size=" + String(_memoryUsed) + "]: temp=" + stringTemperature + " hum=" + stringHumidity + " pres=" + stringPressure, true);
     
-    uint16_t valueTemperature   = (uint16_t) stringTemperature.toFloat()    * 100;
-    uint16_t valueHumidity      = (uint16_t) stringHumidity.toFloat()       * 100;
-    uint16_t valuePressure      = (uint16_t) stringPressure.toInt()         * 10;        
+    uint16_t valueTemperature   = (uint16_t) (stringTemperature.toFloat()    * 100);
+    uint16_t valueHumidity      = (uint16_t) (stringHumidity.toFloat()       * 100);
+    uint16_t valuePressure      = (uint16_t) (stringPressure.toInt()         * 10);        
+
+#if HAP_DEBUG_FAKEGATO   
+    LogE(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><", true);
+    Serial.printf("valueTemperature: %d   valueHumidity: %d   valuePressure: %d\n", valueTemperature, valueHumidity, valuePressure);
+#endif
+
 
     HAPFakeGatoWeatherData data = (HAPFakeGatoWeatherData){
         HAPServer::timestamp(),
@@ -89,14 +108,19 @@ bool HAPFakeGatoWeather::addEntry(uint8_t bitmask, uint32_t timestamp, String st
 
     LogD(HAPServer::timeString() + " " + String(__CLASS_NAME__) + "->" + String(__FUNCTION__) + " [   ] " + "Adding entry for " + _name + " [size=" + String(_memoryUsed) + "]: temp=" + stringTemperature + " hum=" + stringHumidity + " pres=" + stringPressure, true);
     
-    uint16_t valueTemperature   = (uint16_t) stringTemperature.toFloat()    * 100;
-    uint16_t valueHumidity      = (uint16_t) stringHumidity.toFloat()       * 100;
-    uint16_t valuePressure      = (uint16_t) stringPressure.toInt()         * 10;        
+    uint16_t valueTemperature   = (uint16_t) (stringTemperature.toFloat()    * 100);
+    uint16_t valueHumidity      = (uint16_t) (stringHumidity.toFloat()       * 100);
+    uint16_t valuePressure      = (uint16_t) (stringPressure.toInt()         * 10);        
+
+#if HAP_DEBUG_FAKEGATO   
+    LogE(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><", true);
+    Serial.printf("valueTemperature: %d   valueHumidity: %d   valuePressure: %d\n", valueTemperature, valueHumidity, valuePressure);
+#endif
 
     HAPFakeGatoWeatherData data = (HAPFakeGatoWeatherData){
         timestamp,
         // false,
-        bitmask,       // default = 0x07 = 111 (all values)
+        bitmask,       
         valueTemperature,
         valueHumidity,
         valuePressure,        
@@ -142,17 +166,18 @@ bool HAPFakeGatoWeather::addEntry(HAPFakeGatoWeatherData data){
     // Serial.println(_idxRead);
 
 #if HAP_DEBUG_FAKEGATO_DETAILED
-    Serial.print("_memoryUsed: ");
+    Serial.print("ADD DATA: _memoryUsed: ");
     Serial.println(_memoryUsed);
 
     for (int i=0; i< HAP_FAKEGATO_BUFFER_SIZE; i++){
         HAPFakeGatoWeatherData entryData;    
         entryData = (*_vectorBuffer)[i];
 
+        if (entryData.timestamp == 0) break;
         if (i == _idxWrite) {
-            Serial.printf("No. %d - %d  temp: %d <<< w:%d\n", i, entryData.timestamp,entryData.temperature, _idxWrite);
+            Serial.printf("No. %d - %d  temp: %d  hum: %d  pres: %d <<< w:%d\n", i, entryData.timestamp, entryData.temperature, entryData.humidity, entryData.pressure, _idxWrite);
         } else {
-            Serial.printf("No. %d - %d  temp: %d\n", i, entryData.timestamp,entryData.temperature);
+            Serial.printf("No. %d - %d  temp: %d  hum: %d  pres: %d \n", i, entryData.timestamp, entryData.temperature, entryData.humidity, entryData.pressure);
         }
         
     }
@@ -173,13 +198,17 @@ void HAPFakeGatoWeather::getData(const size_t count, uint8_t *data, size_t* leng
 #endif
 
 #if HAP_DEBUG_FAKEGATO_DETAILED
+    Serial.print("GET DATA: _memoryUsed: ");
+    Serial.println(_memoryUsed);
     for (int i=0; i< HAP_FAKEGATO_BUFFER_SIZE; i++){
         HAPFakeGatoWeatherData entryData;    
         entryData = (*_vectorBuffer)[i];
+
+        if (entryData.timestamp == 0) break;
         if (i == _idxWrite) {
-            Serial.printf("No. %d - %d  temp: %d <<< w:%d\n", i, entryData.timestamp,entryData.temperature, _idxWrite);
+            Serial.printf("No. %d - %d  temp: %d  hum: %d  pres: %d <<< w:%d\n", i, entryData.timestamp, entryData.temperature, entryData.humidity, entryData.pressure, _idxWrite);
         } else {
-            Serial.printf("No. %d - %d  temp: %d\n", i, entryData.timestamp,entryData.temperature);
+            Serial.printf("No. %d - %d  temp: %d  hum: %d  pres: %d \n", i, entryData.timestamp, entryData.temperature, entryData.humidity, entryData.pressure);
         }
     }
 #endif
@@ -188,18 +217,21 @@ void HAPFakeGatoWeather::getData(const size_t count, uint8_t *data, size_t* leng
 
     if ( (tmpRequestedEntry >= _idxWrite) && ( _rolledOver == false) ){
         _transfer = false;
-        LogE("ERROR: Fakegato Weather could not send the requested entry. The requested index does not exist!", true);                          
-        LogE("   - tmpRequestedEntry=" + String(tmpRequestedEntry), true);
-        LogE("   - _requestedEntry=" + String(_requestedEntry), true);
-        LogE("   - _idxWrite=" + String(_idxWrite), true);
-        LogE("   - _rolledOver=" + String(_rolledOver), true);
+#if HAP_DEBUG_FAKEGATO              
+        LogW("ERROR: No newer entries available. Requested entry goes beyond write index!", true);                          
+        LogW("   - tmpRequestedEntry=" + String(tmpRequestedEntry), true);
+        LogW("   - _requestedEntry=" + String(_requestedEntry), true);
+        LogW("   - _idxWrite=" + String(_idxWrite), true);
+        LogW("   - _rolledOver=" + String(_rolledOver), true);                            
+#endif 
         return;
     }
 
     HAPFakeGatoWeatherData entryData;    
     entryData = (*_vectorBuffer)[tmpRequestedEntry];
-       
+    
     for (int i = 0; i < count; i++){            
+        uint8_t currentOffset = 0;
 
         // uint8_t size = HAP_FAKEGATO_DATA_LENGTH;               
         uint8_t size = 10;
@@ -207,59 +239,72 @@ void HAPFakeGatoWeather::getData(const size_t count, uint8_t *data, size_t* leng
         size += ((entryData.bitmask & 0x02) >> 1) * 2;  // hum
         size +=  (entryData.bitmask & 0x01) * 2;        // pres
 
-        memcpy(data + offset, (uint8_t *)&size, 1);
-        offset += 1;
+        memcpy(data + offset + currentOffset, (uint8_t *)&size, 1);
+        currentOffset += 1;
 
         // ToDo: Rewrite and remove unions
         ui32_to_ui8 eC;
         eC.ui32 = _requestedEntry++;
-        memcpy(data + offset, eC.ui8, 4);
-        offset += 4;
+        memcpy(data + offset + currentOffset, eC.ui8, 4);
+        currentOffset += 4;
 
         ui32_to_ui8 secs;
         secs.ui32 = entryData.timestamp - _refTime;
-        memcpy(data + offset, secs.ui8, 4);
-        offset += 4;
+        memcpy(data + offset + currentOffset, secs.ui8, 4);
+        currentOffset += 4;
 
          // ToDo: make proper use of the bitmask!
-        memcpy(data + offset, (uint8_t*)&entryData.bitmask, 1);
-        offset += 1;        
+        memcpy(data + offset + currentOffset, (uint8_t*)&entryData.bitmask, 1);
+        currentOffset += 1;        
+
 
         if (((entryData.bitmask & 0x04) >> 2) == 1){            
-            ui16_to_ui8 hum;
-            hum.ui16       = entryData.humidity;
-            memcpy(data + offset, hum.ui8, 2);
-            offset += 2;
+            ui16_to_ui8 pressure;
+            pressure.ui16 = entryData.pressure;
+            memcpy(data + offset + currentOffset, pressure.ui8, 2);        
+            currentOffset += 2;
         }
 
         if (((entryData.bitmask & 0x02) >> 1) == 1){
-            ui16_to_ui8 temp;
-            temp.ui16       = entryData.temperature;
-            memcpy(data + offset, temp.ui8, 2);
-            offset += 2;
+            ui16_to_ui8 hum;
+            hum.ui16 = entryData.humidity;
+            memcpy(data + offset + currentOffset, hum.ui8, 2);
+            currentOffset += 2;
         }
 
-        if ((entryData.bitmask & 0x01) == 1){
-            ui16_to_ui8 pressure;
-            pressure.ui16   = entryData.pressure;
-            memcpy(data + offset, pressure.ui8, 2);        
-            offset += 2;
+        if ((entryData.bitmask & 0x01) == 1){            
+            ui16_to_ui8 temp;
+            temp.ui16 = entryData.temperature;
+            memcpy(data + offset + currentOffset, temp.ui8, 2);
+            currentOffset += 2;
         } 
-                                               
 
-        // ToDo: Remove
-        HAPHelper::array_print("Fakegato data", data, offset);
 
+        // ToDo: Hygrometer test
+        // if ((entryData.bitmask & 0x01) == 1){
+        //     ui16_to_ui8 hum;
+        //     hum.ui16 = entryData.humidity;
+        //     memcpy(data + offset + currentOffset, hum.ui8, 2);
+        //     currentOffset += 2;
+        // }                                               
+
+#if HAP_DEBUG_FAKEGATO   
+        HAPHelper::array_print("Fakegato data", data + offset, currentOffset);
+#endif
+
+        offset  += currentOffset;
         *length = offset;    
 
         // _noOfEntriesSent++;            
         if ( (tmpRequestedEntry + 1 >= _idxWrite )  && ( _rolledOver == false) ){
-            _transfer = false;    
-            LogE("ERROR: Fakegato Weather could not send the requested entry. The requested index does not exist!", true);                          
-            LogE("   - tmpRequestedEntry=" + String(tmpRequestedEntry), true);
-            LogE("   - _requestedEntry=" + String(_requestedEntry), true);
-            LogE("   - _idxWrite=" + String(_idxWrite), true);
-            LogE("   - _rolledOver=" + String(_rolledOver), true);                            
+            _transfer = false;  
+#if HAP_DEBUG_FAKEGATO              
+            LogW("ERROR: No newer entries available. Requested entry goes beyond write index!", true);                          
+            LogW("   - tmpRequestedEntry=" + String(tmpRequestedEntry), true);
+            LogW("   - _requestedEntry=" + String(_requestedEntry), true);
+            LogW("   - _idxWrite=" + String(_idxWrite), true);
+            LogW("   - _rolledOver=" + String(_rolledOver), true);                            
+#endif            
             break;
         }
 
@@ -272,11 +317,13 @@ void HAPFakeGatoWeather::getData(const size_t count, uint8_t *data, size_t* leng
         if ( _rolledOver == true) { 
             if (tsOld > entryData.timestamp) {
                 _transfer = false;  
-                LogE("ERROR: Fakegato Weather could not send the requested entry. The requested index does not exist!", true);                          
-                LogE("   - tmpRequestedEntry=" + String(tmpRequestedEntry), true);
-                LogE("   - _requestedEntry=" + String(_requestedEntry), true);
-                LogE("   - _idxWrite=" + String(_idxWrite), true);
-                LogE("   - _rolledOver=" + String(_rolledOver), true);                              
+#if HAP_DEBUG_FAKEGATO                
+                LogW("ERROR: No newer entries available. Older timestamp is newer than the new timestamp!", true);                          
+                LogW("   - tmpRequestedEntry=" + String(tmpRequestedEntry), true);
+                LogW("   - _requestedEntry=" + String(_requestedEntry), true);
+                LogW("   - _idxWrite=" + String(_idxWrite), true);
+                LogW("   - _rolledOver=" + String(_rolledOver), true);                              
+#endif                    
                 break;
             }
         }

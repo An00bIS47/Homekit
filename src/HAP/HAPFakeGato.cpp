@@ -230,13 +230,9 @@ void HAPFakeGato::updateS2R1Value(){
     memcpy(data + 13, signature, sigLength);
     memcpy(data + 13 + sigLength, infoEnd.bytes, 14);
 
-    // HAPHelper::array_print("S2R1", data, 13 + sigLength + 14);
-    // int s = 13 + sigLength + 14;
-    // for (int i=0; i < s; i++){
-    //     Serial.printf("%02X", data[i]);
-    // }
-    // Serial.println("");
-
+#if HAP_DEBUG_FAKEGATO   
+    HAPHelper::array_print("SET S2R1", data, 13 + sigLength + 14);
+#endif
 
     String encoded = base64::encode(data, 13 + sigLength + 14);
     _s2r1Characteristics->setValue(encoded);    
@@ -273,8 +269,7 @@ void HAPFakeGato::getS2R2Callback(){
 #if HAP_DEBUG_FAKEGATO    
     LogD(HAPServer::timeString() + " " + "HAPFakeGato" + "->" + String(__FUNCTION__) + " [   ] " + "Callback S2R2: Set next history entry", true);      
 #endif
-    if (_transfer)
-    {
+    if (_transfer) {
 
         uint8_t data[HAP_FAKEGATO_CHUNK_BUFFER_SIZE];
         uint16_t offset = 0;
@@ -290,6 +285,9 @@ void HAPFakeGato::getS2R2Callback(){
 
         // LogE("Number of entries sent (total): " + String(_noOfEntriesSent), true); 
     } else {
+#if HAP_DEBUG_FAKEGATO
+        Serial.println("data (next entry): AA==");
+#endif         
         _s2r2Characteristics->setValue("AA==");   
     }
 }
@@ -411,7 +409,7 @@ void HAPFakeGato::setS2W2Characteristics(String oldValue, String newValue){
     uint8_t decoded[outputLength];
 
 #if HAP_DEBUG_FAKEGATO       
-    Serial.print("Outoutlength: ");
+    Serial.print("Outputlength: ");
     Serial.println(outputLength);
     Serial.println(sizeof(decoded));
 #endif
