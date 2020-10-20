@@ -385,9 +385,13 @@ bool HAPPluginBME280::begin(){
 
 bool HAPPluginBME280::fakeGatoCallback(){	
 	return _fakegato.addEntry(0x07, _temperatureValue->value(), _humidityValue->value(), _pressureValue->value());
-	// 01 02 02 02 03 02
-	// 0x01 == temp
-	// 0x02 == hum 
-	// 0x04 == pres
-	// 0x05 == temp + pres
+	// 0102 0202 0302
+	//	|	  |	   +-> Pressure	
+	//  |	  +-> Humidity
+	//  +-> Temp
+	// 
+	// 0x07 => all			= 111
+	// 0x01 => temp			= 001
+	// 0x02 => hum			= 010
+	// 0x04 => pressure		= 100
 }

@@ -22,7 +22,6 @@ HAPFakeGato::HAPFakeGato() {
     _configReadCharacteristics = nullptr;
     _configWriteCharacteristics = nullptr;
 
-    _type = HAPFakeGatoType_weather;
     _isEnabled = true;
     _refTime = 0;    
 
@@ -367,10 +366,10 @@ void HAPFakeGato::setS2W1Characteristics(String oldValue, String newValue){
 // #endif        
 
 //     } else 
-    if (_requestedEntry == 0 || _requestedEntry == 1) {
+    if (_requestedEntry == 0 ) { //|| _requestedEntry == 1) {
         // set reftime as first entry
 #if HAP_DEBUG_FAKEGATO        
-        Serial.println("_requestedEntry == 1 - > Set Reftime as 1st entry");
+        Serial.println("_requestedEntry == 0 - > Set Reftime as only entry");
 #endif           
         uint8_t data[22];
         size_t len = 0;

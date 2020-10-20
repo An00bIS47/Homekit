@@ -306,8 +306,7 @@ protected:
     // Schedule Characteristics
     dataCharacteristics* _configReadCharacteristics;
     dataCharacteristics* _configWriteCharacteristics;
-
-    enum HAPFakeGatoType    _type;
+    
     bool                    _isEnabled;
     uint32_t                _refTime;    
 

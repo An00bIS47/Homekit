@@ -158,7 +158,7 @@ void HAPPluginHygrometer::setValue(int iid, String oldValue, String newValue){
 HAPAccessory* HAPPluginHygrometer::initAccessory(){
 	LogD("\nInitializing plugin: " + _name + " ...", false);
 
-	String sn = HAPDeviceID::serialNumber("HY", "001");    
+	String sn = HAPDeviceID::serialNumber("HY", String(HAP_PLUGIN_HYGROMETER_PIN_VCC) + String(HAP_PLUGIN_HYGROMETER_PIN_VCC));    
 
 	_accessory = new HAPAccessory();	
 	auto callbackIdentify = std::bind(&HAPPlugin::identify, this, std::placeholders::_1, std::placeholders::_2);	
@@ -272,7 +272,8 @@ void HAPPluginHygrometer::setConfigImpl(JsonObject root){
 
 
 bool HAPPluginHygrometer::fakeGatoCallback(){		
-	return _fakegato.addEntry(0x01, "0", _humidityValue->value(), "0");
+	// return _fakegato.addEntry(0x02, "0", _humidityValue->value(), "0");
+	return _fakegato.addEntry(_humidityValue->value());
 }
 
 

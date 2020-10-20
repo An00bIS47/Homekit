@@ -15,7 +15,8 @@
 #include "HAPAccessory.hpp"
 
 #include "HAPFakeGato.hpp"
-#include "HAPFakeGatoWeather.hpp"
+#include "HAPFakeGatoHygrometer.hpp"
+// #include "HAPFakeGatoWeather.hpp"
 #include "HAPCustomCharacteristics+Services.hpp"
 
 #ifndef HAP_PLUGIN_HYGROMETER_USE_DUMMY
@@ -59,7 +60,7 @@ private:
 	
 	bool fakeGatoCallback();
 
-	HAPFakeGatoWeather _fakegato;
+	HAPFakeGatoHygrometer _fakegato;
 
     uint16_t readSensor();
 

@@ -16,7 +16,6 @@
 HAPFakeGatoEnergy::HAPFakeGatoEnergy(){
     _interval       = HAP_FAKEGATO_INTERVAL;
 	_previousMillis = 0;
-    _type           = HAPFakeGatoType_weather;
     _isEnabled      = true;
     _name           = "";
     _memoryUsed     = 0;

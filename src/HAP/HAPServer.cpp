@@ -847,12 +847,12 @@ void HAPServer::handle() {
 	    Heap(_clients.size(), _eventManager.getNumEventsInQueue());
 		
 		// ToDo: remove 
-		Serial.print("Task Button Handle: ");
-		Serial.println(_taskButtonHandle == NULL ? "NULL" : "not NULL");
-		if (_taskButtonHandle != NULL){
-			Serial.print("Task State: ");
-			Serial.println(eTaskGetState(_taskButtonHandle));
-		}
+		// Serial.print("Task Button Handle: ");
+		// Serial.println(_taskButtonHandle == NULL ? "NULL" : "not NULL");
+		// if (_taskButtonHandle != NULL){
+		// 	Serial.print("Task State: ");
+		// 	Serial.println(eTaskGetState(_taskButtonHandle));
+		// }
 		
 	}
 #endif

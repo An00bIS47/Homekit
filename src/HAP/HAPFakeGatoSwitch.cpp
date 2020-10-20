@@ -15,7 +15,6 @@ HAPFakeGatoSwitch::HAPFakeGatoSwitch(){
     
     _interval       = HAP_FAKEGATO_INTERVAL;
 	_previousMillis = 0;
-    _type           = HAPFakeGatoType_switch;
     _isEnabled      = true;
     _name           = "";
     _memoryUsed     = 0;
