@@ -648,7 +648,7 @@ STR(HAP_PLUGIN_USE_BME280)
 // 
 // Hygrometer
 // 
-#define HAP_HYGROMETER_LEAK_SENSOR_ENABLED  		0		// enable leak sensor for hygrometer
+#define HAP_HYGROMETER_LEAK_SENSOR_ENABLED  		1		// enable leak sensor for hygrometer
 #define HAP_HYGROMETER_LEAK_PERCENTAGE				35		// Level when a "leak" notification is triggered
 
 #endif /* HAPGLOBALS_HPP_ */

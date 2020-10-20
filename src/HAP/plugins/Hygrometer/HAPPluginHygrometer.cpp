@@ -21,7 +21,7 @@
 // and power it (digital pin goes HIGH) only before we do a readout (see the code for this).
 // 
 // 
-// Huzzah32 Pinout:
+// ESP32 Pinout:
 // 14 -> VCC
 // A0 -> GPIO 32
 // 
@@ -164,6 +164,38 @@ HAPAccessory* HAPPluginHygrometer::initAccessory(){
 	auto callbackIdentify = std::bind(&HAPPlugin::identify, this, std::placeholders::_1, std::placeholders::_2);	
 	_accessory->addInfoService("Hygrometer", "ACME", "YL-69", sn, callbackIdentify, version());
 
+
+	// 
+	// Leak Sensor
+	// 
+#if HAP_HYGROMETER_LEAK_SENSOR_ENABLED	
+	HAPService* leakService = new HAPService(HAP_SERVICE_LEAK_SENSOR);
+	_accessory->addService(leakService);
+
+	
+	stringCharacteristics *leakServiceName = new stringCharacteristics(HAP_CHARACTERISTIC_NAME, permission_read, 0);
+	leakServiceName->setValue("Hygrometer Sensor");
+	_accessory->addCharacteristics(leakService, leakServiceName);
+
+	uint8_t validValues[] = {0, 1};	// 0 = no Leak detected , 1 = leak detected
+	_leakSensor = new uint8Characteristics(HAP_CHARACTERISTIC_LEAK_DETECTED, permission_read|permission_notify, 0, 1, 1, unit_none, 2, validValues);
+	_leakSensor->setValue("0");
+	_accessory->addCharacteristics(leakService, _leakSensor);
+
+	// stringCharacteristics *humServiceName = new stringCharacteristics(HAP_CHARACTERISTIC_NAME, permission_read, 0);
+	// humServiceName->setValue("Soil Moisture Sensor");
+	// _accessory->addCharacteristics(humidityService, humServiceName);
+
+	_humidityValue = new floatCharacteristics(HAP_CHARACTERISTIC_CURRENT_RELATIVE_HUMIDITY, permission_read|permission_notify, 0, 100, 0.1, unit_percentage);
+	_humidityValue->setValue("0.0");
+
+	auto callbackChangeHum = std::bind(&HAPPluginHygrometer::changeHum, this, std::placeholders::_1, std::placeholders::_2);
+	//_humidityValue->valueChangeFunctionCall = std::bind(&changeHum);
+	_humidityValue->valueChangeFunctionCall = callbackChangeHum;
+	_accessory->addCharacteristics(leakService, _humidityValue);
+
+#else
+
 	//
 	// Soil Moisture
 	//
@@ -182,24 +214,8 @@ HAPAccessory* HAPPluginHygrometer::initAccessory(){
 	_humidityValue->valueChangeFunctionCall = callbackChangeHum;
 	_accessory->addCharacteristics(humidityService, _humidityValue);
 
-
-	// 
-	// Leak Sensor
-	// 
-#if HAP_HYGROMETER_LEAK_SENSOR_ENABLED	
-	HAPService* leakService = new HAPService(HAP_SERVICE_LEAK_SENSOR);
-	_accessory->addService(leakService);
-
-	
-	stringCharacteristics *leakServiceName = new stringCharacteristics(HAP_CHARACTERISTIC_NAME, permission_read, 0);
-	humServiceName->setValue("Hygrometer Leak Sensor");
-	_accessory->addCharacteristics(leakService, leakServiceName);
-
-	uint8_t validValues[] = {0, 1};	// 0 = no Leak detected , 1 = leak detected
-	_leakSensor = new uint8Characteristics(HAP_CHARACTERISTIC_LEAK_DETECTED, permission_read|permission_notify, 0, 1, 1, unit_none, 2, validValues);
-	_leakSensor->setValue("0");
-	_accessory->addCharacteristics(leakService, _leakSensor);
 #endif
+
 
 	//
 	// FakeGato
