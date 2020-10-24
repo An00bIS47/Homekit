@@ -52,6 +52,7 @@ extern "C" {
 // this is a bitmask for the values of the entry
 // for example weather: 0x07 = 00111 => 1x temp, 1x hum 1x, pres 
 //             energy:  0x1f = 11111 => 1x w, 1x v etc
+// ToDo: Remove 
 #define HAP_FAKEGATO_TYPE_REFTIME       0x81
 #define HAP_FAKEGATO_TYPE_WEATHER       0x07    // --> not unique
 #define HAP_FAKEGATO_TYPE_ENERGY        0x1F    // --> not unique
@@ -91,6 +92,27 @@ extern "C" {
 #define HAP_CHARACTERISTIC_FAKEGATO_VALVE_POSITION              "E863F12E-079E-48FF-8F27-9C2605A29F52"  // 12E
 #define HAP_CHARACTERISTIC_FAKEGATO_PROGRAM_DATA                "E863F12E-079E-48FF-8F27-9C2605A29F52"  // 12E
 #define HAP_CHARACTERISTIC_FAKEGATO_ELEVATION                   "E863F130-079E-48FF-8F27-9C2605A29F52"  // 130
+
+// Additional Characteristics
+#define HAP_CHARACTERISTIC_FAKEGATO_CLOUDS                      "64392FED-1401-4F7A-9ADB-1710DD6E3897"  // unit: percentage     uint8   pr ev       minVal: 0       maxVal: 100     step 1
+#define HAP_CHARACTERISTIC_FAKEGATO_COLOR_TEMPERATURE           "E887EF67-509A-552D-A138-3DA215050F46"  // unit: mired          int     pr pw ev
+#define HAP_CHARACTERISTIC_FAKEGATO_COLOR_TEMPERATURE_K         "A18E5901-CFA1-4D37-A10F-0071CEEEEEBD"  // unit: K              int     pr pw ev    minVal: 2000    maxVal: 6536    step 1
+#define HAP_CHARACTERISTIC_FAKEGATO_CONDITION                   "CD65A9AB-85AD-494A-B2BD-2F380084134D"  // unit:                string  pr ev
+#define HAP_CHARACTERISTIC_FAKEGATO_CONDITION_CATEGORY          "CD65A9AB-85AD-494A-B2BD-2F380084134C"  // unit:                uint16  pr pw ev    minVal: 0       maxVal: 1000    step 1
+#define HAP_CHARACTERISTIC_FAKEGATO_DAY                         "57F1D4B2-0E7E-4307-95B5-808750E2C1C7"  // unit:                string  pr ev
+#define HAP_CHARACTERISTIC_FAKEGATO_DEW_POINT                   "095C46E2-278E-4E3C-B9E7-364622A0F501"  // unit: C              float   pr ev       minVal: -40     maxVal: 100     step 0.1
+#define HAP_CHARACTERISTIC_FAKEGATO_MAX_WIND_SPEED              "6B8861E5-D6F3-425C-83B6-069945FFD1F1"  // unit: km/h           float   pr ev       minVal: 0       maxVal: 100     step 0.1
+#define HAP_CHARACTERISTIC_FAKEGATO_MIN_TEMPERATURE             "707B78CA-51AB-4DC9-8630-80A58F07E419"  // unit: C              float   pr ev       minVal: -40     maxVal: 100     step 0.1
+#define HAP_CHARACTERISTIC_FAKEGATO_OBSERVATION_TIME            "234FD9F1-1D33-4128-B622-D052F0C402AF"  // unit:                string  pr ev
+#define HAP_CHARACTERISTIC_FAKEGATO_OZONE                       "BBEFFDDD-1BCD-4D75-B7CD-B57A90A04D13"  // unit: DU             uint16  pr ev       minVal: 0       maxVal: 500     step 1
+#define HAP_CHARACTERISTIC_FAKEGATO_RAIN_LAST_HOUR              "10C88F40-7EC4-478C-8D5A-BD0C3CCE14B7"  // unit: mm             uint16  pr ev       minVal: 0       maxVal: 1000    step 1
+#define HAP_CHARACTERISTIC_FAKEGATO_RAIN_TOTAL                  "CCC04890-565B-4376-B39A-3113341D9E0F"  // unit: mm             uint16  pr ev       minVal: 0       maxVal: 1000    step 1
+#define HAP_CHARACTERISTIC_FAKEGATO_RAIN_PROBABILITY            "FC01B24F-CF7E-4A74-90DB-1B427AF1FFA3"  // unit: percentage     uint8   pr ev       minVal: 0       maxVal: 100     step 1
+#define HAP_CHARACTERISTIC_FAKEGATO_SNOW                        "F14EB1AD-E000-4CE6-BD0E-384F9EC4D5DD"  // unit:                bool    pr ev
+#define HAP_CHARACTERISTIC_FAKEGATO_UV_INDEX                    "05BA0FE0-B848-4226-906D-5B64272E05CE"  // unit:                uint8   pr ev       minVal: 0       maxVal: 10      step 1
+#define HAP_CHARACTERISTIC_FAKEGATO_VISIBILITY                  "D24ECC1E-6FAD-4FB5-8137-5AF88BD5E857"  // unit: km             uint8   pr ev       minVal: 0       maxVal: 100     step 1
+#define HAP_CHARACTERISTIC_FAKEGATO_WIND_DIRECTION              "46F1284C-1912-421B-82F5-EB75008B167E"  // unit:                string  pr ev
+#define HAP_CHARACTERISTIC_FAKEGATO_WIND_SPEED                  "49C8AE5A-A3A5-41AB-BF1F-12D5654F9F41"  // unit: km/h           float   pr ev       minVal: 0       maxVal: 100     step 0.1
 
 // 
 // Characteristics Common

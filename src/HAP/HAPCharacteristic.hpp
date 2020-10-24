@@ -41,21 +41,31 @@ enum {
 };
 
 typedef enum {
-    unit_none = 0,
-    unit_celsius,
-    unit_percentage,
-    unit_arcDegree,
-    unit_lux,
-    unit_hpa,
-    unit_w
+    unit_none = 0,          // none
+    unit_celsius,           // °C
+    unit_percentage,        // %
+    unit_arcDegree,         // °
+    unit_lux,               // lux
+    unit_seconds,           // sec
+
+    unit_hpa,               // hPa
+    unit_watt,              // W
+    unit_voltage,           // V
+    unit_kwh,               // kWh
+    unit_kmh,               // km/h
+    unit_km,                // km
+    unit_m,                 // m
+    unit_mm,                // mm    
+    unit_kelvin,            // K
+    unit_DU,                // DU
+    unit_mired,             // Mired
+    unit_ppm,               // ppm    
 } unit;
 
 typedef enum {
     battery_level_normal    = 0,
     battery_level_low       = 1    
 } battery_level;
-
-
 
 typedef enum {
     NOT_CHARGING            = 0,
@@ -106,10 +116,34 @@ public:
                 return "%";
             case unit_lux:
                 return "lux";             
+            case unit_seconds:
+                return "seconds";
+                
             case unit_hpa:
                 return "hPa";
-            case unit_w:
+            case unit_watt:
                 return "W";
+            case unit_voltage:
+                return "V";
+            case unit_kwh:
+                return "kWh";
+            case unit_kmh:
+                return "km/h";
+            case unit_km:
+                return "km";
+            case unit_m:
+                return "m";
+            case unit_mm:
+                return "mm";
+            case unit_kelvin:
+                return "K";
+            case unit_DU:
+                return "DU";            
+            case unit_mired:
+                return "Mired";
+            case unit_ppm:
+                return "ppm";
+
             case unit_none:
                 return "";                
             default:
@@ -127,10 +161,34 @@ public:
                 return "percentage";
             case unit_lux:
                 return "lux";             
+            case unit_seconds:
+                return "seconds";
+
             case unit_hpa:
-                return "hpa";
-            case unit_w:
-                return "w";
+                return "hPa";
+            case unit_watt:
+                return "W";
+            case unit_voltage:
+                return "V";
+            case unit_kwh:
+                return "kWh";
+            case unit_kmh:
+                return "km/h";
+            case unit_km:
+                return "km";
+            case unit_m:
+                return "m";
+            case unit_mm:
+                return "mm";
+            case unit_kelvin:
+                return "K";
+            case unit_DU:
+                return "DU";            
+            case unit_mired:
+                return "Mired";
+            case unit_ppm:
+                return "ppm";
+
             case unit_none:
                 return "";                
             default:

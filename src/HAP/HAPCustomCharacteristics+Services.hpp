@@ -26,11 +26,6 @@
 //	- MiFlora
 #define HAP_CUSTOM_CHARACTERISTICS_FERTITLITY	        "000001EA-6B66-4FFD-88CC-16A60B5C4E03"
 
-// Last Update Characteristic 
-// used for:
-//	- RF24 Remote Weather Device
-//  - ToDo: MiFlora
-#define HAP_CUSTOM_CHARACTERISTICS_LAST_UPDATE	        "000002EA-6B66-4FFD-88CC-16A60B5C4E03"
 
 // Measure Mode Characteristic 
 // used for:

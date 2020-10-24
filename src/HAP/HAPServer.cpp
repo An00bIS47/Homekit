@@ -301,36 +301,60 @@ bool HAPServer::begin(bool resume) {
 		free(hostname);
 		return true;
 	}	
+
+	// Wait until wifi is online
+	for (;;){
+		if (_wifi.isProvisioned()){
+			break;
+		}
+		delay(100);
+	}
+
 	// ToDo: Pixel Indicator
 #if HAP_PIXEL_INDICATOR_ENABLED
 	_pixelIndicator.off();
 #endif	
 	
+
+
 #if HAP_NTP_ENABLED
 	LogI( "Starting NTP client ...", false);
-	configTzTime(HAP_NTP_TZ_INFO, HAP_NTP_SERVER_URL);
-
-	if (getLocalTime(&_timeinfo, 10000)) {  // wait up to 10sec to sync
-		//Serial.println(&_timeinfo, "Time set: %B %d %Y %H:%M:%S (%A)");		
-		LogI( " OK", true);
-		LogI("Set time to: " + timeString(), true);
-
-		_config.setRefTime(timestamp());
-	} else {		
-		LogI("[ERROR] Failed to set time! Trying fallback server ...", false);	
-		configTzTime(HAP_NTP_TZ_INFO, HAP_NTP_SERVER_URL_FALLBACK);
-
+	for (uint8_t i=0; i < HAP_NTP_SERVER_URLS_SIZE; i++){
+		configTzTime(HAP_NTP_TZ_INFO, HAP_NTP_SERVER_URLS[i]);
 		if (getLocalTime(&_timeinfo, 10000)) {  // wait up to 10sec to sync
 			//Serial.println(&_timeinfo, "Time set: %B %d %Y %H:%M:%S (%A)");		
 			LogI( " OK", true);
 			LogI("Set time to: " + timeString(), true);
 
 			_config.setRefTime(timestamp());
-		} else {
-			LogI("[ERROR] Failed to set time!", true);	
+			break;
 		}
+	}
+	
+	// LogI( "Starting NTP client ...", false);
+	// configTzTime(HAP_NTP_TZ_INFO, HAP_NTP_SERVER_URL);
 
-  	}
+	// if (getLocalTime(&_timeinfo, 10000)) {  // wait up to 10sec to sync
+	// 	//Serial.println(&_timeinfo, "Time set: %B %d %Y %H:%M:%S (%A)");		
+	// 	LogI( " OK", true);
+	// 	LogI("Set time to: " + timeString(), true);
+
+	// 	_config.setRefTime(timestamp());
+	// } else {		
+	// 	LogI("[ERROR] Failed to set time! Trying fallback server ...", false);	
+	// 	configTzTime(HAP_NTP_TZ_INFO, HAP_NTP_SERVER_URL_FALLBACK);
+
+	// 	if (getLocalTime(&_timeinfo, 10000)) {  // wait up to 10sec to sync
+	// 		//Serial.println(&_timeinfo, "Time set: %B %d %Y %H:%M:%S (%A)");		
+	// 		LogI( " OK", true);
+	// 		LogI("Set time to: " + timeString(), true);
+
+	// 		_config.setRefTime(timestamp());
+	// 	} else {
+	// 		LogI("[ERROR] Failed to set time!", true);	
+	// 	}
+
+  	// }
 #endif
 
 

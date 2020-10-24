@@ -24,6 +24,7 @@ public:
 	static String chipID();		// basically mac reverse
 
 	static String serialNumber(String type, String id);
+	static String provisioningID(const char* prefix);
 
 private:
 	static uint8_t _deviceID[6];

@@ -35,6 +35,7 @@ HTTPServer* HAPWiFiHelper::_webserver;
 std::function<bool(bool)> HAPWiFiHelper::_callbackBegin;
 
 bool HAPWiFiHelper::_captiveInitialized;
+bool HAPWiFiHelper::_isProvisioned;
 
 #define ESP_WPS_MODE WPS_TYPE_PBC
 //#define ESP_WPS_MODE WPS_TYPE_PIN
@@ -42,6 +43,7 @@ bool HAPWiFiHelper::_captiveInitialized;
 HAPWiFiHelper::HAPWiFiHelper(){
 	_errorCount = 0;		
 	_captiveInitialized = false;
+	_isProvisioned = false;
 	
 	_webserver = nullptr;
 	_dnsServer = nullptr;
@@ -62,6 +64,10 @@ void HAPWiFiHelper::begin(HAPConfig* config, std::function<bool(bool)> callbackB
 	
 	enum HAP_WIFI_MODE selectedMode = (enum HAP_WIFI_MODE)_config->config()["wifi"]["mode"].as<uint8_t>();
 
+#if HAP_PROVISIONING_ENABLE_BLE == 0
+	WiFi.onEvent(eventHandler);
+#endif
+
 	if (selectedMode == HAP_WIFI_MODE_WPS) {
 		//_wpsConfig.crypto_funcs = &g_wifi_default_wps_crypto_funcs;
 		_wpsConfig.wps_type = WPS_TYPE_PBC;
@@ -71,20 +77,20 @@ void HAPWiFiHelper::begin(HAPConfig* config, std::function<bool(bool)> callbackB
 		strcpy(_wpsConfig.factory_info.device_name,  hostname);
 	} 
 
-#if HAP_PROVISIONING_ENABLE_BLE == 0
-	WiFi.onEvent(eventHandler);
+#if HAP_PROVISIONING_ENABLE_BLE
 
-#else
 	else if (selectedMode == HAP_WIFI_MODE_BLE_PROV) {
 		//Sample uuid that user can pass during provisioning using BLE
 		/* uint8_t uuid[16] = {0xb4, 0xdf, 0x5a, 0x1c, 0x3f, 0x6b, 0xf4, 0xbf,
 					0xea, 0x4a, 0x82, 0x03, 0x04, 0x90, 0x1a, 0x02 };*/
 		
-		WiFi.beginProvision(WIFI_PROV_SCHEME_BLE, WIFI_PROV_SCHEME_BLE_EVENT_HANDLER_FREE_BTDM, WIFI_PROV_SECURITY_1, "abcd1234", "BLE_XXX", NULL, NULL);		
+
+		WiFi.onEvent(eventHandlerBLEProv);
+		WiFi.beginProvision(provSchemeBLE, WIFI_PROV_SCHEME_BLE_EVENT_HANDLER_FREE_BTDM, WIFI_PROV_SECURITY_1, HAP_PROVISIONING_POP, HAPDeviceID::provisioningID(HAP_PROVISIONING_PREFIX).c_str(), NULL, NULL);		
 	}
 
-	WiFi.onEvent(SysProvEvent);
-#endif
+	
+#endif /* HAP_PROVISIONING_ENABLE_BLE==0 */
 
 	connect(selectedMode);
 }
@@ -103,6 +109,8 @@ void HAPWiFiHelper::startWPS(){
 		delay(500);
 		LogI(".", false);
 	}
+
+	_isProvisioned = true;
 	LogI( F("OK"), true);
 }
 
@@ -317,6 +325,7 @@ void HAPWiFiHelper::connectMulti(){
 	LogI("Connecting WiFi...", false);
 	if(_wifiMulti.run() == WL_CONNECTED) {
 		LogI(" OK", true);
+		_isProvisioned = true;
 	} else {
 		_errorCount = _errorCount + 1;
 		if (_errorCount > HAP_WIFI_CONNECTION_MAX_RETRIES) {
@@ -377,6 +386,7 @@ void HAPWiFiHelper::connect(enum HAP_WIFI_MODE mode){
 				LogI(".", false);
 			}
 			LogI(" OK", true);
+			_isProvisioned = true;
 			break;
 
 		default:
@@ -420,6 +430,7 @@ void HAPWiFiHelper::eventHandler(WiFiEvent_t event) {
 		case SYSTEM_EVENT_STA_CONNECTED:
 			//enable sta ipv6 here
             WiFi.enableIpV6();
+			_isOnline = true;
 			// LogV( F("OK"), true);
 			break;
 
@@ -483,7 +494,7 @@ void HAPWiFiHelper::eventHandler(WiFiEvent_t event) {
 
 #else 
 
-void HAPWiFiHelper::eventHandler(system_event_t *sys_event, wifi_prov_event_t *prov_event)
+void HAPWiFiHelper::eventHandlerBLEProv(system_event_t *sys_event, wifi_prov_event_t *prov_event)
 {
     if (sys_event) {
 		switch (sys_event->event_id) {
@@ -498,7 +509,7 @@ void HAPWiFiHelper::eventHandler(system_event_t *sys_event, wifi_prov_event_t *p
 				break;
 			case SYSTEM_EVENT_STA_CONNECTED:
 				//enable sta ipv6 here
-    	        WiFi.enableIpV6();
+    	        WiFi.enableIpV6();			
 				// LogV( F("OK"), true);
 				break;
 
@@ -554,34 +565,42 @@ void HAPWiFiHelper::eventHandler(system_event_t *sys_event, wifi_prov_event_t *p
 			default:
 				break;
 		}      
-    } else if (prov_event) {
+    } 
+
+	if (prov_event) {
         switch (prov_event->event) {
 			case WIFI_PROV_START:				
 				LogI("Provisioning started! Please enter the credentials of your access point using the iPhone app", true);
 				break;
 
 			case WIFI_PROV_CRED_RECV: 
-				LogD("Received Wi-Fi credentials: ", true);
-				wifi_sta_config_t *wifi_sta_cfg = (wifi_sta_config_t *)prov_event->event_data;
-				LogD("   - SSID : ", false);
-				LogD((const char *) wifi_sta_cfg->ssid, true);
-				LogD("   - Password : ", false);
-				LogD((const char *) wifi_sta_cfg->password, true);
+				{
+					LogD("Received Wi-Fi credentials: ", true);
+					wifi_sta_config_t *wifi_sta_cfg = (wifi_sta_config_t *)prov_event->event_data;
+					LogD("   - SSID : ", false);
+					LogD((const char *) wifi_sta_cfg->ssid, true);
+					LogD("   - Password : ", false);
+					LogD((const char *) wifi_sta_cfg->password, true);
 
-				_config->addNetwork((const char *) wifi_sta_cfg->ssid, (const char *)wifi_sta_cfg->password);
-				_config->config()["wifi"]["mode"] = (uint8_t)HAP_WIFI_MODE_MULTI;			
-				_config->save();
+					_config->addNetwork((const char *) wifi_sta_cfg->ssid, (const char *)wifi_sta_cfg->password);
+					_config->config()["wifi"]["mode"] = (uint8_t)HAP_WIFI_MODE_MULTI;			
+					_config->save();
 
-				break;
+					break;
+				}
+
 			
 			case WIFI_PROV_CRED_FAIL: 
-				wifi_prov_sta_fail_reason_t *reason = (wifi_prov_sta_fail_reason_t *)prov_event->event_data;
-				Serial.println("\nProvisioning failed!\nPlease reset to factory and retry provisioning\n");
-				if(*reason == WIFI_PROV_STA_AUTH_ERROR) 
-					Serial.println("\nWi-Fi AP password incorrect");
-				else
-					Serial.println("\nWi-Fi AP not found....Add API \" nvs_flash_erase() \" before beginProvision()");        
-				break;
+				{
+					wifi_prov_sta_fail_reason_t *reason = (wifi_prov_sta_fail_reason_t *)prov_event->event_data;
+					LogE("\nProvisioning failed!\nPlease reset to factory and retry provisioning\n", true);
+					if(*reason == WIFI_PROV_STA_AUTH_ERROR) 
+						LogE("\nWi-Fi AP password incorrect", true);
+					else
+						LogE("\nWi-Fi AP not found....Add API \" nvs_flash_erase() \" before beginProvision()", true);        
+					break;
+				}
+
 			
 			case WIFI_PROV_CRED_SUCCESS:
 				LogI("Provisioning was successful!", true);
@@ -589,6 +608,7 @@ void HAPWiFiHelper::eventHandler(system_event_t *sys_event, wifi_prov_event_t *p
 
 			case WIFI_PROV_END:
 				LogI("Provisioning ends!", true);
+				_isProvisioned = true;
 				break;
 
 			default:
