@@ -149,6 +149,7 @@ HAPAccessory* HAPPluginBME280::initAccessory(){
 	// Temperature
 	//
 	HAPService* temperatureService = new HAPService(HAP_SERVICE_TEMPERATURE_SENSOR);
+	// temperatureService->setPrimaryService(true);
 	_accessory->addService(temperatureService);
 
 	stringCharacteristics *tempServiceName = new stringCharacteristics(HAP_CHARACTERISTIC_NAME, permission_read, 0);
@@ -201,6 +202,9 @@ HAPAccessory* HAPPluginBME280::initAccessory(){
 	_pressureValue->valueChangeFunctionCall = callbackChangePressure;
 	_accessory->addCharacteristics(pressureService, _pressureValue);
 
+	// Link services
+	temperatureService->addLinkedServiceId(humidityService->serviceID);
+	temperatureService->addLinkedServiceId(pressureService->serviceID);
 
 	//
 	// FakeGato

@@ -17,10 +17,8 @@
 #include "HAPFakeGato.hpp"
 #include "HAPFakeGatoHygrometer.hpp"
 #include "HAPCustomCharacteristics+Services.hpp"
+#include "HAPGlobals.hpp"
 
-#ifndef HAP_PLUGIN_HYGROMETER_USE_DUMMY
-#define HAP_PLUGIN_HYGROMETER_USE_DUMMY 	0
-#endif
 
 class HAPPluginHygrometer: public HAPPlugin {
 public:

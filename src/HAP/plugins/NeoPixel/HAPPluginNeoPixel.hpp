@@ -13,16 +13,21 @@
 #include "HAPPlugins.hpp"
 #include "HAPLogger.hpp"
 #include "HAPAccessory.hpp"
-
+#include "HAPGlobals.hpp"
 // #include <Adafruit_NeoPixel.h>
 #include <FastLED.h>
 
-// #define HAP_PLUGIN_NEOPIXEL_FORMAT NEO_GRB + NEO_KHZ800
 
-// How many leds in your strip?
-#define NUM_LEDS 1
-#define NEOPIXEL_DATA_PIN A5	
+// 
+// Set these values in the HAPGlobals.hpp
+// 
+#ifndef HAP_PLUGIN_NEOPIXEL_NUM_LEDS
+#define HAP_PLUGIN_NEOPIXEL_NUM_LEDS 1
+#endif
 
+#ifndef HAP_PLUGIN_NEOPIXEL_DATA_PIN
+#define HAP_PLUGIN_NEOPIXEL_DATA_PIN A5	
+#endif
 
 class HAPPluginNeoPixel: public HAPPlugin {
 public:
@@ -58,7 +63,7 @@ private:
 
 	void setPixelColor(uint16_t hueDegree, uint8_t satPercent, uint8_t briPercent);
 
-	CRGB _pixels[NUM_LEDS];
+	CRGB _pixels[HAP_PLUGIN_NEOPIXEL_NUM_LEDS];
 
 	uint8_t _gpio;
 	bool 	_isOn;

@@ -18,17 +18,32 @@ class HAPService {
 public:
 
     HAPService();
+    HAPService(uint8_t _uuid);
+    HAPService(String _uuid);
 
     String describe();
 
-    int serviceID;
-    int uuid;
+    uint8_t serviceID;
+    uint8_t uuid;
     String uuidString;
+    
+    bool hidden;
+    bool primary;
 
     std::vector<characteristics *> _characteristics;
+    std::vector<uint8_t> _linkedServiceIds;
 
-    HAPService(int _uuid);
-    HAPService(String _uuid);
+    inline void setHiddenService(bool mode = true){
+        hidden = mode;
+    }
+
+    inline void setPrimaryService(bool mode = true){
+        primary = mode;
+    }
+
+    inline void addLinkedServiceId(uint8_t serviceId_){
+        _linkedServiceIds.push_back(serviceId_);
+    }
 
     virtual uint8_t numberOfCharacteristics() { return _characteristics.size(); }
     virtual characteristics *characteristicsAtIndex(uint8_t index) { return _characteristics[index]; }

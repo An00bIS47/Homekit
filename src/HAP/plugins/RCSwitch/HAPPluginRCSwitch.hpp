@@ -18,7 +18,7 @@
 #include "HAPPlugins.hpp"
 #include "HAPLogger.hpp"
 #include "HAPAccessory.hpp"
-
+#include "HAPGlobals.hpp"
 #include "HAPFakeGato.hpp"
 
 

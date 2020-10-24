@@ -37,10 +37,33 @@
 #define VERSION_REVISION    5
 #define VERSION_BUILD       1
 
-#define HAP_PLUGIN_HYGROMTER_REFERENCE      2550    // value if put in a glass of water
+// 
+// Set these values in the HAPGlobals.hpp
+// 
+#ifndef HAP_PLUGIN_HYGROMETER_USE_DUMMY
+#define HAP_PLUGIN_HYGROMETER_USE_DUMMY 	0
+#endif
 
-#define HAP_PLUGIN_HYGROMETER_PIN_VCC       A6	// 14
-#define HAP_PLUGIN_HYGROMETER_PIN_ADC       A7	// 32
+
+#ifndef HAP_PLUGIN_HYGROMTER_REFERENCE
+#define HAP_PLUGIN_HYGROMTER_REFERENCE      		2550    // value if put in a glass of water
+#endif
+
+#ifndef HAP_PLUGIN_HYGROMETER_PIN_VCC
+#define HAP_PLUGIN_HYGROMETER_PIN_VCC       		A6	// 14
+#endif
+
+#ifndef HAP_PLUGIN_HYGROMETER_PIN_ADC
+#define HAP_PLUGIN_HYGROMETER_PIN_ADC       		A7	// 32
+#endif
+
+#ifndef HAP_HYGROMETER_LEAK_SENSOR_ENABLED
+#define HAP_HYGROMETER_LEAK_SENSOR_ENABLED  		1		// enable leak sensor for hygrometer
+#endif
+
+#ifndef HAP_HYGROMETER_LEAK_PERCENTAGE
+#define HAP_HYGROMETER_LEAK_PERCENTAGE				35		// Level when a "leak" notification is triggered
+#endif
 
 #ifndef HAP_DEBUG_HYGROMETER
 #define HAP_DEBUG_HYGROMETER 0

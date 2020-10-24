@@ -10,8 +10,6 @@
 
 #define HAP_PLUGIN_NEOPIXEL_INTERVAL 1000	
 
-#define HUE_MULTIPLICATOR   182.04
-
 #define VERSION_MAJOR       0
 #define VERSION_MINOR       0
 #define VERSION_REVISION    5	// 2 = FakeGato support
@@ -25,7 +23,7 @@ HAPPluginNeoPixel::HAPPluginNeoPixel(){
     _interval = HAP_PLUGIN_NEOPIXEL_INTERVAL;
     _previousMillis = 0;
     _isOn = false;
-    _gpio = NEOPIXEL_DATA_PIN;
+    _gpio = HAP_PLUGIN_NEOPIXEL_DATA_PIN;
 
     _version.major      = VERSION_MAJOR;
     _version.minor      = VERSION_MINOR;
@@ -88,7 +86,7 @@ void HAPPluginNeoPixel::setPixelColor(uint16_t hueDegree, uint8_t satPercent, ui
 }
 
 bool HAPPluginNeoPixel::begin(){    
-    FastLED.addLeds<NEOPIXEL, NEOPIXEL_DATA_PIN>(_pixels, NUM_LEDS);  // GRB ordering is assumed
+    FastLED.addLeds<NEOPIXEL, HAP_PLUGIN_NEOPIXEL_DATA_PIN>(_pixels, HAP_PLUGIN_NEOPIXEL_NUM_LEDS);  // GRB ordering is assumed
     _pixels[0] = CRGB::Black;
     FastLED.show();   
 

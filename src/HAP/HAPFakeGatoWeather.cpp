@@ -54,6 +54,17 @@ int HAPFakeGatoWeather::signatureLength(){
 
 void HAPFakeGatoWeather::getSignature(uint8_t* signature){
 
+    // 0102 0202 0302
+	//	|	  |	   +-> Pressure	
+	//  |	  +-> Humidity
+	//  +-> Temp
+	// 
+	// bitmask 0x07 => all			= 111
+	// bitmask 0x01 => temp			= 001
+	// bitmask 0x02 => hum			= 010
+	// bitmask 0x04 => pressure		= 100
+
+
     signature[0] = (uint8_t)HAPFakeGatoSignature_Temperature;
     signature[1] = 2;
 
@@ -226,33 +237,32 @@ void HAPFakeGatoWeather::getData(const size_t count, uint8_t *data, size_t* leng
         uint8_t currentOffset = 0;
 
 
-
-        // uint8_t size = HAP_FAKEGATO_DATA_LENGTH;  
-        // ToDo: ToDo: Hygrometer test
         uint8_t size = 10;
         size += (((entryData.bitmask & 0x04) >> 2) * 2);  
         size += (((entryData.bitmask & 0x02) >> 1) * 2);  
         size +=  ((entryData.bitmask & 0x01) * 2);        
 
+        // size
         memcpy(data + offset + currentOffset, (uint8_t *)&size, 1);
         currentOffset += 1;
 
-        // ToDo: Rewrite and remove unions
+        // requested Entry
         ui32_to_ui8 eC;
         eC.ui32 = _requestedEntry++;
         memcpy(data + offset + currentOffset, eC.ui8, 4);
         currentOffset += 4;
 
+        // timestamp
         ui32_to_ui8 secs;
         secs.ui32 = entryData.timestamp - _refTime;
         memcpy(data + offset + currentOffset, secs.ui8, 4);
         currentOffset += 4;
 
-         // ToDo: make proper use of the bitmask!
+        // bitmask
         memcpy(data + offset + currentOffset, (uint8_t*)&entryData.bitmask, 1);
         currentOffset += 1;        
 
-        
+        // temperature
         if ((entryData.bitmask & 0x01) == 1) {            
             ui16_to_ui8 temp;
             temp.ui16 = entryData.temperature;
@@ -260,6 +270,7 @@ void HAPFakeGatoWeather::getData(const size_t count, uint8_t *data, size_t* leng
             currentOffset += 2;
         } 
 
+        // humidity
         if (((entryData.bitmask & 0x02) >> 1) == 1){
             ui16_to_ui8 hum;
             hum.ui16 = entryData.humidity;
@@ -267,21 +278,13 @@ void HAPFakeGatoWeather::getData(const size_t count, uint8_t *data, size_t* leng
             currentOffset += 2;
         }
 
+        // pressure
         if (((entryData.bitmask & 0x04) >> 2) == 1) {            
             ui16_to_ui8 pressure;
             pressure.ui16 = entryData.pressure;
             memcpy(data + offset + currentOffset, pressure.ui8, 2);        
             currentOffset += 2;
-        }
-
-
-        // ToDo: Hygrometer test
-        // if ((entryData.bitmask & 0x01) == 1){
-        //     ui16_to_ui8 hum;
-        //     hum.ui16 = entryData.humidity;
-        //     memcpy(data + offset + currentOffset, hum.ui8, 2);
-        //     currentOffset += 2;
-        // }                                               
+        }                                            
 
         offset  += currentOffset;
         *length = offset;   

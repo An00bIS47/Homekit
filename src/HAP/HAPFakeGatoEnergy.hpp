@@ -16,14 +16,12 @@
 
 struct HAPFakeGatoEnergyData {
     uint32_t timestamp;     // unix
-    uint8_t bitmask;
-    // bool     setRefTime;    
-
+    uint8_t  bitmask;
     uint16_t powerWatt;
     uint16_t powerVoltage;
     uint16_t powerCurrent;    
     uint16_t power10th;
-    uint8_t status;    
+    uint8_t  status;    
 };
 
 class HAPFakeGatoEnergy : public HAPFakeGato  {
@@ -87,8 +85,6 @@ protected:
     // Schedules
     void scheduleRead(String oldValue, String newValue) override;
     void scheduleWrite(String oldValue, String newValue) override;
-
-
 
 private:
     bool _shouldSave;

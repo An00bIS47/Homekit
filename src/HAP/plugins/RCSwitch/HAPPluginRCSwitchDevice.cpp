@@ -231,7 +231,7 @@ bool HAPPluginRCSwitchDevice::fakeGatoCallback(){
     // LogD(HAPServer::timeString() + " " + "HAPPluginPCA301Device" + "->" + String(__FUNCTION__) + " [   ] " + "fakeGatoCallback()", true);
 
     // Serial.println("power: " + _curPowerValue->value());    
-    return _fakegato.addEntry(0x01, "0", "0", "0", "0", _stateValue->value());
+    return _fakegato.addEntry(0x1F, "0", "0", "0", "0", _stateValue->value());
 }
 
 void HAPPluginRCSwitchDevice::switchCallback(uint16_t state){
