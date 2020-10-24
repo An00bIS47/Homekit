@@ -16,7 +16,6 @@
 HAPFakeGatoEnergy::HAPFakeGatoEnergy(){
     _interval       = HAP_FAKEGATO_INTERVAL;
 	_previousMillis = 0;
-    _type           = HAPFakeGatoType_weather;
     _isEnabled      = true;
     _name           = "";
     _memoryUsed     = 0;
@@ -31,7 +30,6 @@ HAPFakeGatoEnergy::HAPFakeGatoEnergy(){
     _rolledOver     = false;  
 
     _periodicUpdates = true;   
-
 
     _schedule = nullptr;    
     _shouldSave = false;
@@ -75,19 +73,23 @@ int HAPFakeGatoEnergy::signatureLength(){
     return HAP_FAKEGATO_SIGNATURE_LENGTH;
 }
 
-void HAPFakeGatoEnergy::getSignature(uint8_t* signature){
-    // ui16_to_ui8 s1, s2, s3, s4;    
-    // s1.ui16 = __builtin_bswap16(0x0102);
-    // s2.ui16 = __builtin_bswap16(0x0202);
-    // s3.ui16 = __builtin_bswap16(0x0702);
-    // s4.ui16 = __builtin_bswap16(0x0F03);
+void HAPFakeGatoEnergy::getSignature(uint8_t* signature){  
 
-    // memcpy(signature, s1.ui8, 2);
-    // memcpy(signature + 2, s2.ui8, 2);
-    // memcpy(signature + 2 + 2, s3.ui8, 2);
-    // memcpy(signature + 2 + 2 + 2, s4.ui8, 2);
-    // // *length = signatureLength();    
+    // 0b02 0c02 0d02 0702 0e01
+	//	|	  |	   |    |    +-> Power on/ff
+    //	|	  |	   |    +-> Power 10th Watt
+    //	|	  |	   +-> PowerCurrent	
+	//  |	  +-> PowerVoltage
+	//  +-> PowerWatt
+	// 
+	// bitmask 0x1F => all			= 11111
+	// bitmask 0x01 => watt			= 00001
+	// bitmask 0x02 => voltage		= 00010
+	// bitmask 0x04 => current		= 00100
+    // bitmask 0x08 => 10th w		= 01000
+    // bitmask 0x10 => on/off		= 10000
 
+    // bitmask for all: 11111 = 0x1F
     signature[0] = (uint8_t)HAPFakeGatoSignature_PowerWatt;
     signature[1] = 2;
 
@@ -105,7 +107,7 @@ void HAPFakeGatoEnergy::getSignature(uint8_t* signature){
 }
 
 
-bool HAPFakeGatoEnergy::addEntry(String powerWatt, String powerVoltage, String powerCurrent, String stringPower10th, String status){        
+bool HAPFakeGatoEnergy::addEntry(uint8_t bitmask, String powerWatt, String powerVoltage, String powerCurrent, String stringPower10th, String status){        
 
     LogD(HAPServer::timeString() + " " + String(__CLASS_NAME__) + "->" + String(__FUNCTION__) + " [   ] " + "Adding entry for " + _name + " [size=" + String(size()) + "]: power10th=" + stringPower10th, true);
     
@@ -117,6 +119,7 @@ bool HAPFakeGatoEnergy::addEntry(String powerWatt, String powerVoltage, String p
 
     HAPFakeGatoEnergyData data = (HAPFakeGatoEnergyData){
         HAPServer::timestamp(),
+        bitmask,
         valuePowerWatt,
         valuePowerVoltage,
         valuePowerCurrent,
@@ -186,10 +189,97 @@ void HAPFakeGatoEnergy::getData(const size_t count, uint8_t *data, size_t* lengt
     HAPFakeGatoEnergyData entryData;    
     entryData = (*_vectorBuffer)[tmpRequestedEntry];
        
-    for (int i = 0; i < count; i++){
+    for (int i = 0; i < count; i++){        
+
+
+#if 1
+
+
+        uint8_t size = 10;
+        uint8_t currentOffset = 0;
+
+
+        // bitmask 0x1F => all			= 11111
+        // bitmask 0x01 => watt			= 00001
+        // bitmask 0x02 => voltage		= 00010
+        // bitmask 0x04 => current		= 00100
+        // bitmask 0x08 => 10th w		= 01000
+        // bitmask 0x10 => on/off		= 10000
         
+        size += (((entryData.bitmask & 0x10) >> 4) * 1);  
+        size += (((entryData.bitmask & 0x08) >> 3) * 2);  
+        size += (((entryData.bitmask & 0x04) >> 2) * 2);  
+        size += (((entryData.bitmask & 0x02) >> 1) * 2);  
+        size +=  ((entryData.bitmask & 0x01) * 2); 
+
+        // size
+        memcpy(data + offset + currentOffset, (uint8_t *)&size, 1);
+        currentOffset += 1;
+
+        // requestedEntry
+        ui32_to_ui8 eC;
+        eC.ui32 = _requestedEntry++;
+        memcpy(data + offset + currentOffset, eC.ui8, 4);
+        currentOffset += 4;
+
+        // Timeestamp
+        ui32_to_ui8 secs;
+        secs.ui32 = entryData.timestamp - _refTime;
+        memcpy(data + offset + currentOffset, secs.ui8, 4);
+        currentOffset += 4;
+
+        // bitmask
+        memcpy(data + offset + currentOffset, (uint8_t*)&entryData.bitmask, 1);
+        currentOffset += 1; 
+
+        // watt
+        if ((entryData.bitmask & 0x01) == 1) {            
+            ui16_to_ui8 powerWatt;
+            powerWatt.ui16 = entryData.powerWatt;
+            memcpy(data + offset + currentOffset, powerWatt.ui8, 2);
+            currentOffset += 2;
+        } 
+
+        // voltage
+        if (((entryData.bitmask & 0x02) >> 1) == 1){
+            ui16_to_ui8 powerVoltage;
+            powerVoltage.ui16 = entryData.powerVoltage;
+            memcpy(data + offset + currentOffset, powerVoltage.ui8, 2);
+            currentOffset += 2;
+        }
+
+        // current
+        if (((entryData.bitmask & 0x04) >> 2) == 1) {            
+            ui16_to_ui8 powerCurrent;
+            powerCurrent.ui16 = entryData.powerCurrent;
+            memcpy(data + offset + currentOffset, powerCurrent.ui8, 2);        
+            currentOffset += 2;
+        } 
+
+        // 10th watt
+        if (((entryData.bitmask & 0x08) >> 3) == 1) {            
+            ui16_to_ui8 power10th;
+            power10th.ui16 = entryData.power10th;
+            memcpy(data + offset + currentOffset, power10th.ui8, 2);        
+            currentOffset += 2;
+        } 
+
+        // on/off
+        if (((entryData.bitmask & 0x10) >> 4) == 1) {            
+            memcpy(data + offset + currentOffset, (uint8_t*)&entryData.status, 1);        
+            currentOffset += 1;
+        } 
+
+
+        offset  += currentOffset;
+        *length = offset; 
+
+#if HAP_DEBUG_FAKEGATO   
+        HAPHelper::array_print("Fakegato data", data + offset, currentOffset);
+#endif
+
+#else
         uint8_t size = HAP_FAKEGATO_DATA_LENGTH;
-        uint8_t typ = HAP_FAKEGATO_TYPE_ENERGY;
         memcpy(data + offset, (uint8_t *)&size, 1);
 
         ui32_to_ui8 eC;
@@ -200,8 +290,9 @@ void HAPFakeGatoEnergy::getData(const size_t count, uint8_t *data, size_t* lengt
         secs.ui32 = entryData.timestamp - _refTime;
         memcpy(data + offset + 1 + 4, secs.ui8, 4);
         
-        memcpy(data + offset + 1 + 4 + 4, (uint8_t*)&typ, 1);
-
+        uint8_t type = HAP_FAKEGATO_TYPE_ENERGY;
+        memcpy(data + offset + 1 + 4 + 4, (uint8_t*)&type, 1);
+        
         // PowerWatt
         memset(data + offset + 1 + 4 + 4 + 1, 0x00, 2);
         
@@ -219,14 +310,11 @@ void HAPFakeGatoEnergy::getData(const size_t count, uint8_t *data, size_t* lengt
         // PowerOnOff
         uint8_t status   = entryData.status;
         memcpy(data + offset + 1 + 4 + 4 + 2 + 2 + 2 + 2 + 1, (uint8_t*)&status, 1);
-
-
-        // 2x unknown
-        // memset(data + offset + 1 + 4 + 4 + 1 + 2 + 2 + 2 + 2, 0x00, 2);
-        // memset(data + offset + 1 + 4 + 4 + 1 + 2 + 2 + 2 + 2 + 2, 0x00, 2);
-        
+      
         *length = offset + HAP_FAKEGATO_DATA_LENGTH;    
         offset  = offset + HAP_FAKEGATO_DATA_LENGTH;
+#endif
+
 
         if ( (tmpRequestedEntry >= (_idxWrite - 1))  && ( _rolledOver == false) ){
             _transfer = false;    

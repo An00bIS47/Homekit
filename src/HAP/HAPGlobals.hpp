@@ -16,8 +16,13 @@
  ********************************************************************/
 #define HAP_LOGLEVEL				LogLevel::DEBUG
 
+#ifndef HAP_PIN_CODE
 #define HAP_PIN_CODE 				"031-45-712"
+#endif
+
+#ifndef HAP_SETUP_ID
 #define HAP_SETUP_ID 				"UPFT"
+#endif
 
 #define HAP_HOSTNAME_PREFIX			"esp32"
 #define HAP_MANUFACTURER			"An00bIS47"
@@ -31,7 +36,7 @@
 #define HAP_PIXEL_INIDICATOR_BRIGHTNESS 75
 
 /**
- * H.A.P.
+ * Homekit Accessory Protocol
  ********************************************************************/
 #define HOMEKIT_PROTOKOL_VERSION			"1.0"
 #define HOMEKIT_CONFIGURATION_NUMBER 		1		// Internal - keep value at 1
@@ -140,8 +145,6 @@
 											// default: 5
 #define HAP_WIFI_CONNECTION_RETRY_DELAY	2000
 #define ESP_WIFI_CONNECTION_TIMEOUT		20000
-
-
 
 #define HAP_PROVISIONING_ENABLE_BLE		0
 
@@ -628,12 +631,159 @@ STR(HAP_PLUGIN_USE_BME280)
 /**
  * Plugin configuration
  ********************************************************************/
-#define HAP_PLUGIN_MIFLORA_MAX_DEVICES     			10
-#define HAP_PLUGIN_MIFLORA_SCAN_DURATION    		3       // Max duration of BLE scan (in seconds)
-#define HAP_PLUGIN_MIFLORA_RETRY       				5
-#define HAP_PLUGIN_MIFLORA_ENABLE_SCANNER 			1
 
-#define HAP_PLUGIN_MIFLORA_ENABLE_HISTORY			1
-#define HAP_PLUGIN_MIFLORA_HISTORY_BATCH_SIZE		8
+/**
+ * MiFlora
+ *****************************/
+#ifndef HAP_PLUGIN_MIFLORA_MAX_DEVICES
+#define HAP_PLUGIN_MIFLORA_MAX_DEVICES     			10
+#endif
+
+#ifndef HAP_PLUGIN_MIFLORA_SCAN_DURATION
+#define HAP_PLUGIN_MIFLORA_SCAN_DURATION    		3       // Max duration of BLE scan (in seconds)
+#endif
+
+#ifndef HAP_PLUGIN_MIFLORA_SCAN_INTERVAL
+#define HAP_PLUGIN_MIFLORA_SCAN_INTERVAL    		300000
+#endif
+
+#ifndef HAP_PLUGIN_MIFLORA_RETRY
+#define HAP_PLUGIN_MIFLORA_RETRY       				5		// number of retries to connect to sensor
+#endif
+
+#ifndef HAP_PLUGIN_MIFLORA_ENABLE_SCANNER
+#define HAP_PLUGIN_MIFLORA_ENABLE_SCANNER 			1		// enable ble scanner to detect mifloras
+#endif
+
+#ifndef HAP_PLUGIN_MIFLORA_ENABLE_HISTORY
+#define HAP_PLUGIN_MIFLORA_ENABLE_HISTORY			1		// download history from sensor and provide it via fakegato
+#endif
+
+#ifndef HAP_PLUGIN_MIFLORA_HISTORY_BATCH_SIZE
+#define HAP_PLUGIN_MIFLORA_HISTORY_BATCH_SIZE		7		// Number of history entries to catch in one try
+#endif
+															// keep this below 8
+/**
+ * Hygrometer
+ *****************************/
+#ifndef HAP_PLUGIN_HYGROMTER_REFERENCE
+#define HAP_PLUGIN_HYGROMTER_REFERENCE      		2550    // value if put in a glass of water
+#endif
+
+#ifndef HAP_PLUGIN_HYGROMETER_PIN_VCC
+#define HAP_PLUGIN_HYGROMETER_PIN_VCC       		A6	// 14
+#endif
+
+#ifndef HAP_PLUGIN_HYGROMETER_PIN_ADC
+#define HAP_PLUGIN_HYGROMETER_PIN_ADC       		A7	// 32
+#endif
+
+#ifndef HAP_HYGROMETER_LEAK_SENSOR_ENABLED
+#define HAP_HYGROMETER_LEAK_SENSOR_ENABLED  		1		// enable leak sensor for hygrometer
+#endif
+
+#ifndef HAP_HYGROMETER_LEAK_PERCENTAGE
+#define HAP_HYGROMETER_LEAK_PERCENTAGE				35		// Level when a "leak" notification is triggered
+#endif
+
+
+/**
+ * DHT
+ *****************************/
+#ifndef HAP_PLUGIN_DHT_USE_DUMMY
+#define HAP_PLUGIN_DHT_USE_DUMMY 	0
+#endif
+
+#ifndef HAP_PLUGIN_DHT_USE_PRESSURE
+#define HAP_PLUGIN_DHT_USE_PRESSURE 0
+#endif
+
+#ifndef DHTPIN
+#define DHTPIN 		A8 	// 15
+#endif
+
+#ifndef DHTTYPE
+#define DHTTYPE    	DHT22
+#endif
+
+/**
+ * BME280
+ *****************************/
+#ifndef HAP_PLUGIN_BME280_USE_DUMMY
+#define HAP_PLUGIN_BME280_USE_DUMMY		0	// if 0 then use real sensor, 
+#endif  									// if 1 then use random values without any real sensor connected
+
+#ifndef SEALEVELPRESSURE_HPA
+#define SEALEVELPRESSURE_HPA 			(1013.25)
+#endif
+
+
+/**
+ * Fan Honeywell
+ *****************************/
+#ifndef HAP_PLUGIN_IR_DEVICE_FREQUENCY
+#define HAP_PLUGIN_IR_DEVICE_FREQUENCY 		38000
+#endif
+
+#ifndef HAP_PLUGIN_HONEYWELL_DELAY_SEND
+#define HAP_PLUGIN_HONEYWELL_DELAY_SEND 	300  // in m
+#endif
+
+
+/**
+ * IR
+ *****************************/
+#ifndef HAP_PLUGIN_IR_SEND_PIN
+#define HAP_PLUGIN_IR_SEND_PIN      		14
+#endif
+
+#ifndef HAP_PLUGIN_IR_SEND_PIN
+#define HAP_PLUGIN_IR_ENABLE_RECV 			1		
+#endif
+
+#ifndef HAP_PLUGIN_IR_ENABLE_RECV 
+#define HAP_PLUGIN_IR_ENABLE_RECV 			1
+#endif
+
+
+#if HAP_PLUGIN_IR_ENABLE_RECV 
+
+#ifndef HAP_PLUGIN_IR_RECV_PIN
+#define HAP_PLUGIN_IR_RECV_PIN				A2
+#endif
+
+#ifndef HAP_PLUGIN_IR_RECEIVE_BUFFER_SIZE
+#define HAP_PLUGIN_IR_RECEIVE_BUFFER_SIZE	1024
+#endif
+
+#ifndef HAP_PLUGIN_IR_RECEIVE_TIMEOUT
+#define HAP_PLUGIN_IR_RECEIVE_TIMEOUT		150 // ms
+#endif
+
+#ifndef HAP_PLUGIN_IR_RECEIVE_TIMER
+#define HAP_PLUGIN_IR_RECEIVE_TIMER			2
+#endif
+
+#endif /* HAP_PLUGIN_IR_ENABLE_RECV */
+
+
+/**
+ * NeoPixel
+ *****************************/
+#ifndef HAP_PLUGIN_NEOPIXEL_NUM_LEDS
+#define HAP_PLUGIN_NEOPIXEL_NUM_LEDS 1
+#endif
+
+#ifndef HAP_PLUGIN_NEOPIXEL_DATA_PIN
+#define HAP_PLUGIN_NEOPIXEL_DATA_PIN A5	
+#endif
+
+/**
+ * RCSwitch
+ *****************************/
+#ifndef HAP_PLUGIN_RCSWITCH_PIN
+#define HAP_PLUGIN_RCSWITCH_PIN        27  // GPIO27
+#endif
+
 
 #endif /* HAPGLOBALS_HPP_ */

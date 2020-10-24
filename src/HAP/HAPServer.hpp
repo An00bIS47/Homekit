@@ -338,6 +338,7 @@ private:
 	// Button
 	//
 	static void taskButtonRead(void* pvParameters);
+	TaskHandle_t _taskButtonHandle;
 	void callbackClick();
 	void callbackDoubleClick();
 	void callbackHold();

@@ -14,7 +14,7 @@
 #include "HAPPlugins.hpp"
 #include "HAPLogger.hpp"
 #include "HAPAccessory.hpp"
-
+#include "HAPGlobals.hpp"
 #include <InfluxDb.h>
 
 #define HAP_PLUGIN_INFLUXDB_INTERVAL 		(60 * 1000)		// 60 sec

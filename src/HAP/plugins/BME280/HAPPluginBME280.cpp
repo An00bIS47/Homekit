@@ -149,6 +149,7 @@ HAPAccessory* HAPPluginBME280::initAccessory(){
 	// Temperature
 	//
 	HAPService* temperatureService = new HAPService(HAP_SERVICE_TEMPERATURE_SENSOR);
+	// temperatureService->setPrimaryService(true);
 	_accessory->addService(temperatureService);
 
 	stringCharacteristics *tempServiceName = new stringCharacteristics(HAP_CHARACTERISTIC_NAME, permission_read, 0);
@@ -201,6 +202,9 @@ HAPAccessory* HAPPluginBME280::initAccessory(){
 	_pressureValue->valueChangeFunctionCall = callbackChangePressure;
 	_accessory->addCharacteristics(pressureService, _pressureValue);
 
+	// Link services
+	temperatureService->addLinkedServiceId(humidityService->serviceID);
+	temperatureService->addLinkedServiceId(pressureService->serviceID);
 
 	//
 	// FakeGato
@@ -384,6 +388,14 @@ bool HAPPluginBME280::begin(){
 }
 
 bool HAPPluginBME280::fakeGatoCallback(){	
-	// return _fakegato.addEntry(_temperatureValue->value(), _humidityValue->value(), _pressureValue->value());
-	return _fakegato.addEntry(_temperatureValue->value(), _humidityValue->value(), _pressureValue->value());
+	return _fakegato.addEntry(0x07, _temperatureValue->value(), _humidityValue->value(), _pressureValue->value());
+	// 0102 0202 0302
+	//	|	  |	   +-> Pressure	
+	//  |	  +-> Humidity
+	//  +-> Temp
+	// 
+	// 0x07 => all			= 111
+	// 0x01 => temp			= 001
+	// 0x02 => hum			= 010
+	// 0x04 => pressure		= 100
 }

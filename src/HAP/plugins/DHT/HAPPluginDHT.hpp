@@ -31,7 +31,11 @@
 #include "HAPAccessory.hpp"
 
 #include "HAPFakeGato.hpp"
+#include "HAPGlobals.hpp"
 
+// 
+// Set these values in the HAPGlobals.hpp
+// 
 #ifndef HAP_PLUGIN_DHT_USE_DUMMY
 #define HAP_PLUGIN_DHT_USE_DUMMY 	0
 #endif
@@ -39,13 +43,6 @@
 #ifndef HAP_PLUGIN_DHT_USE_PRESSURE
 #define HAP_PLUGIN_DHT_USE_PRESSURE 0
 #endif
-
-#include <Adafruit_Sensor.h>
-
-#if HAP_PLUGIN_DHT_USE_DUMMY
-#else
-#include <DHT.h>
-#include <DHT_U.h>
 
 #ifndef DHTPIN
 #define DHTPIN 		A8 	// 15
@@ -55,7 +52,17 @@
 #define DHTTYPE    	DHT22
 #endif
 
+#include <Adafruit_Sensor.h>
+
+#if HAP_PLUGIN_DHT_USE_DUMMY
+#else
+#include <DHT.h>
+#include <DHT_U.h>
 #endif
+
+
+
+
 
 // #if HAP_PLUGIN_DHT_USE_PRESSURE
 #include "HAPFakeGatoWeather.hpp"

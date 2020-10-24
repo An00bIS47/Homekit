@@ -20,8 +20,14 @@
 #define VERSION_REVISION    2
 #define VERSION_BUILD       0
 
-#define RCSWITCH_PIN        27  // GPIO27
+#ifndef HAP_PLUGIN_RCSWITCH_PIN
+#define HAP_PLUGIN_RCSWITCH_PIN        27  // GPIO27
+#endif
+
+#ifndef HAP_PLUGIN_RCSWITCH_INTERVAL
 #define HAP_PLUGIN_RCSWITCH_INTERVAL 1000
+#endif
+
 
 HAPPluginRCSwitch::HAPPluginRCSwitch(){
     _type           = HAP_PLUGIN_TYPE_ACCESSORY;
@@ -43,7 +49,7 @@ HAPPluginRCSwitch::HAPPluginRCSwitch(){
 bool HAPPluginRCSwitch::begin(){
 
     // Transmitter is connected to Arduino Pin #10  
-    _rcSwitch.enableTransmit(RCSWITCH_PIN);
+    _rcSwitch.enableTransmit(HAP_PLUGIN_RCSWITCH_PIN);
 
     return true;
 }

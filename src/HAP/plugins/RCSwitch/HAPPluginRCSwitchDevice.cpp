@@ -220,7 +220,7 @@ void HAPPluginRCSwitchDevice::changedState(bool oldValue, bool newValue){
         _timestampLastActivity = HAPServer::timestamp();
 
         // Add entry to fakegato
-        _fakegato.addEntry("0", "0", "0", "0", newValue == true ? "1" : "0");
+        _fakegato.addEntry(0x01, "0", "0", "0", "0", newValue == true ? "1" : "0");
 
         struct HAPEvent event = HAPEvent(nullptr, _accessory->aid, _stateValue->iid, newValue ? "1" : "0");							
         _eventManager->queueEvent( EventManager::kEventNotifyController, event);        
@@ -231,7 +231,7 @@ bool HAPPluginRCSwitchDevice::fakeGatoCallback(){
     // LogD(HAPServer::timeString() + " " + "HAPPluginPCA301Device" + "->" + String(__FUNCTION__) + " [   ] " + "fakeGatoCallback()", true);
 
     // Serial.println("power: " + _curPowerValue->value());    
-    return _fakegato.addEntry("0", "0", "0", "0", _stateValue->value());
+    return _fakegato.addEntry(0x1F, "0", "0", "0", "0", _stateValue->value());
 }
 
 void HAPPluginRCSwitchDevice::switchCallback(uint16_t state){

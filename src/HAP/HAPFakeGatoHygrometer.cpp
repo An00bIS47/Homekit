@@ -1,17 +1,16 @@
 //
-// HAPFakeGatoWeather.cpp
+// HAPFakeGatoHygrometer.cpp
 // Homekit
 //
 //  Created on: 29.08.2019
 //      Author: michael
 //
-#include "HAPFakeGatoWeather.hpp"
+#include "HAPFakeGatoHygrometer.hpp"
 #include "HAPServer.hpp"
 
 #define HAP_FAKEGATO_SIGNATURE_LENGTH    3     // number of 16 bits word of the following "signature" portion
-#define HAP_FAKEGATO_DATA_LENGTH        16     // length of the data
 
-HAPFakeGatoWeather::HAPFakeGatoWeather(){    
+HAPFakeGatoHygrometer::HAPFakeGatoHygrometer(){    
     
     _interval       = HAP_FAKEGATO_INTERVAL;
 	_previousMillis = 0;
@@ -31,7 +30,7 @@ HAPFakeGatoWeather::HAPFakeGatoWeather(){
     _periodicUpdates = true;
 }
 
-HAPFakeGatoWeather::~HAPFakeGatoWeather(){
+HAPFakeGatoHygrometer::~HAPFakeGatoHygrometer(){
 
     if (_vectorBuffer != nullptr){
         _vectorBuffer->clear();
@@ -39,31 +38,18 @@ HAPFakeGatoWeather::~HAPFakeGatoWeather(){
     }
 }
 
-void HAPFakeGatoWeather::begin(){              
+void HAPFakeGatoHygrometer::begin(){              
 
     if (_vectorBuffer == nullptr) {
-        _vectorBuffer = new std::vector<HAPFakeGatoWeatherData>(HAP_FAKEGATO_BUFFER_SIZE);
+        _vectorBuffer = new std::vector<HAPFakeGatoHygrometerData>(HAP_FAKEGATO_BUFFER_SIZE);
     }
 }
 
-int HAPFakeGatoWeather::signatureLength(){
-    return HAP_FAKEGATO_SIGNATURE_LENGTH;
-    // ToDo: Hygrometer test
-    // return 1;
+int HAPFakeGatoHygrometer::signatureLength(){
+    return HAP_FAKEGATO_SIGNATURE_LENGTH;    
 }
 
-void HAPFakeGatoWeather::getSignature(uint8_t* signature){
-
-    // 0102 0202 0302
-	//	|	  |	   +-> Pressure	
-	//  |	  +-> Humidity
-	//  +-> Temp
-	// 
-	// bitmask 0x07 => all			= 111
-	// bitmask 0x01 => temp			= 001
-	// bitmask 0x02 => hum			= 010
-	// bitmask 0x04 => pressure		= 100
-
+void HAPFakeGatoHygrometer::getSignature(uint8_t* signature){
 
     signature[0] = (uint8_t)HAPFakeGatoSignature_Temperature;
     signature[1] = 2;
@@ -74,66 +60,47 @@ void HAPFakeGatoWeather::getSignature(uint8_t* signature){
     signature[4] = (uint8_t)HAPFakeGatoSignature_AirPressure;
     signature[5] = 2;     
 
-#if HAP_DEBUG_FAKEGATO
-    HAPHelper::array_print("Fakegato signature", signature, 6);
-#endif
-
-}
-
-
-bool HAPFakeGatoWeather::addEntry(uint8_t bitmask, String stringTemperature, String stringHumidity, String stringPressure){        
-
-
-    LogD(HAPServer::timeString() + " " + String(__CLASS_NAME__) + "->" + String(__FUNCTION__) + " [   ] " + "Adding entry for " + _name + " [size=" + String(_memoryUsed) + "]: temp=" + stringTemperature + " hum=" + stringHumidity + " pres=" + stringPressure, true);
-    
-    uint16_t valueTemperature   = (uint16_t) (stringTemperature.toFloat()    * 100);
-    uint16_t valueHumidity      = (uint16_t) (stringHumidity.toFloat()       * 100);
-    uint16_t valuePressure      = (uint16_t) (stringPressure.toInt()         * 10);        
-
-#if HAP_DEBUG_FAKEGATO       
-    Serial.printf("valueTemperature: %d   valueHumidity: %d   valuePressure: %d\n", valueTemperature, valueHumidity, valuePressure);
-#endif
-
-
-    HAPFakeGatoWeatherData data = (HAPFakeGatoWeatherData){
-        HAPServer::timestamp(),
-        // false,
-        bitmask,
-        valueTemperature,
-        valueHumidity,
-        valuePressure,        
-    };    
-
-    return addEntry(data);
-}
-
-bool HAPFakeGatoWeather::addEntry(uint8_t bitmask, uint32_t timestamp, String stringTemperature, String stringHumidity, String stringPressure){        
-
-
-    LogD(HAPServer::timeString() + " " + String(__CLASS_NAME__) + "->" + String(__FUNCTION__) + " [   ] " + "Adding entry for " + _name + " [size=" + String(_memoryUsed) + "]: temp=" + stringTemperature + " hum=" + stringHumidity + " pres=" + stringPressure, true);
-    
-    uint16_t valueTemperature   = (uint16_t) (stringTemperature.toFloat()    * 100);
-    uint16_t valueHumidity      = (uint16_t) (stringHumidity.toFloat()       * 100);
-    uint16_t valuePressure      = (uint16_t) (stringPressure.toInt()         * 10);        
-
 #if HAP_DEBUG_FAKEGATO   
-    Serial.printf("valueTemperature: %d   valueHumidity: %d   valuePressure: %d\n", valueTemperature, valueHumidity, valuePressure);
+    HAPHelper::array_print("Fakegato signature", signature, 2);
 #endif
 
-    HAPFakeGatoWeatherData data = (HAPFakeGatoWeatherData){
-        timestamp,
-        // false,
-        bitmask,       
-        valueTemperature,
+}
+
+
+bool HAPFakeGatoHygrometer::addEntry(String stringHumidity){        
+
+
+    LogD(HAPServer::timeString() + " " + String(__CLASS_NAME__) + "->" + String(__FUNCTION__) + " [   ] " + "Adding entry for " + _name + " [size=" + String(_memoryUsed) + "]: hum=" + stringHumidity, true);
+    
+    uint16_t valueHumidity      = (uint16_t) (stringHumidity.toFloat()       * 100);
+
+    HAPFakeGatoHygrometerData data = (HAPFakeGatoHygrometerData){
+        HAPServer::timestamp(),
+        0x02,
         valueHumidity,
-        valuePressure,        
+    };    
+
+    return addEntry(data);
+}
+
+bool HAPFakeGatoHygrometer::addEntry(uint32_t timestamp, String stringHumidity){        
+
+
+    LogD(HAPServer::timeString() + " " + String(__CLASS_NAME__) + "->" + String(__FUNCTION__) + " [   ] " + "Adding entry for " + _name + " [size=" + String(_memoryUsed) + "]: hum=" + stringHumidity, true);
+    
+    uint16_t valueHumidity      = (uint16_t) (stringHumidity.toFloat()       * 100);
+
+    HAPFakeGatoHygrometerData data = (HAPFakeGatoHygrometerData){
+        timestamp,
+        0x02,       
+        valueHumidity,       
     };    
 
     return addEntry(data);
 }
 
 
-bool HAPFakeGatoWeather::addEntry(HAPFakeGatoWeatherData data){
+bool HAPFakeGatoHygrometer::addEntry(HAPFakeGatoHygrometerData data){
 
     //LogD(HAPServer::timeString() + " " + String(__CLASS_NAME__) + "->" + String(__FUNCTION__) + " [   ] " + "Add fakegato data for " + _name + " ..." , true);
 
@@ -178,9 +145,9 @@ bool HAPFakeGatoWeather::addEntry(HAPFakeGatoWeatherData data){
 
         if (entryData.timestamp == 0) break;
         if (i == _idxWrite) {
-            Serial.printf("No. %d - %d  temp: %d  hum: %d  pres: %d <<< w:%d\n", i, entryData.timestamp, entryData.temperature, entryData.humidity, entryData.pressure, _idxWrite);
+            Serial.printf("No. %d - %d  hum: %d<<< w:%d\n", i, entryData.timestamp, entryData.humidity, _idxWrite);
         } else {
-            Serial.printf("No. %d - %d  temp: %d  hum: %d  pres: %d \n", i, entryData.timestamp, entryData.temperature, entryData.humidity, entryData.pressure);
+            Serial.printf("No. %d - %d  hum: %d\n", i, entryData.timestamp, entryData.humidity);
         }
         
     }
@@ -194,7 +161,7 @@ bool HAPFakeGatoWeather::addEntry(HAPFakeGatoWeatherData data){
 }
 
 // TODO: Read from index requested by EVE app
-void HAPFakeGatoWeather::getData(const size_t count, uint8_t *data, size_t* length, uint16_t offset){
+void HAPFakeGatoHygrometer::getData(const size_t count, uint8_t *data, size_t* length, uint16_t offset){
 
 #if HAP_DEBUG_FAKEGATO      
     LogD(HAPServer::timeString() + " " + String(__CLASS_NAME__) + "->" + String(__FUNCTION__) + " [   ] " + "Get fakegato data for " + _name + " ..." , true);
@@ -209,9 +176,9 @@ void HAPFakeGatoWeather::getData(const size_t count, uint8_t *data, size_t* leng
 
         if (entryData.timestamp == 0) break;
         if (i == _idxWrite) {
-            Serial.printf("No. %d - %d  temp: %d  hum: %d  pres: %d <<< w:%d\n", i, entryData.timestamp, entryData.temperature, entryData.humidity, entryData.pressure, _idxWrite);
+            Serial.printf("No. %d - %d  hum: %d  <<< w:%d\n", i, entryData.timestamp, entryData.humidity, _idxWrite);
         } else {
-            Serial.printf("No. %d - %d  temp: %d  hum: %d  pres: %d \n", i, entryData.timestamp, entryData.temperature, entryData.humidity, entryData.pressure);
+            Serial.printf("No. %d - %d  hum: %d  \n", i, entryData.timestamp, entryData.humidity);
         }
     }
 #endif
@@ -230,47 +197,46 @@ void HAPFakeGatoWeather::getData(const size_t count, uint8_t *data, size_t* leng
         return;
     }
 
-    HAPFakeGatoWeatherData entryData;    
+    HAPFakeGatoHygrometerData entryData;    
     entryData = (*_vectorBuffer)[tmpRequestedEntry];
 
     for (int i = 0; i < count; i++){            
         uint8_t currentOffset = 0;
 
 
+
+        // uint8_t size = HAP_FAKEGATO_DATA_LENGTH;  
+        // ToDo: ToDo: Hygrometer test
         uint8_t size = 10;
         size += (((entryData.bitmask & 0x04) >> 2) * 2);  
         size += (((entryData.bitmask & 0x02) >> 1) * 2);  
         size +=  ((entryData.bitmask & 0x01) * 2);        
 
-        // size
         memcpy(data + offset + currentOffset, (uint8_t *)&size, 1);
         currentOffset += 1;
 
-        // requested Entry
+        // ToDo: Rewrite and remove unions
         ui32_to_ui8 eC;
         eC.ui32 = _requestedEntry++;
         memcpy(data + offset + currentOffset, eC.ui8, 4);
         currentOffset += 4;
 
-        // timestamp
         ui32_to_ui8 secs;
         secs.ui32 = entryData.timestamp - _refTime;
         memcpy(data + offset + currentOffset, secs.ui8, 4);
         currentOffset += 4;
 
-        // bitmask
+         // ToDo: make proper use of the bitmask!
         memcpy(data + offset + currentOffset, (uint8_t*)&entryData.bitmask, 1);
-        currentOffset += 1;        
+        currentOffset += 1;                
 
-        // temperature
-        if ((entryData.bitmask & 0x01) == 1) {            
-            ui16_to_ui8 temp;
-            temp.ui16 = entryData.temperature;
-            memcpy(data + offset + currentOffset, temp.ui8, 2);
-            currentOffset += 2;
-        } 
+        // if ((entryData.bitmask & 0x01) == 1) {            
+        //     ui16_to_ui8 temp;
+        //     temp.ui16 = entryData.temperature;
+        //     memcpy(data + offset + currentOffset, temp.ui8, 2);
+        //     currentOffset += 2;
+        // } 
 
-        // humidity
         if (((entryData.bitmask & 0x02) >> 1) == 1){
             ui16_to_ui8 hum;
             hum.ui16 = entryData.humidity;
@@ -278,13 +244,12 @@ void HAPFakeGatoWeather::getData(const size_t count, uint8_t *data, size_t* leng
             currentOffset += 2;
         }
 
-        // pressure
-        if (((entryData.bitmask & 0x04) >> 2) == 1) {            
-            ui16_to_ui8 pressure;
-            pressure.ui16 = entryData.pressure;
-            memcpy(data + offset + currentOffset, pressure.ui8, 2);        
-            currentOffset += 2;
-        }                                            
+        // if (((entryData.bitmask & 0x04) >> 2) == 1) {            
+        //     ui16_to_ui8 pressure;
+        //     pressure.ui16 = entryData.pressure;
+        //     memcpy(data + offset + currentOffset, pressure.ui8, 2);        
+        //     currentOffset += 2;
+        // }
 
         offset  += currentOffset;
         *length = offset;   

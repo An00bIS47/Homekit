@@ -13,7 +13,7 @@
 #include "HAPPlugins.hpp"
 #include "HAPLogger.hpp"
 #include "HAPAccessory.hpp"
-
+#include "HAPGlobals.hpp"
 	
 
 class HAPPluginLED: public HAPPlugin {
@@ -47,6 +47,7 @@ private:
 
 	boolCharacteristics* 	_enabledState;
 
+	bool _blinkingEnabled;
 	uint8_t _gpio;
 	bool _isOn;
 };

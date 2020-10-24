@@ -380,8 +380,8 @@ void HAPPluginNimbleMiFloraDevice::changeHeartbeat(uint8_t oldValue, uint8_t new
 bool HAPPluginNimbleMiFloraDevice::fakeGatoCallback(){
     // LogD(HAPServer::timeString() + " " + "HAPPluginPCA301Device" + "->" + String(__FUNCTION__) + " [   ] " + "fakeGatoCallback()", true);
 
-    // Serial.println("power: " + _curPowerValue->value());    
-    return _fakegato.addEntry(_temperatureValue->value(), _humidityValue->value(), "0");
+    return _fakegato.addEntry(0x06, _temperatureValue->value(), _humidityValue->value(), "0");
+	// return true;
 }
 
 
@@ -396,9 +396,14 @@ bool HAPPluginNimbleMiFloraDevice::fakeGatoCallback(){
 
 BLEClient* HAPPluginNimbleMiFloraDevice::getFloraClient(BLEAddress floraAddress) {	
 
-	if (!_floraClient->connect(floraAddress)) {
-		LogD(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Connection failed, skipping [" + String(floraAddress.toString().c_str()) + "]", true);
-		return nullptr;
+	try {
+		if (!_floraClient->connect(floraAddress)) {
+			LogD(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Connection failed, skipping [" + String(floraAddress.toString().c_str()) + "]", true);
+			return nullptr;
+		}
+	}
+	catch (...) {
+		// something went wrong
 	}
 
 	LogV(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Connection successful [" + String(floraAddress.toString().c_str()) + "]", true);
@@ -750,7 +755,7 @@ bool HAPPluginNimbleMiFloraDevice::readFloraHistoryEntryCharacteristic(BLERemote
 
 	
 	if ((temperature > 200) || (temperature < -50)) {
-		LogE("-- Unreasonable values received, skip publish", true);
+		LogE("-- Unreasonable values received, skip", true);
 		return false;
 	}
 
@@ -873,7 +878,7 @@ bool HAPPluginNimbleMiFloraDevice::processFloraHistoryService(BLERemoteService* 
 		}
 
 		// Add to fakegato 
-		errorOccured = !_fakegato.addEntry(history->timestamp, String(history->temperature), String(history->moisture), "0");
+		errorOccured = !_fakegato.addEntry(0x06, history->timestamp, String(history->temperature), String(history->moisture), "0");
 
 #if HAP_DEBUG_MIFLORA
 		Serial.println("=============================================================");

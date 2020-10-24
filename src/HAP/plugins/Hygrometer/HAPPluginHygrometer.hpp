@@ -15,13 +15,9 @@
 #include "HAPAccessory.hpp"
 
 #include "HAPFakeGato.hpp"
-#include "HAPFakeGatoWeather.hpp"
+#include "HAPFakeGatoHygrometer.hpp"
 #include "HAPCustomCharacteristics+Services.hpp"
-
-#ifndef HAP_PLUGIN_HYGROMETER_USE_DUMMY
-#define HAP_PLUGIN_HYGROMETER_USE_DUMMY 	0
-#endif
-
+#include "HAPGlobals.hpp"
 
 
 class HAPPluginHygrometer: public HAPPlugin {
@@ -51,9 +47,15 @@ private:
 
 	floatCharacteristics*	_humidityValue;
 
+#if HAP_HYGROMETER_LEAK_SENSOR_ENABLED	
+	uint8Characteristics*	_leakSensor;	
+#endif
+
+	bool _leakSensorEnabled;
+	
 	bool fakeGatoCallback();
 
-	HAPFakeGatoWeather _fakegato;
+	HAPFakeGatoHygrometer _fakegato;
 
     uint16_t readSensor();
 

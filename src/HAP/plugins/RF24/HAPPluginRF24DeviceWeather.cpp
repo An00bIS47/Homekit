@@ -308,7 +308,7 @@ void HAPPluginRF24DeviceWeather::changeFirmware(String oldValue, String newValue
 
 bool HAPPluginRF24DeviceWeather::fakeGatoCallback(){	
 	// return _fakegato.addEntry(_temperatureValue->value(), _humidityValue->value(), _pressureValue->value());
-	return _fakegato.addEntry(_temperatureValue->value(), _humidityValue->value(), _pressureValue->value());
+	return _fakegato.addEntry(0x07, _temperatureValue->value(), _humidityValue->value(), _pressureValue->value());
 }
 
 

@@ -18,11 +18,16 @@
 #include <IRremoteESP8266.h>
 #include <IRsend.h>
 
+// 
+// Set these values in the HAPGlobals.hpp
+// 
 #ifndef HAP_PLUGIN_IR_SEND_PIN
 #define HAP_PLUGIN_IR_SEND_PIN      		14
 #endif
 
-#define HAP_PLUGIN_IR_ENABLE_RECV 			1		// Not yet working :(
+#ifndef HAP_PLUGIN_IR_SEND_PIN
+#define HAP_PLUGIN_IR_ENABLE_RECV 			1		
+#endif
 
 #if HAP_PLUGIN_IR_ENABLE_RECV 
 
@@ -51,12 +56,6 @@
 #endif
 
 #endif /* HAP_PLUGIN_IR_ENABLE_RECV */
-
-
-
-
-
-
 
 class HAPPluginIR: public HAPPlugin {
 public:

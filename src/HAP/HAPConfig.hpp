@@ -18,6 +18,7 @@
 
 #include <Preferences.h>
 
+// ToDo: Rewrite internal config to struct or class ?
 
 /* Example settings in json
     {

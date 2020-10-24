@@ -28,7 +28,7 @@
 #include "HAPPlugins.hpp"
 #include "HAPLogger.hpp"
 #include "HAPAccessory.hpp"
-
+#include "HAPGlobals.hpp"
 #include "HAPFakeGato.hpp"
 #include "HAPFakeGatoWeather.hpp"
 
@@ -37,14 +37,17 @@
 //#include <Adafruit_Sensor.h>
 #include <Adafruit_BME280.h>
 
-
+// 
+// Set these values in the HAPGlobals.hpp
+// 
 #ifndef HAP_PLUGIN_BME280_USE_DUMMY
 #define HAP_PLUGIN_BME280_USE_DUMMY		0	// if 0 then use real sensor, 
 											// if 1 then use random values without any real sensor connected
 #endif
 
+#ifndef SEALEVELPRESSURE_HPA
 #define SEALEVELPRESSURE_HPA 			(1013.25)
-
+#endif
 
 enum HAP_PLUGIN_BME280_MODE {
 	HAP_PLUGIN_BME280_WEATHER 	= 0x00,

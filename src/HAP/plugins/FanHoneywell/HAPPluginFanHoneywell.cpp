@@ -17,11 +17,17 @@
 #define VERSION_REVISION    1
 #define VERSION_BUILD       1
 
+// 
+// Set these values in the HAPGlobals.hpp
+// 
 #ifndef HAP_PLUGIN_IR_DEVICE_FREQUENCY
 #define HAP_PLUGIN_IR_DEVICE_FREQUENCY 38000
 #endif
 
+#ifndef HAP_PLUGIN_HONEYWELL_DELAY_SEND
 #define HAP_PLUGIN_HONEYWELL_DELAY_SEND 	300  // in m
+#endif
+
 
 // Button 1: Wind Type 
 // 3 Types: 

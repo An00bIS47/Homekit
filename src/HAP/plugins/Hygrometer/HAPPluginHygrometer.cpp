@@ -21,7 +21,7 @@
 // and power it (digital pin goes HIGH) only before we do a readout (see the code for this).
 // 
 // 
-// Huzzah32 Pinout:
+// ESP32 Pinout:
 // 14 -> VCC
 // A0 -> GPIO 32
 // 
@@ -37,13 +37,36 @@
 #define VERSION_REVISION    5
 #define VERSION_BUILD       1
 
-#define HAP_PLUGIN_HYGROMTER_REFERENCE      2550    // value if put in a glass of water
+// 
+// Set these values in the HAPGlobals.hpp
+// 
+#ifndef HAP_PLUGIN_HYGROMETER_USE_DUMMY
+#define HAP_PLUGIN_HYGROMETER_USE_DUMMY 	0
+#endif
 
-#define HAP_PLUGIN_HYGROMETER_PIN_VCC       A6	// 14
-#define HAP_PLUGIN_HYGROMETER_PIN_ADC       A7	// 32
+
+#ifndef HAP_PLUGIN_HYGROMTER_REFERENCE
+#define HAP_PLUGIN_HYGROMTER_REFERENCE      		2550    // value if put in a glass of water
+#endif
+
+#ifndef HAP_PLUGIN_HYGROMETER_PIN_VCC
+#define HAP_PLUGIN_HYGROMETER_PIN_VCC       		A6	// 14
+#endif
+
+#ifndef HAP_PLUGIN_HYGROMETER_PIN_ADC
+#define HAP_PLUGIN_HYGROMETER_PIN_ADC       		A7	// 32
+#endif
+
+#ifndef HAP_HYGROMETER_LEAK_SENSOR_ENABLED
+#define HAP_HYGROMETER_LEAK_SENSOR_ENABLED  		1		// enable leak sensor for hygrometer
+#endif
+
+#ifndef HAP_HYGROMETER_LEAK_PERCENTAGE
+#define HAP_HYGROMETER_LEAK_PERCENTAGE				35		// Level when a "leak" notification is triggered
+#endif
 
 #ifndef HAP_DEBUG_HYGROMETER
-#define HAP_DEBUG_HYGROMETER 1
+#define HAP_DEBUG_HYGROMETER 0
 #endif
 
 HAPPluginHygrometer::HAPPluginHygrometer(){
@@ -58,7 +81,15 @@ HAPPluginHygrometer::HAPPluginHygrometer(){
     _version.revision   = VERSION_REVISION;
     _version.build      = VERSION_BUILD;
 
-	_humidityValue = nullptr;
+	_humidityValue 		= nullptr;
+
+#if HAP_HYGROMETER_LEAK_SENSOR_ENABLED		
+	_leakSensor			= nullptr;
+	_leakSensorEnabled  = true;
+#else
+	_leakSensorEnabled  = false;
+#endif
+
 }
 
 
@@ -75,6 +106,9 @@ bool HAPPluginHygrometer::begin(){
     // ADC
     pinMode(HAP_PLUGIN_HYGROMETER_PIN_ADC, INPUT);
     // analogReadResolution(12);    // 12 is already the default value 
+#else
+	LogI("Using Hygrometer dummy!", true);
+	randomSeed(analogRead(HAP_PLUGIN_HYGROMETER_PIN_ADC));	
 #endif
 	return true;
 }
@@ -112,9 +146,18 @@ void HAPPluginHygrometer::handleImpl(bool forced){
 
 #endif
 
+#if HAP_HYGROMETER_LEAK_SENSOR_ENABLED
+	
+	if (_leakSensorEnabled) {
+		if (percentage < HAP_HYGROMETER_LEAK_PERCENTAGE) {
+			_leakSensor->setValue("1");
+		} else {
+			_leakSensor->setValue("0");
+		}
+	}
 
 
-
+#endif
     setValue(_humidityValue->iid, _humidityValue->value(), String(percentage));
 }
 
@@ -138,11 +181,43 @@ void HAPPluginHygrometer::setValue(int iid, String oldValue, String newValue){
 HAPAccessory* HAPPluginHygrometer::initAccessory(){
 	LogD("\nInitializing plugin: " + _name + " ...", false);
 
-	String sn = HAPDeviceID::serialNumber("HY", "001");    
+	String sn = HAPDeviceID::serialNumber("HY", String(HAP_PLUGIN_HYGROMETER_PIN_VCC) + String(HAP_PLUGIN_HYGROMETER_PIN_VCC));    
 
 	_accessory = new HAPAccessory();	
 	auto callbackIdentify = std::bind(&HAPPlugin::identify, this, std::placeholders::_1, std::placeholders::_2);	
 	_accessory->addInfoService("Hygrometer", "ACME", "YL-69", sn, callbackIdentify, version());
+
+
+	// 
+	// Leak Sensor
+	// 
+#if HAP_HYGROMETER_LEAK_SENSOR_ENABLED	
+	HAPService* leakService = new HAPService(HAP_SERVICE_LEAK_SENSOR);
+	_accessory->addService(leakService);
+
+	
+	stringCharacteristics *leakServiceName = new stringCharacteristics(HAP_CHARACTERISTIC_NAME, permission_read, 0);
+	leakServiceName->setValue("Hygrometer Sensor");
+	_accessory->addCharacteristics(leakService, leakServiceName);
+
+	uint8_t validValues[] = {0, 1};	// 0 = no Leak detected , 1 = leak detected
+	_leakSensor = new uint8Characteristics(HAP_CHARACTERISTIC_LEAK_DETECTED, permission_read|permission_notify, 0, 1, 1, unit_none, 2, validValues);
+	_leakSensor->setValue("0");
+	_accessory->addCharacteristics(leakService, _leakSensor);
+
+	// stringCharacteristics *humServiceName = new stringCharacteristics(HAP_CHARACTERISTIC_NAME, permission_read, 0);
+	// humServiceName->setValue("Soil Moisture Sensor");
+	// _accessory->addCharacteristics(humidityService, humServiceName);
+
+	_humidityValue = new floatCharacteristics(HAP_CHARACTERISTIC_CURRENT_RELATIVE_HUMIDITY, permission_read|permission_notify, 0, 100, 0.1, unit_percentage);
+	_humidityValue->setValue("0.0");
+
+	auto callbackChangeHum = std::bind(&HAPPluginHygrometer::changeHum, this, std::placeholders::_1, std::placeholders::_2);
+	//_humidityValue->valueChangeFunctionCall = std::bind(&changeHum);
+	_humidityValue->valueChangeFunctionCall = callbackChangeHum;
+	_accessory->addCharacteristics(leakService, _humidityValue);
+
+#else
 
 	//
 	// Soil Moisture
@@ -162,6 +237,9 @@ HAPAccessory* HAPPluginHygrometer::initAccessory(){
 	_humidityValue->valueChangeFunctionCall = callbackChangeHum;
 	_accessory->addCharacteristics(humidityService, _humidityValue);
 
+#endif
+
+
 	//
 	// FakeGato
 	// 	
@@ -177,30 +255,64 @@ HAPAccessory* HAPPluginHygrometer::initAccessory(){
 }
 
 HAPConfigValidationResult HAPPluginHygrometer::validateConfig(JsonObject object){
-    return HAPPlugin::validateConfig(object);
+
+#if HAP_HYGROMETER_LEAK_SENSOR_ENABLED	
+    HAPConfigValidationResult result;
+
+
+    result = HAPPlugin::validateConfig(object);
+    if (result.valid == false) {
+        return result;
+    }
+    result.valid = false;
+    
+    // plugin._name.leakEnabled
+    if (object.containsKey("leakEnabled") && !object["leakEnabled"].is<bool>()) {
+        result.reason = "plugins." + _name + ".leakEnabled is not a bool";
+        return result;
+    }
+
+    result.valid = true;
+    return result;
+#else	
+	return HAPPlugin::validateConfig(object);
+#endif
+
 }
 
 JsonObject HAPPluginHygrometer::getConfigImpl(){
 	LogD(HAPServer::timeString() + " " + _name + "->" + String(__FUNCTION__) + " [   ] " + "Get config implementation", true);
 
-    DynamicJsonDocument doc(1);
+    DynamicJsonDocument doc(128);
+
+#if HAP_HYGROMETER_LEAK_SENSOR_ENABLED		
+    doc["leakEnabled"] = _leakSensorEnabled;
+#endif
 
 #if HAP_DEBUG_CONFIG
     serializeJson(doc, Serial);
     Serial.println();
 #endif
 
-	doc.shrinkToFit();
+    doc.shrinkToFit();
 	return doc.as<JsonObject>();
 }
 
 void HAPPluginHygrometer::setConfigImpl(JsonObject root){
+    
+#if HAP_HYGROMETER_LEAK_SENSOR_ENABLED	
+	if (root.containsKey("leakEnabled")){
+        // LogD(" -- password: " + String(root["password"]), true);
+        _leakSensorEnabled = root["leakEnabled"].as<bool>();
+    }
+#endif
 
 }
 
 
 bool HAPPluginHygrometer::fakeGatoCallback(){		
-	return _fakegato.addEntry("0", _humidityValue->value(), "0");
+	// return _fakegato.addEntry(0x02, "0", _humidityValue->value(), "0");
+	return _fakegato.addEntry(_humidityValue->value());
 }
 
 

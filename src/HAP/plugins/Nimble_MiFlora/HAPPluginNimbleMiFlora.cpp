@@ -17,6 +17,9 @@
 #define VERSION_BUILD       4
 
 
+// 
+// Set these values in the HAPGlobals.hpp
+// 
 
 #if HAP_PLUGIN_MIFLORA_ENABLE_SCANNER 
 
