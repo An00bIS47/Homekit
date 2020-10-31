@@ -64,11 +64,15 @@ def generate_prov_qr_code(config, name, pop, transport="ble"):
     sh(cmd)
 
 def clone_git_repo(url, path, commit=None):
-    print(sh("git clone " + url + " " + path) )
     cwd = os.getcwd()
+    if not os.path.exists(path):
+        print(sh("git clone " + url + " " + path) )
+    
     os.chdir(path)
-    if commit != None:              
+    if commit != None:     
+        sh("git stash")         
         print(sh("git checkout " + commit))
+        sh("git pop")
     print(sh("git submodule update --init --recursive"))
     os.chdir(cwd)
 
