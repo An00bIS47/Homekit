@@ -72,7 +72,7 @@ def clone_git_repo(url, path, commit=None):
     if commit != None:     
         sh("git stash")         
         print(sh("git checkout " + commit))
-        sh("git pop")
+        sh("git stash pop")
     print(sh("git submodule update --init --recursive"))
     os.chdir(cwd)
 
