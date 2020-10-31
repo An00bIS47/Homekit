@@ -58,15 +58,14 @@ def verifySignature(publicKey, signature, bytes_data):
     return vk.verify(signature, bytes_data, hashlib.sha256, sigdecode=sigdecode_der)
 
 
-def buildTLV8(name):
+def buildTLV8(serverCert, verifyKey, rootCA):
     structure = [
-        tlv8.Entry( HAP_KEYSTORE_TYPE.HAP_KEYSTORE_TYPE_CONTAINER_ID.value,                CONTAINER_VERSION ),
-        tlv8.Entry( HAP_KEYSTORE_TYPE.HAP_KEYSTORE_TYPE_ROOT_CA.value,                     readBinaryFile("../../certs/RootCA/ACME CA.cer") ),
-        tlv8.Entry( HAP_KEYSTORE_TYPE.HAP_KEYSTORE_TYPE_ROOT_CA_PUBLIC_KEY_SIGNATURE.value,   readBinaryFile("../../certs/RootCA/Sign/SigningPublicKey.pem") ),
+        tlv8.Entry( HAP_KEYSTORE_TYPE.HAP_KEYSTORE_TYPE_CONTAINER_ID.value,                 CONTAINER_VERSION ),
+        tlv8.Entry( HAP_KEYSTORE_TYPE.HAP_KEYSTORE_TYPE_ROOT_CA.value,                      readBinaryFile(rootCA) ),
+        tlv8.Entry( HAP_KEYSTORE_TYPE.HAP_KEYSTORE_TYPE_ROOT_CA_PUBLIC_KEY_SIGNATURE.value, readBinaryFile(verifyKey) ),
         
-        tlv8.Entry( HAP_KEYSTORE_TYPE.HAP_KEYSTORE_TYPE_DEVICE_WEBSERVER_CERT.value,        readBinaryFile("../../certs/" + name + "/" + name + ".cer") )#,   
-        #tlv8.Entry( HAP_KEYSTORE_TYPE.HAP_KEYSTORE_TYPE_DEVICE_PRIVATE_KEY.value,           readBinaryFile("./certs/devices/esp32-cafeec/esp32-cafeec.privateKey.cer") ),
-        #tlv8.Entry( HAP_KEYSTORE_TYPE.HAP_KEYSTORE_TYPE_DEVICE_PUBLIC_KEY.value,            readBinaryFile("./certs/devices/esp32-cafeec/esp32-cafeec.publicKey.cer") )
+        tlv8.Entry( HAP_KEYSTORE_TYPE.HAP_KEYSTORE_TYPE_DEVICE_WEBSERVER_CERT.value,        readBinaryFile(serverCert) )#,   
+        #tlv8.Entry( HAP_KEYSTORE_TYPE.HAP_KEYSTORE_TYPE_DEVICE_PUBLIC_KEY.value,           readBinaryFile("./certs/devices/esp32-cafeec/esp32-cafeec.publicKey.cer") )
     ]
 
     bytes_data = tlv8.encode(structure)
@@ -76,11 +75,13 @@ def buildTLV8(name):
 
 
 
-def makeKeystore(name):
+def makeKeystoreStructure(serverCert, verifyKey, rootCA):
     
-    bytes_data, structure = buildTLV8(name)  
-    #writeBinaryFile("data.tlv8", bytes_data)
-    
+    bytes_data, structure = buildTLV8(serverCert, verifyKey, rootCA)  
+    #writeBinaryFile("data.tlv8", bytes_data)    
+    return bytes_data, structure
+
+def makeKeystorePre(bytes_data):
     writeBinaryFile("data.tlv8.pre", bytes_data)   
     return bytes_data
 
@@ -124,18 +125,35 @@ parser.add_argument('deviceId',
 parser.add_argument('-c', '--containerId',
                     type=int,
                     help='The container id')
-
+parser.add_argument('-r', '--rootCA',
+                    type=str,
+                    help='The root CA certificate')
+parser.add_argument('-s', '--serverCert',
+                    type=str,
+                    help='The path to the device server cert')
+parser.add_argument('-v', '--verifyKey',
+                    type=str,
+                    help='The signing key')
 args = parser.parse_args()
 
 
 name = args.deviceId #"esp32-CAFEEC"
 CONTAINER_VERSION = args.containerId
 
-print("Building TLV8 ...", end = "");
-bytes_data = makeKeystore(name)
+
+print("   verifyKey:     " + args.verifyKey)
+print("   rootCA:        " + args.rootCA)
+print("   serverCert:    " + args.serverCert)
+
+print("Building TLV8 structure ...", end = "");
+bytes_data, structure = makeKeystoreStructure(args.serverCert, args.verifyKey, args.rootCA)
 print(" ✓ OK")
 
-print("Creating csv  ...", end = "");
+print("Building TLV8 pre ...", end = "");
+bytes_data = makeKeystorePre(bytes_data)
+print(" ✓ OK")
+
+print("Creating truststore csv  ...", end = "");
 containerId = makePartitionCsv(bytes_data, "./truststore.csv")
 print(" ✓ OK - ID: " + containerId)
 

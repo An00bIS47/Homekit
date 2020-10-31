@@ -6,58 +6,69 @@
 
 # Payload information :
 
-# Key	Detail	Values	Required
-# ver	Version of the QR code.	Currently, it must be v1.	Yes
-# name	Name of the device.	PROV_XXXXXX	Yes
-# pop	Proof of possession.	POP value of the device like abcd1234	Optional. Considered empty string if not available in QR code data.
-# transport	Wi-Fi provisioning transport type.	It can be softap or ble.	Yes
-# security	Security for device communication.	It can be 0 or 1 int value.	Optional. Considered Sec1 if not available in QR code data.
-# password	Password of SoftAP device.	Password to connect with SoftAP device.	Optional
+# Key   Detail  Values  Required
+# ver   Version of the QR code. Currently, it must be v1.   Yes
+# name  Name of the device. PROV_XXXXXX Yes
+# pop   Proof of possession.    POP value of the device like abcd1234   Optional. Considered empty string if not available in QR code data.
+# transport Wi-Fi provisioning transport type.  It can be softap or ble.    Yes
+# security  Security for device communication.  It can be 0 or 1 int value. Optional. Considered Sec1 if not available in QR code data.
+# password  Password of SoftAP device.  Password to connect with SoftAP device. Optional
 
 
 # Example Payload:
 # {"ver":"v1","name":"PROV_CE03C0","pop":"abcd1234","transport":"softap"}
-
+import sys
 import qrcode
 import qrcode.image.svg
 import json
 import argparse
+import PIL.Image
+import PIL.ImageDraw
+import PIL.ImageFont
+import os.path
+
+script_dir = os.path.dirname(os.path.realpath(__file__))
 
 def generatePayloadJson(name, pop, security=None, transport="ble", version="v1", password=None):
-	payload = {
-		"ver": version,
-		"name": name,
-		"pop": pop,
-		"transport": transport	
-	}
+    payload = {
+        "ver": version,
+        "name": name,
+        "pop": pop,
+        "transport": transport  
+    }
 
-	if security != None:
-		payload["security"] = security	
-	if transport == "softap" and password != None:
-		payload["password"] = password
+    if security != None:
+        payload["security"] = security  
+    if transport == "softap" and password != None:
+        payload["password"] = password
 
-	print(json.dumps(payload))
-	return payload
+    print(json.dumps(payload))
+    return payload
 
 def generateQRCode(payload, file, method="png"):
-	# Create qr code instance
-	qr = qrcode.QRCode(
-	    version = 1,
-	    error_correction = qrcode.constants.ERROR_CORRECT_M,
-	    box_size = 1,
-	    border = 2,
-	)
-	qr.add_data(json.dumps(payload))
+    # Create qr code instance
+    code = qrcode.QRCode(version=2, border=0, box_size=6,
+                         error_correction=qrcode.constants.ERROR_CORRECT_Q)
+    
+    code.add_data(json.dumps(payload))
+    
 
-	# png
-	qr.make(fit=True)
-	img = qr.make_image()
-	
+    # open template
+    img = PIL.Image.open(os.path.join(script_dir, 'qrcode.png'))
+    # add QR code to it
+    img.paste(code.make_image().get_image(), (63, 63))
 
-	# svg
-	# img = qrcode.make(image_factory=qrcode.image.svg.SvgPathImage)
-	# img = qrcode.make(json.dumps(payload), image_factory=qrcode.image.svg.SvgPathImage)
-	img.save(file)
+    # add password digits
+    setup_code = payload["pop"]
+
+    font = PIL.ImageFont.truetype(os.path.join(script_dir, 'Roboto-Bold.ttf'), 56)
+    draw = PIL.ImageDraw.Draw(img)
+
+    for i in range(4):
+        draw.text((150 + i*50, 355), setup_code[i], font=font, fill=(0, 0, 0))
+        draw.text((150 + i*50, 415), setup_code[i+4], font=font, fill=(0, 0, 0))
+
+    return img
 
 
 parser = argparse.ArgumentParser()
@@ -72,4 +83,5 @@ args = parser.parse_args()
 
 
 payload = generatePayloadJson(name=args.name, pop=args.pop, transport=args.transport, security=args.security, password=args.password, version="v1");
-generateQRCode(payload, args.file)
+qrcodeImage  = generateQRCode(payload, args.file)
+qrcodeImage.save("./" + args.name + ".png")

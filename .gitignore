@@ -106,6 +106,7 @@ utils/update_server/Homekit.bin
 
 ### Apple fonts
 utils/QRCode/Scancardium_2.0.ttf
+utils/QRCode/SFMono-Bold.otf
 
 ### heapGraph.py
 heapGraph.py

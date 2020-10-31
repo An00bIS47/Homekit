@@ -84,12 +84,12 @@ def gen_homekit_qrcode(setup_uri, password):
     # add password digits
     setup_code = password.replace('-', '')
 
-    font = PIL.ImageFont.truetype(os.path.join(script_dir, 'Scancardium_2.0.ttf'), 56)
+    font = PIL.ImageFont.truetype(os.path.join(script_dir, 'SFMono-Bold.otf'), 56)
     draw = PIL.ImageDraw.Draw(img)
 
     for i in range(4):
-        draw.text((170 + i*50, 40), setup_code[i], font=font, fill=(0, 0, 0))
-        draw.text((170 + i*50, 100), setup_code[i+4], font=font, fill=(0, 0, 0))
+        draw.text((170 + i*50, 35), setup_code[i], font=font, fill=(0, 0, 0))
+        draw.text((170 + i*50, 95), setup_code[i+4], font=font, fill=(0, 0, 0))
 
     return img
 

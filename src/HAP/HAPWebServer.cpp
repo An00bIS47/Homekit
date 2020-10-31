@@ -46,6 +46,7 @@ extern const unsigned char server_cert_der_end[] asm("_binary_esp32_CAFEEC_cer_e
 // Private Key
 
 #if HAP_BOARD_HELTEC == 1
+#define HAVE_PRIVATE_KEY=1
 extern const unsigned char server_privateKey_der_start[] asm("_binary_esp32_AF5FA4_privatekey_start");
 extern const unsigned char server_privateKey_der_end[] asm("_binary_esp32_AF5FA4_privatekey_end");
 
@@ -55,6 +56,7 @@ extern const unsigned char server_privateKey_der_end[] asm("_binary_esp32_AF5FA4
 
 
 #if HAP_BOARD_HUZZAH == 1
+#define HAVE_PRIVATE_KEY=1
 extern const unsigned char server_privateKey_der_start[] asm("_binary_esp32_0C9D6C_privatekey_start");
 extern const unsigned char server_privateKey_der_end[] asm("_binary_esp32_0C9D6C_privatekey_end");
 
@@ -64,6 +66,7 @@ extern const unsigned char server_privateKey_der_end[] asm("_binary_esp32_0C9D6C
 
 
 #if HAP_BOARD_SPARKFUN == 1
+#define HAVE_PRIVATE_KEY=1
 extern const unsigned char server_privateKey_der_start[] asm("_binary_esp32_CAFEEC_privatekey_start");
 extern const unsigned char server_privateKey_der_end[] asm("_binary_esp32_CAFEEC_privatekey_end");
 // extern const unsigned char server_publicKey_der_start[] asm("_binary_esp32_CAFEEC_publickey_start");
@@ -71,6 +74,7 @@ extern const unsigned char server_privateKey_der_end[] asm("_binary_esp32_CAFEEC
 #endif
 
 #if HAP_BOARD_SPARKFUN2 == 1
+#define HAVE_PRIVATE_KEY=1
 #if HAP_USING_PLATFORMIO == 0
 extern const unsigned char server_privateKey_der_start[] asm("_binary_esp32_CB3DC4_privatekey_start");
 extern const unsigned char server_privateKey_der_end[] asm("_binary_esp32_CB3DC4_privatekey_end");
@@ -83,13 +87,20 @@ extern const unsigned char server_privateKey_der_end[] asm("_binary_certs_esp32_
 #endif
 
 #if HAP_BOARD_SPARKFUN3 == 1
+#define HAVE_PRIVATE_KEY=1
 extern const unsigned char server_privateKey_der_start[] asm("_binary_esp32_134248_privatekey_start");
 extern const unsigned char server_privateKey_der_end[] asm("_binary_esp32_134248_privatekey_end");
 #endif
 
 #if HAP_BOARD_SPARKFUN4 == 1
+#define HAVE_PRIVATE_KEY=1
 extern const unsigned char server_privateKey_der_start[] asm("_binary_esp32_13994C_privatekey_start");
 extern const unsigned char server_privateKey_der_end[] asm("_binary_esp32_13994C_privatekey_end");
+#endif
+
+#ifndef HAVE_PRIVATE_KEY
+extern const unsigned char server_privateKey_der_start[] asm("_binary_device_privatekey_start");
+extern const unsigned char server_privateKey_der_end[] asm("_binary_device_privatekey_end");
 #endif
 
 #endif // HAP_WEBSERVER_USE_SSL

@@ -1,62 +1,11 @@
-##
-## Espressif ESP32 Partition Table
-##
-## For Homekit
-##
-## Version 1.0
-##
-## Size:      8MB
-##
-## Offset:    52K
-##
-## ota_data    8 K
-## phy         4 K   =    64 K
-## ota 1    2958 K   
-## ota 2    2958 K   = 12768 K
-## nsv_key:    4 K
-## nsv:       32 K
-## ============================
-##               K
-
+## Automatically created by Homekit builder.py
 ## Name,    Type,       SubType,    Offset,     Size,   Flags
-
-## Offset:      0xD000   == 0000D000       =   53248    == 52K
-
-##
-## OTA data
-## required for OTA
-## Name,    Type,       SubType,    Offset,     Size,   Flags
-otadata,    data, 		ota,        0xD000,  	8K
-
-##
-## PHY INIT
-## Name,    Type,       SubType,    Offset,     Size,   Flags
-phy_init, 	data, 		phy,        0xF000,     4K
-
-##
-## OTA 
-##
-## Name,    Type,       SubType,    Offset,     Size,   Flags
-ota_0,      app,        ota_0,      0x10000,    2658K,
-ota_1,      app,        ota_1,      ,           2658K,
-
-##
-## NVS Keys (Preferences Keys)
-##
-## Needed for Preferences 
-## Name,    Type,       SubType,    Offset,     Size,   Flags
-nvs_key,    data,       nvs_keys,   ,           4K,
-
-##
-## NVS (Preferences)
-##
-## Name,    Type,       SubType,    Offset,     Size,   Flags
-nvs,        data,       nvs,        ,           32K,
-
-##
-## NVS (Keystore)
-##
-## 
-## Name,    Type,       SubType,    Offset,     Size,   Flags
-keystore_0, data,       nvs,        ,   32K,
-keystore_1, data,       nvs,        ,   32K,
+otadata,    data,      ota,        0xD000,     8K,
+phy_init,  data,       phy,        0xF000,     4K,
+ota_0,      app,       ota_0,      0x10000,    6384K,
+ota_1,      app,       ota_1,      ,           6384K,
+nvs_key,    data,      nvs_keys,   ,           4K,
+nvs,        data,      nvs,        ,           32K,
+keystore_0, data,      nvs,        0xC95000,   32K,
+keystore_1, data,      nvs,        0xC9D000,   32K,
+spiffs,     data,      spiffs,     ,           2048K,
