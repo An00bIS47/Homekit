@@ -70,9 +70,9 @@ def clone_git_repo(url, path, commit=None):
     
     os.chdir(path)
     if commit != None:     
-        sh("git stash")         
+        #sh("git stash")         
         print(sh("git checkout " + commit))
-        sh("git stash pop")
+        #sh("git stash pop")
     print(sh("git submodule update --init --recursive"))
     os.chdir(cwd)
 
@@ -254,6 +254,7 @@ def make_component_mk(config, pincode, setup_id, pop):
             f.write("# \n")
             f.write("CXXFLAGS += -DARDUINO_FEATHER_ESP32 \n")
             f.write("CXXFLAGS += -I$(PROJECT_PATH)/components/arduino/variants/feather_esp32/ \n")
+            f.write("CXXFLAGS += -I$(PROJECT_PATH)/components/arduino-esp32/variants/feather_esp32/ \n")            
             f.write(" \n")
             f.write("# \n")
             f.write("# Source files \n")
@@ -313,6 +314,10 @@ config = {
         "arduino-esp32": {
             "url": "",
             "commit": None
+        },
+        "esp-nimble-cpp": {
+            "url": "https://github.com/h2zero/esp-nimble-cpp.git",
+            "commit": None
         }
     },
     "truststore": {
@@ -345,6 +350,10 @@ print()
 
 print("Cloning esp-idf ...")
 clone_git_repo(config["repos"]["esp-idf"]["url"], config["idf_path"], config["repos"]["esp-idf"]["commit"])
+print(" ✓ OK")
+
+print("Cloning esp-nimble-cpp ...")
+clone_git_repo(config["repos"]["esp-nimble-cpp"]["url"], config["idf_path"] + "/components/esp-nimble-cpp", config["repos"]["esp-nimble-cpp"]["commit"])
 print(" ✓ OK")
 
 print("Checking component.mk files ...", end="")

@@ -17,8 +17,9 @@
 #include "HAPButton.hpp"
 #include "HAPEncryption.hpp"
 
-
+#if HAP_WIFI_MODE_DEFAULT==1
 #include "../WiFiCredentials.hpp"
+#endif
 
 #include "concat.h"
 
