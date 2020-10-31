@@ -1,3 +1,5 @@
+#!/usr/bin/python
+#-*- coding:utf-8 -*-
 import re
 import subprocess
 import string
@@ -123,7 +125,7 @@ def creating_partitions_csv(project_dir, size):
 
 def get_last_mac_bytes(mac):
     mac = mac.replace(":", "")
-    return mac[:-6]
+    return mac[-6:]
 
 
 def create_certificate(name, path, domain="local"):
@@ -296,9 +298,7 @@ def make_component_mk(config, pincode, setup_id, pop):
 
 config = {
     "python": "python3",
-    "esptool": "/usr/local/bin/esptool.py",
-    "project_dir": os.path.expanduser("~") + "/Development/Homekit",    
-    "certificate_dir": "../../certs",
+    "esptool": "/usr/local/bin/esptool.py",    
     "device_prefix": "esp32-",    
     "domain": "local",
     "repos": {
@@ -317,12 +317,13 @@ config = {
     }
 }   
 
-
+cwd = os.getcwd()
 config["esptool"] = which("esptool.py")
 config["idf_path"] = get_env_variable("IDF_PATH")
-config["build_dir"] = config["project_dir"] + "/build"
-cwd = os.getcwd()
 
+config["project_dir"] = os.path.abspath(os.path.join("..", os.pardir));
+config["build_dir"] = config["project_dir"] + "/build"
+config["certificate_dir"] = config["project_dir"] + "/certs"
 
 print("\nConfiguration used: ")
 print("   current path:   " + cwd)
@@ -339,7 +340,7 @@ print("   esp-idf commit: " + config["repos"]["esp-idf"]["commit"])
 print()
 
 print("Cloning esp-idf ...")
-#clone_git_repo(config["repos"]["esp-idf"]["url"], config["idf_path"], config["repos"]["esp-idf"]["commit"])
+clone_git_repo(config["repos"]["esp-idf"]["url"], config["idf_path"], config["repos"]["esp-idf"]["commit"])
 print(" ✓ OK")
 
 print("Checking component.mk files ...", end="")
