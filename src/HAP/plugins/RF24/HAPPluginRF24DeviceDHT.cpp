@@ -132,8 +132,8 @@ HAPAccessory* HAPPluginRF24DeviceDHT::initAccessory(){
     // Last Update characteristics  (Custom)
     // is bound to temperature service
     // 
-    _lastUpdate = new stringCharacteristics(HAP_CUSTOM_CHARACTERISTICS_LAST_UPDATE, permission_read|permission_notify, 32);
-    _lastUpdate->setDescription("LastUpdate");
+    _lastUpdate = new stringCharacteristics(HAP_CHARACTERISTIC_FAKEGATO_OBSERVATION_TIME, permission_read|permission_notify, 32);
+    _lastUpdate->setDescription("Observation Time");
     _lastUpdate->setValue("Never");
 
     auto callbackChangeLastUpdate = std::bind(&HAPPluginRF24DeviceDHT::changeLastUpdate, this, std::placeholders::_1, std::placeholders::_2);

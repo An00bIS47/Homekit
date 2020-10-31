@@ -49,6 +49,10 @@ public:
 	static bool captiveInitialized();
 	static void handle();
 
+	inline static bool isProvisioned(){
+		return _isProvisioned;
+	}
+
 #if HAP_PIXEL_INDICATOR_ENABLED
 	// static uint32_t getColorForMode(enum HAP_WIFI_MODE mode);
 	// static RgbColor getColorForMode(enum HAP_WIFI_MODE mode);
@@ -64,7 +68,7 @@ private:
 #if HAP_PROVISIONING_ENABLE_BLE == 0	
 	static void eventHandler(WiFiEvent_t event);
 #else
-	static void eventHandler(system_event_t *sys_event, wifi_prov_event_t *prov_event);
+	static void eventHandlerBLEProv(system_event_t *sys_event, wifi_prov_event_t *prov_event);
 #endif
 
 	static void startWPS();
@@ -87,6 +91,7 @@ private:
 	static HTTPServer* _webserver;
 
 	static bool _captiveInitialized;
+	static bool _isProvisioned;
 
 	static std::function<bool(bool)> _callbackBegin;	
 };

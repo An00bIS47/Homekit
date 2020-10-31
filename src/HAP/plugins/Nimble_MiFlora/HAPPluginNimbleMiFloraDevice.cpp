@@ -172,8 +172,8 @@ HAPAccessory* HAPPluginNimbleMiFloraDevice::initAccessory(){
     // Last Update characteristics  (Custom)
     // is bound to temperature service
     // 
-    _lastUpdate = new stringCharacteristics(HAP_CUSTOM_CHARACTERISTICS_LAST_UPDATE, permission_read|permission_notify, 32);
-    _lastUpdate->setDescription("LastUpdate");
+    _lastUpdate = new stringCharacteristics(HAP_CHARACTERISTIC_FAKEGATO_OBSERVATION_TIME, permission_read|permission_notify, 32);
+    _lastUpdate->setDescription("Observation Time");
     _lastUpdate->setValue("Never");
 
     auto callbackChangeLastUpdate = std::bind(&HAPPluginNimbleMiFloraDevice::changeLastUpdate, this, std::placeholders::_1, std::placeholders::_2);
@@ -372,16 +372,23 @@ void HAPPluginNimbleMiFloraDevice::changeHeartbeat(uint8_t oldValue, uint8_t new
     Serial.printf("[MiFlora:%s] New Heartbeat: %d\n", _deviceAddress.c_str(), newValue);
 
     if (oldValue != newValue){
-        uint32_t newInterval = (newValue * 60) * 1000;
-        _interval = newInterval;
+        _interval = (uint32_t)((newValue * 60) * 1000);;
     }
 }
 
 bool HAPPluginNimbleMiFloraDevice::fakeGatoCallback(){
     // LogD(HAPServer::timeString() + " " + "HAPPluginPCA301Device" + "->" + String(__FUNCTION__) + " [   ] " + "fakeGatoCallback()", true);
 
-    return _fakegato.addEntry(0x06, _temperatureValue->value(), _humidityValue->value(), "0");
-	// return true;
+    return _fakegato.addEntry(0x03, _temperatureValue->value(), _humidityValue->value(), "0");
+	// 0102 0202 0302
+	//	|	  |	   +-> Pressure	
+	//  |	  +-> Humidity
+	//  +-> Temp
+	// 
+	// 0x07 => all			= 111
+	// 0x01 => temp			= 001
+	// 0x02 => hum			= 010
+	// 0x04 => pressure		= 100
 }
 
 

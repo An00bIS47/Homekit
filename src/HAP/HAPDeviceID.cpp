@@ -44,3 +44,9 @@ String HAPDeviceID::serialNumber(String type, String id){
     sprintf(serialNumber, "%02X%02X%02X-%s-%s", _deviceID[3], _deviceID[4], _deviceID[5], type.c_str(), id.c_str());
     return String(serialNumber);
 }
+
+String HAPDeviceID::provisioningID(const char* prefix){
+    char provId[6 + 1 + strlen(prefix)];
+    sprintf(provId, "%s%02X%02X%02X", prefix, _deviceID[3], _deviceID[4], _deviceID[5]);
+    return String(provId);
+}

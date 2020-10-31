@@ -133,7 +133,7 @@
  * WiFi
  ********************************************************************/
 #ifndef HAP_WIFI_MODE_DEFAULT
-#define HAP_WIFI_MODE_DEFAULT			1	// 0 = HAPWiFiModeAccessPoint	
+#define HAP_WIFI_MODE_DEFAULT			4	// 0 = HAPWiFiModeAccessPoint	
 #endif										// 1 = HAPWiFiModeMulti
 											// 2 = HAPWiFiModeWPS			-> push button only
 											// 3 = HAPWiFiModeSmartConfig	-> not working with ios13 ?
@@ -146,7 +146,15 @@
 #define HAP_WIFI_CONNECTION_RETRY_DELAY	2000
 #define ESP_WIFI_CONNECTION_TIMEOUT		20000
 
-#define HAP_PROVISIONING_ENABLE_BLE		0
+#define HAP_PROVISIONING_ENABLE_BLE		1
+
+#ifndef HAP_PROVISIONING_POP			
+#define HAP_PROVISIONING_POP			"abcd1234" 		// Proof of possesion
+#endif
+
+#ifndef HAP_PROVISIONING_PREFIX
+#define HAP_PROVISIONING_PREFIX			"PROV_"			// Prefix for provisioning
+#endif
 
 
 /**
@@ -317,12 +325,17 @@
 #define HAP_NTP_SERVER_URL_FALLBACK	"pool.ntp.org"
 #endif
 
+const char* const HAP_NTP_SERVER_URLS[] = {HAP_NTP_SERVER_URL, HAP_NTP_SERVER_URL_FALLBACK};
+#define HAP_NTP_SERVER_URLS_SIZE	2
+
 #ifndef HAP_NTP_TIME_FORMAT
 #define HAP_NTP_TIME_FORMAT			"%Y-%m-%d %H:%M:%S"							// strftime format
 #endif
 
+// get the timezones here:
+// https://remotemonitoringsystems.ca/time-zone-abbreviations.php
 #ifndef HAP_NTP_TZ_INFO
-#define HAP_NTP_TZ_INFO     		"WET-1WEST,M3.5.0/01:00,M10.5.0/01:00"		// timezone for berlin
+#define HAP_NTP_TZ_INFO     		"CET-1CEST-2,M3.5.0/02:00:00,M10.5.0/03:00:00"		// timezone for berlin
 #endif
 
 #endif
