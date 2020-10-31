@@ -1,3 +1,4 @@
 tlv8
 pillow
 esptool
+qrcode

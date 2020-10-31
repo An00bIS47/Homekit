@@ -123,7 +123,7 @@ Add (or replace) the following defines to `$IDF_PATH/components/mbedtls/port/inc
 #define MBEDTLS_CHACHA20_C
 #define MBEDTLS_CHACHAPOLY_C
 ```
-This seems to change with v4.0 of the esp-idf but it is still required for v3.3.x!
+This seems to change with v4.2 of the esp-idf but it is still required for v3.3.x!
 
 
 ## WiFi Provisioning
@@ -575,8 +575,6 @@ WolfSSL is also support but commented out in the makefile. (will be removed comp
 | DHT-sensor-library | 1.3.8 | https://github.com/adafruit/DHT-sensor-library.git | 
 | Adafruit_Sensor | 1.1.1 | https://github.com/adafruit/Adafruit_Sensor.git | 
 | Adafruit_BME280 | 2.0.1 | https://github.com/adafruit/Adafruit_BME280_Library.git | 
-| NeoPixelBus | 2.5.1 | https://github.com/Makuna/NeoPixelBus.git | 
-| Adafruit_NeoPixel | 1.3.4 | https://github.com/adafruit/Adafruit_NeoPixel.git | 
 | rc-switch | 2.6.3 | https://github.com/sui77/rc-switch.git | 
 | ESP8266_Influx_DB | 2.0.0 | https://github.com/An00bIS47/ESP8266_Influx_DB.git | 
 

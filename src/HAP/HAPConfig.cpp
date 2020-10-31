@@ -19,7 +19,10 @@
 #include <SPIFFS.h>
 #endif
 
+#if HAP_WIFI_MODE_DEFAULT == 1
 #include "../WiFiCredentials.hpp"
+#endif
+
 #include "HAPWiFiHelper.hpp"
 
 DynamicJsonDocument HAPConfig::_config = DynamicJsonDocument(HAP_ARDUINOJSON_BUFFER_SIZE);
@@ -45,6 +48,7 @@ void HAPConfig::begin(){
     JsonObject wifi = _config.createNestedObject("wifi");
     wifi["mode"]                = HAP_WIFI_MODE_DEFAULT;
 
+#if HAP_WIFI_MODE_DEFAULT == 1
     if (HAP_WIFI_MODE_DEFAULT == HAP_WIFI_MODE_MULTI) {
         JsonArray wifi_networks     = wifi.createNestedArray("networks");
         JsonObject wifi_networks_0  = wifi_networks.createNestedObject();
@@ -52,6 +56,7 @@ void HAPConfig::begin(){
         wifi_networks_0["ssid"]     = WIFI_SSID;
         wifi_networks_0["password"] = WIFI_PASSWORD;
     }
+#endif
 
     // webserver
     JsonObject webserver = _config.createNestedObject("webserver");
