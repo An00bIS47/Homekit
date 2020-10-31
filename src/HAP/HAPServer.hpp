@@ -40,7 +40,7 @@
 #include "HAPTLV8Types.hpp"
 #include "HAPPlugins.hpp"
 #include "plugins/Plugins.hpp"
-#include "HAPFakegatoFactory.hpp"
+#include "HAPFakeGatoFactory.hpp"
 
 #include "EventManager.h"
 

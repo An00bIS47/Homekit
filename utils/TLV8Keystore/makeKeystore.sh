@@ -1,7 +1,9 @@
 #!/bin/sh
 
 #deviceIds=("esp32-CAFEEC" "esp32-AF5FA4" "esp32-0C9D6C" "esp32-CB3DC4" "esp32-134248" "esp32-13994C")
-deviceIds=("$1")		# ("esp32-13994C")
+deviceIds=()		# ("esp32-13994C")
+deviceIds[${#deviceIds[@]}]="$1"
+
 containerId="$2"		# 1
 
 domain=$3			# "local"
@@ -21,11 +23,11 @@ do
 	python3 $IDF_PATH/components/nvs_flash/nvs_partition_generator/nvs_partition_gen.py generate truststore.csv "$i"/truststore.bin 0x8000 --version 2
 
 	echo "Signing truststore ..."
-	pk_sign "${signingKey}" data.tlv8.pre
+	./pk_sign "${signingKey}" data.tlv8.pre
 	echo "OK"
 
 	echo "Verifying signature ..."
-	pk_verify "${verificationKey}" data.tlv8.pre
+	./pk_verify "${verificationKey}" data.tlv8.pre
 	echo "OK"
 
 	echo "Creating truststore.tlv8 ..."
