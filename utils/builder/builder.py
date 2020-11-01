@@ -314,7 +314,8 @@ def make_empty_keystore():
 
 
 def build_flash_command(command, usb_port):
-    flash_command =  re.sub(r'.*--port\s(\/dev\/.*)\s--baud\s.*', usb_port, command)
+    command_port = re.search(r'.*--port\s(\/dev\/.*)\s--baud\s.*', command)
+    flash_command = command.replace(command_port.group(1), usb_port)
     flash_command + " " + truststore_1_addr + " " + truststore + " " + truststore_2_addr + " " + config["project_dir"] + "/utils/TLV8Keystore/truststore_empty.bin"
     return flash_command
 
