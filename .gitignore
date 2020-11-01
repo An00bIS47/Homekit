@@ -42,7 +42,7 @@ old
 WiFiCredentials.hpp
 
 ### buildnumber ###
-buildnumber
+./buildnumber
 utils/buildnumber/buildnumber
 utils/buildnumber/*.o
 
