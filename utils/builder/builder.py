@@ -41,10 +41,12 @@ def get_device_info(config):
     #print(result)
     matchMAC = re.search(r'MAC:\s([A-Za-z0-9]{2}:[A-Za-z0-9]{2}:[A-Za-z0-9]{2}:[A-Za-z0-9]{2}:[A-Za-z0-9]{2}:[A-Za-z0-9]{2})', result)
     matchFlashSize = re.search(r'Detected flash size:\s(.*)([A-Z]{2})', result)
+    matchUSBPort = re.search(r'Serial port (.*)', result)
     mac = matchMAC.group(1).upper()
     flash_size = int(matchFlashSize.group(1))
     flash_size_unit = matchFlashSize.group(2)
-    return mac, flash_size, flash_size_unit
+    usb_port = matchUSBPort.group(1)
+    return mac, flash_size, flash_size_unit, usb_port
     
 def generate_random_id(size=4, chars=string.ascii_uppercase + string.digits):
     return ''.join(random.choice(chars) for _ in range(size))
@@ -300,6 +302,22 @@ def make_component_mk(config, pincode, setup_id, pop):
             f.write(" \n")  
 
 
+def make_empty_keystore():
+    if not os.path.exists(config["project_dir"] + "/utils/TLV8Keystore/truststore_empty.csv"):
+        with open(config["project_dir"] + "/utils/TLV8Keystore/truststore_empty.csv", "w") as f:
+            f.write("key,type,encoding,value \n")
+            f.write("keystore,namespace,, \n")    
+    if not os.path.exists(config["project_dir"] + "/utils/TLV8Keystore/truststore_empty.bin"):        
+        sh(config["python"] + " $IDF_PATH/components/nvs_flash/nvs_partition_generator/nvs_partition_gen.py generate " + config["project_dir"] + "/utils/TLV8Keystore/truststore_empty.csv" + config["project_dir"] + "/utils/TLV8Keystore/truststore_empty.bin" +" 0x8000 --version 2")
+        return True
+    return False
+
+
+def build_flash_command(command, usb_port):
+    flash_command =  re.sub(r'.*--port\s(\/dev\/.*)\s--baud\s.*', usb_port, command)
+    flash_command + " " + truststore_1_addr + " " + truststore + " " + truststore_2_addr + " " + config["project_dir"] + "/utils/TLV8Keystore/truststore_empty.bin"
+    return flash_command
+
 
 config = {
     "python": "python3",
@@ -361,17 +379,27 @@ check_component_mk(config["project_dir"] + "/components")
 print(" ✓ OK")
 
 
+print("Creating build dir ...", end="")
+if not os.path.exists(config["project_dir"] + "/build")
+    os.mkdir(config["project_dir"] + "/build")
+print(" ✓ OK")
+
 print("Creating KEYSTORE private and public keys ...", end="")   
 sign_priv_key, sign_pub_key = create_truststore_keys("keystore", config["certificate_dir"] + "/TLV8Keystore")
 print(" ✓ OK")
 
+print("Creating empty truststore", end="")
+if make_empty_keystore():
+    print(" ✓ OK")
+else:
+    print(" SKIPPED")
 
 print("Compiling pk_sign and pk_verify", end="")
 compile_pk_sign_and_verify(config)
 print(" ✓ OK")
 
 print("Reading connected ESP32 device ...")
-mac, flash_size, flash_size_unit = get_device_info(config)
+mac, flash_size, flash_size_unit, usb_port = get_device_info(config)
 #print(mac, flash_size, flash_size_unit)
 
 category = 2 # 2 = bridge
@@ -408,7 +436,7 @@ if not os.path.exists(cer_name):
     print("Press ENTER when you are done!")
     input()
 else:
-    print("SKIPPED")
+    print(" SKIPPED")
 
 print("Copying " + priv_key + " to build dir ...", end="")
 shutil.copy(priv_key, config["build_dir"] + "/device.privatekey")
@@ -430,12 +458,13 @@ print(exitcode)
 
 if exitcode == 0:
     print("Building flash command ...", end="")
-    flash_command = flash_command + " " + truststore_1_addr + " " + truststore + " " + truststore_2_addr + " " + config["project_dir"] + "/truststore_empty.bin"    
+    flash_command = build_flash_command(flash_command, usb_port)
     print(" ✓ OK")
+    
     print(flash_command)
 
-    print("Flashing Homekit ...")
-    flash_homekit(config, flash_command)
+    #print("Flashing Homekit ...")
+    #flash_homekit(config, flash_command)
 
 
     print("Creating Homekit QR code ...", end="")
@@ -445,11 +474,19 @@ if exitcode == 0:
     print("Creating provisioning QR code ...", end="")
     generate_prov_qr_code(config, "PROV_" + get_last_mac_bytes(mac), pop, "ble")
     print(" ✓ OK")
-
+else:
+    print("Homekit did not compile successfully!")
+    print("Please go to " + config["project_dir"] + " and execute the following command:")
+    print("make -j8 app")
+    return
 
 print("Removing private key from build dir ...", end="")
 if os.path.exists(config["build_dir"] + "/device.privatekey"):    
     os.remove(config["build_dir"] + "/device.privatekey")
     print(" ✓ OK")
 else:
-    print("SKIPPED")
+    print(" SKIPPED")
+
+print("Done - Homekit compiled successfully!")
+print("To flash Homekit to your device, please execute the following command:")
+print(flash_command)
