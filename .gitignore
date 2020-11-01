@@ -32,6 +32,7 @@ utils/update_server/.*
 ### Backup ###
 *.bak
 *.old
+*.org
 old
 
 ### Log files ###
