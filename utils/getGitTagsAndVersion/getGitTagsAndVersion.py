@@ -14,6 +14,7 @@ data = io.StringIO('\n'.join(line.strip() for line in open("../../.gitmodules", 
 config = configparser.ConfigParser()
 config.readfp(data)
 sections = config.sections()
+cwd = os.getcwd()
 
 with open("init-modules.sh", "w") as f :
     f.write("#!/bin/sh\n")
@@ -32,11 +33,12 @@ with open("init-modules.sh", "w") as f :
 
         #print(submodule_path, name)
         if not submodule_path.startswith("utils"):
-            os.chdir("../../" + submodule_path)
-            out = subprocess.Popen(['git', 'describe', '--abbrev=0', '--tags', '--always'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-            stdout, stderr = out.communicate()
-            
-            version = stdout.decode("utf-8").replace("\n", "")
-            print("| " + name + " | " + version + " | " + url + " | ")
-
+            if os.path.exists("../../" + submodule_path):
+                os.chdir("../../" + submodule_path)
+                out = subprocess.Popen(['git', 'describe', '--abbrev=0', '--tags', '--always'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                stdout, stderr = out.communicate()
+                
+                version = stdout.decode("utf-8").replace("\n", "")
+                print("| " + name + " | " + version + " | " + url + " | ")
+                os.chdir(cwd)
     f.close()

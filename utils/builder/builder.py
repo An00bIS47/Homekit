@@ -368,7 +368,7 @@ print("   esp-idf commit: " + config["repos"]["esp-idf"]["commit"])
 print()
 
 print("Cloning esp-idf ...")
-clone_git_repo(config["repos"]["esp-idf"]["url"], config["idf_path"], config["repos"]["esp-idf"]["commit"])
+#clone_git_repo(config["repos"]["esp-idf"]["url"], config["idf_path"], config["repos"]["esp-idf"]["commit"])
 print(" ✓ OK")
 
 print("Cloning esp-nimble-cpp ...")
@@ -476,7 +476,7 @@ if exitcode == 0:
     generate_prov_qr_code(config, "PROV_" + get_last_mac_bytes(mac), pop, "ble")
     print(" ✓ OK")
 else:
-    print("Homekit did not compile successfully!")
+    print("\n\n\nHomekit did not compile successfully!")
     print("Please go to " + config["project_dir"] + " and execute the following command:")
     print("make -j8 app")
     sys.exit(1)
@@ -488,6 +488,6 @@ if os.path.exists(config["build_dir"] + "/device.privatekey"):
 else:
     print(" SKIPPED")
 
-print("Done - Homekit compiled successfully!")
+print("\n\n\nDone - Homekit compiled successfully!")
 print("To flash Homekit to your device, please execute the following command:")
 print(flash_command)

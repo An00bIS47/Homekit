@@ -35,11 +35,11 @@ View the QR code for pairing and the sensor values on an SSD1306 OLED Display.
 
 
 #### MiFlora
-Connects MiFlora Flower bluetooth devices to Homekit via Nimble. This plugin exposes a temperature, moisture, fertility and light itensity sensor with EVE history support.
+Connects MiFlora Flower bluetooth devices to Homekit via Nimble. This plugin exposes a temperature, moisture, fertility and light itensity sensor with EVE history support using Nimble 
 
 
 #### RCSwitch
-Exposes multiple RC outlets as a outlet with EVE history and schedule support. 
+Exposes multiple RC outlets as a outlet service with EVE history and schedule support. 
 
 
 #### InfluxDB
@@ -63,17 +63,23 @@ Currently the following services supported EVE history
 * Switches
 
 
-
 ## Required Versions
-* esp-idf v4.x.x
+* esp-idf v3.3
 * arduino-esp32 v1.0.4
+
+
+## macOS
+The Makefile uses `gfind` to look for source code file for compilation. You need to install it via:
+```shell
+brew install findutils
+```
 
 
 ## Build instructions
 
-This is a application to be used with `Espressif IoT Development Framework (ESP-IDF)` and `arduino-esp32`. 
+This is a application to be used with `Espressif IoT Development Framework (ESP-IDF)` and `arduino-esp32` as a component! 
 
-Please check ESP-IDF docs for getting started instructions and install instructions.
+Please check ESP-IDF docs for getting started and install instructions.
 
 [Espressif IoT Development Framework](https://github.com/espressif/esp-idf)
 
@@ -84,15 +90,50 @@ Once the ESP-IDF is installed:
 $ git clone https://github.com/An00bIS47/Homekit
 $ cd Homekit
 $ git submodule update --init --recursive
+$ git clone https://github.com/espressif/arduino-esp32.git components/arduino-esp32
 $ make menuconfig
-$ make app flash monitor
 ```
 
-## macOS
-The Makefile uses `gfind` to look for source code file for compilation. You need to install it via:
+## Builder script
+The builder script takes care of the build process requirements. macOS and Debian is working currently.
+It will do the following for you
+ 
+* Clone the esp-nimble-cpp into $IDF_PATH/components/esp-nimble-cpp
+* Take care of the component.mk file for all components
+* Create a private key and a CSR for this devices
+* Create a private and public key for truststore verification if they do not exist
+* Create an empty truststore and a truststore for this device
+* Generate a random PIN CODE and SETUP ID for Homekit
+* Generate a random proof-of-posession for BLE provisioning
+* Create QR Codes for pairing via Homekit and BLE provisioning
+* Create the correct partitions.csv for your device
+* Create the correct partition
+* Embed the private key for this device into the firmware
+* Compile the firmware
+* And print the flash command 
+
+Note: You have to define which plugins you want to use via the `HAPGlobals.hpp` and sign the CSR yourself!
+
+The builder script requires the following packages:
 ```shell
-brew install findutils
+$ sudo apt-get install libjpeg-dev mbedtls python3
 ```
+The builder script is located in `utils/builder/` and called `builder.py`. 
+To install the required packages call
+```shell
+$ pip3 install -r requirements.txt
+```
+
+To run the script enter the following command
+```shell
+$ python3 builder.py
+```
+
+Once it has finished successful, you can also build the firmware without creating the requirements
+```shell
+$ make -j8 app
+```
+
 
 ## Linker Errors
 If you encounter errors regarding compiling the components, add a file called `components.mk` to the affected directory and specify where to find the source files.
@@ -545,7 +586,7 @@ The on-board button can be used for:
 
 ## Indicator NeoPixel
 
-If enabled, a NeoPixel is used for indicating which WiFi mode in use.
+If enabled, a NeoPixel is used for indicating which WiFi mode is currently in use.
 
 Once online it will blink 3 times with the color green (0x00FF00) and will go off.
 
@@ -568,15 +609,21 @@ WolfSSL is also support but commented out in the makefile. (will be removed comp
 
 | Name | Version | URL |
 |-------------|-------------|----------------|
+| arduino | 1.0.4 | https://github.com/espressif/arduino-esp32.git | 
+| ArduinoJson | v6.15.2 | https://github.com/bblanchon/ArduinoJson.git | 
 | esp32_https_server | v1.0.0 | https://github.com/fhessel/esp32_https_server.git | 
 | QRCode | v0.0.1 | https://github.com/phildubach/QRCode.git | 
-| ArduinoJson | v6.14.0 | https://github.com/bblanchon/ArduinoJson.git | 
 | SSD_13XX | aed648a0430a1cdd9c4c2512f7971b0dddaeb26f | https://github.com/sumotoy/SSD_13XX | 
-| DHT-sensor-library | 1.3.8 | https://github.com/adafruit/DHT-sensor-library.git | 
-| Adafruit_Sensor | 1.1.1 | https://github.com/adafruit/Adafruit_Sensor.git | 
-| Adafruit_BME280 | 2.0.1 | https://github.com/adafruit/Adafruit_BME280_Library.git | 
+| DHT-sensor-library | 1.3.10 | https://github.com/adafruit/DHT-sensor-library.git | 
+| Adafruit_Sensor | 1.1.4 | https://github.com/adafruit/Adafruit_Sensor.git | 
 | rc-switch | 2.6.3 | https://github.com/sui77/rc-switch.git | 
 | ESP8266_Influx_DB | 2.0.0 | https://github.com/An00bIS47/ESP8266_Influx_DB.git | 
+| Adafruit_BME280 | 2.0.2 | https://github.com/adafruit/Adafruit_BME280_Library.git | 
+| esp8266-oled-ssd1306 | 4.1.0 | https://github.com/ThingPulse/esp8266-oled-ssd1306.git | 
+| ArduinoStreamUtils | v1.4.1 | https://github.com/bblanchon/ArduinoStreamUtils.git | 
+| IRremote8266 | v2.7.9 | https://github.com/crankyoldgit/IRremoteESP8266.git | 
+| RF24 | v1.3.7 | https://github.com/An00bIS47/RF24.git | 
+| FastLED | 3.3.3 | https://github.com/FastLED/FastLED.git |
 
 
 ## Tests
