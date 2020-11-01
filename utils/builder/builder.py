@@ -308,7 +308,7 @@ def make_empty_keystore():
             f.write("key,type,encoding,value \n")
             f.write("keystore,namespace,, \n")    
     if not os.path.exists(config["project_dir"] + "/utils/TLV8Keystore/truststore_empty.bin"):        
-        sh(config["python"] + " $IDF_PATH/components/nvs_flash/nvs_partition_generator/nvs_partition_gen.py generate " + config["project_dir"] + "/utils/TLV8Keystore/truststore_empty.csv" + config["project_dir"] + "/utils/TLV8Keystore/truststore_empty.bin" +" 0x8000 --version 2")
+        sh(config["python"] + " $IDF_PATH/components/nvs_flash/nvs_partition_generator/nvs_partition_gen.py generate " + config["project_dir"] + "/utils/TLV8Keystore/truststore_empty.csv " + config["project_dir"] + "/utils/TLV8Keystore/truststore_empty.bin" + " 0x8000 --version 2")
         return True
     return False
 
@@ -380,7 +380,7 @@ print(" ✓ OK")
 
 
 print("Creating build dir ...", end="")
-if not os.path.exists(config["project_dir"] + "/build")
+if not os.path.exists(config["project_dir"] + "/build"):
     os.mkdir(config["project_dir"] + "/build")
 print(" ✓ OK")
 
@@ -478,7 +478,7 @@ else:
     print("Homekit did not compile successfully!")
     print("Please go to " + config["project_dir"] + " and execute the following command:")
     print("make -j8 app")
-    return
+    sys.exit(1)
 
 print("Removing private key from build dir ...", end="")
 if os.path.exists(config["build_dir"] + "/device.privatekey"):    
